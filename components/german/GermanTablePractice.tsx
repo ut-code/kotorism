@@ -64,6 +64,8 @@ export type BlankRatioOption = "25" | "50" | "75" | "100";
 export default function GermanTablePractice({ tables }: { tables: GrammarTableData[] }) {
   // カテゴリ選択状態（"all" または 各カテゴリのタイトル）
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  // 学習内容の先頭位置（カテゴリ選択後の自動スクロール先）
+  const contentRef = useRef<HTMLDivElement>(null);
   // 空欄の指定割合（25%, 50%, 75%, 100%）
   const [blankRatio, setBlankRatio] = useState<BlankRatioOption>("50");
 
@@ -172,6 +174,10 @@ export default function GermanTablePractice({ tables }: { tables: GrammarTableDa
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     resetPractice(cat, blankRatio);
+    // 設定パネルが長いと画面が切り替わったことに気付きにくいので、描画後に学習内容の位置までスクロールする
+    requestAnimationFrame(() => {
+      contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   /**
@@ -406,6 +412,8 @@ export default function GermanTablePractice({ tables }: { tables: GrammarTableDa
       />
 
       {/* 文法表完成グリッド */}
+      <div ref={contentRef} className="scroll-mt-24" />
+
       <div className="flex flex-col gap-10">
         {filteredTables.map((table, tIdx) => (
           <div key={table.categoryTitle} className="overflow-x-auto">
