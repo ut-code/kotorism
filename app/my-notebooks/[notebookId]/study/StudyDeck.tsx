@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useOptimistic, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useOptimistic, useRef, useState } from "react";
 import Link from "next/link";
 
-import { incrementViewCount, toggleStar } from "../../actions";
+import { incrementViewCount, setDailyGoal, toggleMastered, toggleStar } from "../../actions";
 import EyeIcon from "@/components/EyeIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
@@ -17,6 +17,9 @@ type Card = {
   starred: boolean;
   starCount: number;
   viewCount: number;
+  // 「覚えた」にしているか／今日（日本時間）覚えたにしたか。1日の学習目標の達成数に使う
+  mastered: boolean;
+  masteredToday: boolean;
 };
 
 // 暗記学習で実際に1枚のカード（多角柱）として出題する単位。
@@ -60,10 +63,15 @@ export default function StudyDeck({
   notebookId,
   columns,
   cards,
+  dailyGoal,
+  masteredToday,
 }: {
   notebookId: string;
   columns: string[];
   cards: Card[];
+  // 1日に覚える単語数の目標と、今日すでに覚えた単語数（全単語帳の合計）
+  dailyGoal: number;
+  masteredToday: number;
 }) {
   // 見出し語1件（1つのCard）を、意味などの行数に応じて複数の出題単位（StudyUnit）に展開する
   const units = useMemo(() => {
@@ -133,6 +141,29 @@ export default function StudyDeck({
     await toggleStar(currentCard.id, notebookId);
   }
 
+  // 「覚えた」の切り替えも★と同様に楽観的に反映する。
+  // サーバーから届く値（cards）は上書きせず、変更したカードの分だけを差分として持つ
+  const [masteredOverrides, setMasteredOverride] = useOptimistic<
+    Record<string, boolean>,
+    { id: string; mastered: boolean }
+  >({}, (state, next) => ({ ...state, [next.id]: next.mastered }));
+  const cardsById = useMemo(() => new Map(cards.map((card) => [card.id, card])), [cards]);
+  const displayedMastered = masteredOverrides[currentCard.id] ?? currentCard.mastered;
+  async function handleToggleMastered() {
+    setMasteredOverride({ id: currentCard.id, mastered: !displayedMastered });
+    await toggleMastered(currentCard.id, notebookId);
+  }
+
+  // 目標に対する達成数。「覚えた」にした日時が今日のものだけを数えるため、
+  // 切り替えたカードごとに「今日の分としての増減」を足し引きする
+  let masteredTodayDisplayed = masteredToday;
+  for (const [id, mastered] of Object.entries(masteredOverrides)) {
+    const base = cardsById.get(id)?.masteredToday ?? false;
+    masteredTodayDisplayed += (mastered ? 1 : 0) - (base ? 1 : 0);
+  }
+  const [displayedGoal, setDisplayedGoal] = useOptimistic(dailyGoal);
+  const goalPercent = Math.min(100, Math.round((masteredTodayDisplayed / displayedGoal) * 100));
+
   // ★を付けた回数（displayedStar.starCount）に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
   const { colors: starColors } = useStarColors();
   const starColor = starColorFor(displayedStar.starCount, starColors);
@@ -170,6 +201,50 @@ export default function StudyDeck({
 
   return (
     <div className="flex flex-col items-center gap-6">
+      {/* 1日の学習目標と達成率（実際に「覚えた」にした単語数） */}
+      <div className="w-full max-w-[320px]">
+        <div className="flex items-center justify-between text-xs text-zinc-500">
+          <span>
+            今日覚えた単語: {masteredTodayDisplayed} / {displayedGoal}（{goalPercent}%）
+          </span>
+          <label className="flex items-center gap-1">
+            目標
+            <select
+              value={displayedGoal}
+              onChange={(e) => {
+                const goal = Number(e.target.value);
+                startTransition(async () => {
+                  setDisplayedGoal(goal);
+                  await setDailyGoal(goal, notebookId);
+                });
+              }}
+              className="rounded-lg border border-black/[.08] bg-white px-1 py-0.5 text-xs dark:border-white/[.145] dark:bg-zinc-900"
+            >
+              {[...new Set([1, 3, 5, 10, 20, 30, 50, displayedGoal])]
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}語/日
+                  </option>
+                ))}
+            </select>
+          </label>
+        </div>
+        <div
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={goalPercent}
+          aria-label="今日の学習目標の達成率"
+          className="mt-1 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+        >
+          <div
+            className="h-full rounded-full bg-coral-500 transition-all"
+            style={{ width: `${goalPercent}%` }}
+          />
+        </div>
+      </div>
+
       {/* 進捗と最初の面選択UI */}
       <div className="flex w-full max-w-[320px] items-center justify-between text-sm text-zinc-500">
         <p>
@@ -301,6 +376,20 @@ export default function StudyDeck({
           </span>
         </div>
       </div>
+
+      <form action={handleToggleMastered}>
+        <button
+          type="submit"
+          aria-pressed={displayedMastered}
+          className={`rounded-full border px-5 py-2 text-sm font-medium transition-colors ${
+            displayedMastered
+              ? "border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600"
+              : "border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+          }`}
+        >
+          {displayedMastered ? "✓ 覚えた" : "覚えた"}
+        </button>
+      </form>
 
       <div className="flex items-center gap-3">
         <button

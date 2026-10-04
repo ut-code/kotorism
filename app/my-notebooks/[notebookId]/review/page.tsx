@@ -6,6 +6,7 @@ import { getNotebookRole } from "@/lib/notebook-access";
 import StudyDeck from "../study/StudyDeck";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
+import { getStudyGoalSummary } from "@/lib/study-goal";
 
 export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebookId]/review">) {
   const user = await requireUser();
@@ -37,12 +38,15 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
   // 表示・フリップ・★の付け外しはすべてクライアント側のStudyDeckが担当するため、
   // ここではサーバーでDBから取得したデータをそのまま整形して渡すだけ
   const columns = normalizeColumns(notebook.columns);
+  const goal = await getStudyGoalSummary(user.id);
   const cards = progressRows.map((progress) => ({
     id: progress.card.id,
     data: normalizeCardData(progress.card.data),
     starred: progress.starred,
     starCount: progress.starCount,
     viewCount: progress.viewCount,
+    mastered: !!progress.masteredAt,
+    masteredToday: !!progress.masteredAt && progress.masteredAt >= goal.since,
   }));
 
   return (
@@ -55,7 +59,13 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
       </p>
 
       <div className="mt-8 w-full">
-        <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} />
+        <StudyDeck
+          notebookId={notebook.id}
+          columns={columns}
+          cards={cards}
+          dailyGoal={goal.dailyGoal}
+          masteredToday={goal.masteredToday}
+        />
       </div>
     </main>
   );

@@ -455,3 +455,37 @@ export async function incrementViewCount(cardId: string, notebookId: string) {
   revalidatePath(`/my-notebooks/${notebookId}/study`);
   revalidatePath(`/my-notebooks/${notebookId}/review`);
 }
+
+// 単語を「覚えた」にする／外す。覚えた日時（masteredAt）を保存し、1日の学習目標の達成数に数える。
+// ★と同様にユーザーごとに独立している
+export async function toggleMastered(cardId: string, notebookId: string) {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "member");
+  await prisma.card.findUniqueOrThrow({ where: { id: cardId, notebookId }, select: { id: true } });
+
+  const progress = await prisma.cardProgress.findUnique({
+    where: { cardId_userId: { cardId, userId: user.id } },
+    select: { masteredAt: true },
+  });
+  const masteredAt = progress?.masteredAt ? null : new Date();
+
+  await prisma.cardProgress.upsert({
+    where: { cardId_userId: { cardId, userId: user.id } },
+    update: { masteredAt },
+    create: { cardId, userId: user.id, masteredAt },
+  });
+
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+  revalidatePath(`/my-notebooks/${notebookId}/review`);
+}
+
+// 1日に覚える単語数の目標を設定する
+export async function setDailyGoal(goal: number, notebookId: string) {
+  const user = await requireUser();
+  const dailyGoal = Number.isFinite(goal) ? Math.min(Math.max(Math.trunc(goal), 1), 100) : 5;
+
+  await prisma.user.update({ where: { id: user.id }, data: { dailyGoal } });
+
+  revalidatePath(`/my-notebooks/${notebookId}/study`);
+  revalidatePath(`/my-notebooks/${notebookId}/review`);
+}

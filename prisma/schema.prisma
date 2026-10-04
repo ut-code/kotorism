@@ -88,6 +88,8 @@ model CardProgress {
   starCount Int      @default(0)
   // 暗記学習モード（/study, /review）でこの単語がカードとして表示された累計回数
   viewCount Int      @default(0)
+  // 「覚えた」にした日時。未設定（null）なら未習得。1日の学習目標の達成数は、この日時が当日のものを数える
+  masteredAt DateTime?
   updatedAt DateTime @updatedAt
 
   @@unique([cardId, userId])
@@ -102,6 +104,8 @@ model User {
   username               String?
   displayUsername        String?
   image                  String?
+  // 1日に覚える単語数の目標（暗記学習画面の達成率表示に使う）
+  dailyGoal              Int                     @default(5)
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   sessions               Session[]

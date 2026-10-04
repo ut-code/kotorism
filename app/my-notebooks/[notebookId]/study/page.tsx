@@ -6,6 +6,7 @@ import { getNotebookRole } from "@/lib/notebook-access";
 import StudyDeck from "./StudyDeck";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
+import { getStudyGoalSummary } from "@/lib/study-goal";
 
 // DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
 export const dynamic = "force-dynamic";
@@ -37,6 +38,7 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
     where: { userId: user.id, card: { notebookId } },
   });
   const progressByCardId = new Map(progressRows.map((progress) => [progress.cardId, progress]));
+  const goal = await getStudyGoalSummary(user.id);
 
   // シャッフルやフリップ等のインタラクションはすべてクライアント側のStudyDeckが担当するため、
   // ここではサーバーでDBから取得したデータをそのまま整形して渡すだけ
@@ -49,6 +51,8 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
       starred: progress?.starred ?? false,
       starCount: progress?.starCount ?? 0,
       viewCount: progress?.viewCount ?? 0,
+      mastered: !!progress?.masteredAt,
+      masteredToday: !!progress?.masteredAt && progress.masteredAt >= goal.since,
     };
   });
 
@@ -60,7 +64,13 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
       <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">暗記学習モード</p>
 
       <div className="mt-8 w-full">
-        <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} />
+        <StudyDeck
+          notebookId={notebook.id}
+          columns={columns}
+          cards={cards}
+          dailyGoal={goal.dailyGoal}
+          masteredToday={goal.masteredToday}
+        />
       </div>
     </main>
   );
