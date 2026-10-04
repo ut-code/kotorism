@@ -24,7 +24,7 @@ type SidebarProps = {
  * 画面上の機能:
  * - ルートパス（`/`）等ではサイドバーを表示しない自動判定
  * - サイドバー全体の折りたたみ（完全閉じる・開く）機能
- * - 言語名クリックでの開閉制御 (State管理)
+ * - 「学習教材」「各言語」横のシェブロンボタンでの開閉制御 (State管理)
  * - usePathnameによるアクティブなルートの判定と視覚的ハイライト (色付け)
  */
 export default function Sidebar({ allSections = {} }: SidebarProps) {
@@ -37,24 +37,28 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
 
   // 現在のURLパスから言語スラッグとセクションスラッグを抽出 (例: /learn/chinese/01 -> ["learn", "chinese", "01"])
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentLanguageSlug = pathSegments[0] === "learn" ? pathSegments[1] : undefined;
-  const currentSectionSlug = pathSegments[0] === "learn" ? pathSegments[2] : undefined;
+  const currentLanguageSlug =
+    pathSegments[0] === "learn" ? pathSegments[1] : undefined;
+  const currentSectionSlug =
+    pathSegments[0] === "learn" ? pathSegments[2] : undefined;
 
   // React Hooks の呼び出しルールを守るため、条件分岐より前にすべてのフックを呼び出す
   // サイドバー自体の折りたたみ状態を管理するState
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
   // 大枠グループのアコーディオン開閉状態を管理するState
-  const [isLearnOpen, setIsLearnOpen] = useState<boolean>(isLearnActive || true);
+  const [isLearnOpen, setIsLearnOpen] = useState<boolean>(true);
 
   // 各言語アコーディオンの開閉状態を管理するState (現在アクセス中の言語は初期状態で自動オープン)
-  const [openLanguages, setOpenLanguages] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    LANGUAGES.forEach((lang) => {
-      initial[lang.languageSlug] = lang.languageSlug === currentLanguageSlug;
-    });
-    return initial;
-  });
+  const [openLanguages, setOpenLanguages] = useState<Record<string, boolean>>(
+    () => {
+      const initial: Record<string, boolean> = {};
+      LANGUAGES.forEach((lang) => {
+        initial[lang.languageSlug] = lang.languageSlug === currentLanguageSlug;
+      });
+      return initial;
+    },
+  );
 
   // TOPページ（/）ではサイドバーを表示しない (フック呼び出しの後に判定)
   if (pathname === "/") {
@@ -69,6 +73,11 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
     }));
   };
 
+  // 言語ページへ遷移する際は、セクション一覧を開いた状態にするハンドラー関数
+  const openLanguage = (slug: string) => {
+    setOpenLanguages((prev) => ({ ...prev, [slug]: true }));
+  };
+
   // サイドバーが閉じられている場合の「開くボタン」を表示
   if (!isSidebarOpen) {
     return (
@@ -79,7 +88,12 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           aria-label="サイドバーを開く"
           className="flex items-center gap-2 rounded-lg border border-black/[.08] p-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-black dark:border-white/[.145] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -105,7 +119,12 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           aria-label="サイドバーを閉じる"
           className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -138,7 +157,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           <div className="flex items-center justify-between">
             <Link
               href="/learn"
-              onClick={() => setIsLearnOpen((prev) => !prev)}
+              onClick={() => setIsLearnOpen(true)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isLearnActive && !currentLanguageSlug
                   ? "bg-[#367588]/10 text-[#367588] dark:bg-[#367588]/20 dark:text-[#367588]"
@@ -147,6 +166,27 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
             >
               学習教材
             </Link>
+            <button
+              type="button"
+              onClick={() => setIsLearnOpen((prev) => !prev)}
+              aria-expanded={isLearnOpen}
+              aria-label="学習教材の言語一覧を開閉"
+              className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
+            >
+              <svg
+                className={`h-4 w-4 transition-transform ${isLearnOpen ? "rotate-90" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
           </div>
 
           {/* ==================== 2-1. 各言語の階層 ==================== */}
@@ -163,10 +203,10 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                 return (
                   <div key={lang.languageSlug}>
                     <div className="flex items-center justify-between">
-                      {/* 言語名のボタン（クリックで言語ページへの遷移とセクション表示のトグル開閉を同時に行う） */}
+                      {/* 言語名のリンク（クリックで言語ページへ遷移し、セクション一覧を開く） */}
                       <Link
                         href={`/learn/${lang.languageSlug}`}
-                        onClick={() => toggleLanguage(lang.languageSlug)}
+                        onClick={() => openLanguage(lang.languageSlug)}
                         className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                           isLangActive && !currentSectionSlug
                             ? "bg-zinc-200/70 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 font-semibold"
@@ -175,6 +215,27 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                       >
                         {lang.label}
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => toggleLanguage(lang.languageSlug)}
+                        aria-expanded={isLangOpen}
+                        aria-label={`${lang.label}のセクション一覧を開閉`}
+                        className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
+                      >
+                        <svg
+                          className={`h-4 w-4 transition-transform ${isLangOpen ? "rotate-90" : ""}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
                     </div>
 
                     {/* ==================== 2-2. 各セクション（項目）の階層 ==================== */}
@@ -183,7 +244,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                         {sections.map((section) => {
                           // 現在選択されているセクションかどうか
                           const isSectionActive =
-                            isLangActive && section.sectionSlug === currentSectionSlug;
+                            isLangActive &&
+                            section.sectionSlug === currentSectionSlug;
 
                           return (
                             <Link
