@@ -80,6 +80,8 @@ function shuffleArray<T>(array: T[]): T[] {
 export default function SpanishFillInPractice({ items }: { items: FillInQuestionItem[] }) {
   // ユーザーが選択した設定状態（カテゴリ・問題数・制限時間）
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  // 学習内容の先頭位置（カテゴリ選択後の自動スクロール先）
+  const contentRef = useRef<HTMLDivElement>(null);
   const [selectedCount, setSelectedCount] = useState<CountOption>("10");
   const [selectedTimer, setSelectedTimer] = useState<TimerOption>("15");
 
@@ -207,6 +209,10 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     resetQuiz(cat, selectedCount, selectedTimer);
+    // 設定パネルが長いと画面が切り替わったことに気付きにくいので、描画後に学習内容の位置までスクロールする
+    requestAnimationFrame(() => {
+      contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const handleCountChange = (count: CountOption) => {
@@ -442,6 +448,8 @@ export default function SpanishFillInPractice({ items }: { items: FillInQuestion
           </div>
         </div>
       </div>
+
+      <div ref={contentRef} className="scroll-mt-24" />
 
       {isFinished ? (
         /* 全問題完了時のスコア結果画面 */
