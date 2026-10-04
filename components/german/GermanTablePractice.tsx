@@ -399,6 +399,9 @@ export default function GermanTablePractice({ tables }: { tables: GrammarTableDa
         </div>
       </div>
 
+      {/* 特殊文字パレットの先頭位置（カテゴリ選択後の自動スクロール先） */}
+      <div ref={contentRef} className="scroll-mt-24" />
+
       {/* 特殊文字ボタンパレット */}
       <SpecialCharPalette
         chars={SPECIAL_KEYS}
@@ -412,8 +415,6 @@ export default function GermanTablePractice({ tables }: { tables: GrammarTableDa
       />
 
       {/* 文法表完成グリッド */}
-      <div ref={contentRef} className="scroll-mt-24" />
-
       <div className="flex flex-col gap-10">
         {filteredTables.map((table, tIdx) => (
           <div key={table.categoryTitle} className="overflow-x-auto">
