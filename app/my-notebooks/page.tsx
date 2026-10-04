@@ -5,6 +5,7 @@ import CreateBlankNotebookForm from "@/components/my-notebooks/CreateBlankNotebo
 import { requireUser } from "@/lib/session";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
+import NotebookGuideButton from "@/components/my-notebooks/NotebookGuideButton";
 
 // DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
 export const dynamic = "force-dynamic";
@@ -40,7 +41,8 @@ export default async function MyNotebooksPage() {
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           単語帳を新規作成し、Excelファイルから単語をまとめて追加できます。
         </p>
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex justify-center gap-3">
+          <NotebookGuideButton />
           <StarColorSettings />
         </div>
       </div>
