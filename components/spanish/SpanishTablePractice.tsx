@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SpecialCharPalette } from "@/components/learn/SpecialCharPalette";
 
 // 文法表データの型定義
 export type GrammarTableRow = {
@@ -398,27 +399,16 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
       </div>
 
       {/* 特殊文字ボタンパレット */}
-      <div className="mb-8 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 text-center dark:border-zinc-800/80 dark:bg-zinc-900/40">
-        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">
-          特殊文字入力パレット (選択中セルへ挿入)
-        </span>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          {SPECIAL_KEYS.map((char) => (
-            <button
-              key={char}
-              type="button"
-              onClick={() => handleInsertSpecialChar(char)}
-              className="h-11 w-11 rounded-xl border border-zinc-300 bg-white text-lg font-bold text-zinc-800 shadow-sm transition-transform active:scale-95 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-            >
-              {char}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2.5 text-xs md:text-sm text-zinc-500 dark:text-zinc-400">
-          💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもアクセント記号（á, é, í, ó, ú, ñ
-          など）へ切り替えられます。
-        </p>
-      </div>
+      <SpecialCharPalette
+        chars={SPECIAL_KEYS}
+        onInsert={handleInsertSpecialChar}
+        hint={
+          <>
+            💡 入力セルで <strong>↑ / ↓ 矢印キー</strong> を押してもアクセント記号（á, é, í, ó, ú, ñ
+            など）へ切り替えられます。
+          </>
+        }
+      />
 
       {/* 文法表完成グリッド */}
       <div className="flex flex-col gap-10">
