@@ -7,6 +7,7 @@ import { incrementViewCount, toggleStar } from "../../actions";
 import EyeIcon from "@/components/EyeIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
+import { useSwipe } from "@/components/UseSwipe";
 import { starColorFor } from "@/lib/star-colors";
 import type { CardData } from "@/lib/card-data";
 import MultiElementCard from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
@@ -168,6 +169,10 @@ export default function StudyDeck({
     setFlipped(false);
   }
 
+  // スマホ向け: カードを左へスワイプで次へ、右へスワイプで前へ。
+  // 端のカードではボタンのdisabledと同様に何もしない（goNext/goPrevが範囲内にクランプする）
+  const swipeHandlers = useSwipe({ onSwipeLeft: goNext, onSwipeRight: goPrev });
+
   return (
     <div className="flex flex-col items-center gap-6">
       {/* 進捗と最初の面選択UI */}
@@ -194,7 +199,7 @@ export default function StudyDeck({
       </div>
       {/* relativeなラッパーで囲み、右上の★ボタンをカードに重ねて絶対配置する。
           ★ボタンはフリップ用ボタンとは別要素（兄弟）なので、クリックがフリップに巻き込まれない */}
-      <div className="relative mx-auto w-[320px]">
+      <div className="relative mx-auto w-[320px] touch-pan-y" {...swipeHandlers}>
         {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
             カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
 

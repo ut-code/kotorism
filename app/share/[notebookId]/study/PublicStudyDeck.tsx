@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSwipe } from "@/components/UseSwipe";
 import Link from "next/link";
 
 import type { CardData } from "@/lib/card-data";
@@ -119,13 +120,16 @@ export default function PublicStudyDeck({
     setFlipped(false);
   }
 
+  // スマホ向け: カードを左へスワイプで次へ、右へスワイプで前へ
+  const swipeHandlers = useSwipe({ onSwipeLeft: goNext, onSwipeRight: goPrev });
+
   return (
     <div className="flex flex-col items-center gap-6">
       <p className="text-sm text-zinc-500 dark:text-zinc-500">
         {index + 1} / {order.length}
       </p>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md touch-pan-y" {...swipeHandlers}>
         {is3DMode ? (
           <div className="my-2 flex flex-col items-center gap-2">
             <MultiElementCard
