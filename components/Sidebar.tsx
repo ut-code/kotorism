@@ -37,10 +37,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
 
   // 現在のURLパスから言語スラッグとセクションスラッグを抽出 (例: /learn/chinese/01 -> ["learn", "chinese", "01"])
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentLanguageSlug =
-    pathSegments[0] === "learn" ? pathSegments[1] : undefined;
-  const currentSectionSlug =
-    pathSegments[0] === "learn" ? pathSegments[2] : undefined;
+  const currentLanguageSlug = pathSegments[0] === "learn" ? pathSegments[1] : undefined;
+  const currentSectionSlug = pathSegments[0] === "learn" ? pathSegments[2] : undefined;
 
   // React Hooks の呼び出しルールを守るため、条件分岐より前にすべてのフックを呼び出す
   // サイドバー自体の折りたたみ状態を管理するState
@@ -50,15 +48,13 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
   const [isLearnOpen, setIsLearnOpen] = useState<boolean>(true);
 
   // 各言語アコーディオンの開閉状態を管理するState (現在アクセス中の言語は初期状態で自動オープン)
-  const [openLanguages, setOpenLanguages] = useState<Record<string, boolean>>(
-    () => {
-      const initial: Record<string, boolean> = {};
-      LANGUAGES.forEach((lang) => {
-        initial[lang.languageSlug] = lang.languageSlug === currentLanguageSlug;
-      });
-      return initial;
-    },
-  );
+  const [openLanguages, setOpenLanguages] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    LANGUAGES.forEach((lang) => {
+      initial[lang.languageSlug] = lang.languageSlug === currentLanguageSlug;
+    });
+    return initial;
+  });
 
   // TOPページ（/）ではサイドバーを表示しない (フック呼び出しの後に判定)
   if (pathname === "/") {
@@ -88,12 +84,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           aria-label="サイドバーを開く"
           className="flex items-center gap-2 rounded-lg border border-black/[.08] p-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-black dark:border-white/[.145] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
         >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -119,12 +110,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           aria-label="サイドバーを閉じる"
           className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -244,8 +230,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                         {sections.map((section) => {
                           // 現在選択されているセクションかどうか
                           const isSectionActive =
-                            isLangActive &&
-                            section.sectionSlug === currentSectionSlug;
+                            isLangActive && section.sectionSlug === currentSectionSlug;
 
                           return (
                             <Link
