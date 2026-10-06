@@ -4,11 +4,11 @@ import { getSessionCookie } from "better-auth/cookies";
 
 // ログイン必須のパス
 const PROTECTED_PREFIX = "/my-notebooks";
-// ログイン済みなら見せる必要のない（アクセス済みなら追い出す）パス
-const AUTH_ROUTES = ["/login", "/signup"];
 
 // Cookieの有無だけを見る楽観的チェック（DBは見ない）。
-// 本当の認可チェックは各ページ・Server Action側（lib/session.ts の requireUser）で行う
+// 本当の認可チェックは各ページ・Server Action側（lib/session.ts の requireUser）で行う。
+// /login・/signup でログイン済みを追い出す処理はここに置かない（Cookieだけ残って
+// セッションが無効だと、requireUser との間でリダイレクトがループするため）
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = getSessionCookie(request);
@@ -19,13 +19,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (AUTH_ROUTES.includes(pathname) && sessionCookie) {
-    return NextResponse.redirect(new URL(PROTECTED_PREFIX, request.url));
-  }
-
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/my-notebooks/:path*", "/login", "/signup"],
+  matcher: ["/my-notebooks/:path*"],
 };
