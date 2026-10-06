@@ -70,10 +70,13 @@ export default function CardFieldsForm({
   columns,
   defaultHead = "",
   defaultRows = [],
+  autoFocusHead = false,
 }: {
   columns: string[];
   defaultHead?: string;
   defaultRows?: Record<string, string>[];
+  // 見出し語の入力欄に最初からフォーカスを当てる（連続して単語を登録するときに使う）
+  autoFocusHead?: boolean;
 }) {
   const headColumn = columns[0] ?? "";
   const bodyColumns = columns.slice(1);
@@ -185,7 +188,12 @@ export default function CardFieldsForm({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <label className="text-xs text-zinc-500 dark:text-zinc-500">{headColumn}</label>
-        <input name="head" defaultValue={defaultHead} className={inputClassName} />
+        <input
+          name="head"
+          defaultValue={defaultHead}
+          autoFocus={autoFocusHead}
+          className={inputClassName}
+        />
       </div>
 
       {bodyColumns.length > 0 && (
