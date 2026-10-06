@@ -11,6 +11,8 @@ export interface ConjugationLanguageConfig<V extends VerbLike, T> {
   // セクション単位の苦手管理（lib/learn/actions.ts）で使う言語スラッグ。省略した言語では進捗を記録しない
   languageSlug?: string;
   persons: readonly string[];
+  // 出題する動詞をまとめて選ぶためのグループ（例: 規則動詞・不規則動詞）。省略するとグループ選択は出ない
+  verbGroups?: { label: string; match: (verb: V) => boolean }[];
   tenseOptions: TenseOption[];
   buildConjugation: (verb: V) => T;
   formsFor: (table: T, mood: string, tense: string) => SixForms;
@@ -49,6 +51,7 @@ export function ConjugationPractice<V extends VerbLike, T>({
 }: ConjugationPracticeProps<V, T>) {
   const {
     persons,
+    verbGroups,
     tenseOptions,
     buildConjugation,
     formsFor,
@@ -66,6 +69,8 @@ export function ConjugationPractice<V extends VerbLike, T>({
   const [selectedVerbIds, setSelectedVerbIds] = useState<Set<string>>(
     () => new Set(verbs.map((v) => v.id)),
   );
+  // 動詞一覧の絞り込み文字列。原形と意味（日本語）のどちらにも部分一致する
+  const [verbQuery, setVerbQuery] = useState("");
   const [selectedTenseKeys, setSelectedTenseKeys] = useState<Set<string>>(
     () => new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))),
   );
@@ -190,8 +195,29 @@ export function ConjugationPractice<V extends VerbLike, T>({
     }
   };
 
-  const setAllVerbs = (on: boolean) =>
-    setSelectedVerbIds(on ? new Set(verbs.map((v) => v.id)) : new Set());
+  // 絞り込み中は、表示されている動詞だけを一括で選択・解除する（絞り込みが無ければ全件が対象）
+  const normalizedQuery = verbQuery.trim().toLowerCase();
+  const visibleVerbs = useMemo(
+    () =>
+      normalizedQuery
+        ? verbs.filter(
+            (v) =>
+              v.infinitive.toLowerCase().includes(normalizedQuery) ||
+              v.meaning.toLowerCase().includes(normalizedQuery),
+          )
+        : verbs,
+    [verbs, normalizedQuery],
+  );
+  const setVerbsSelected = (targets: V[], on: boolean) =>
+    setSelectedVerbIds((prev) => {
+      const next = new Set(prev);
+      for (const v of targets) {
+        if (on) next.add(v.id);
+        else next.delete(v.id);
+      }
+      return next;
+    });
+  const setAllVerbs = (on: boolean) => setVerbsSelected(visibleVerbs, on);
   const setAllTenses = (on: boolean) =>
     setSelectedTenseKeys(
       on ? new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))) : new Set(),
@@ -203,26 +229,63 @@ export function ConjugationPractice<V extends VerbLike, T>({
       <div className="space-y-10">
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">出題する動詞</div>
+            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">
+              出題する動詞
+              <span className="ml-2 text-sm font-normal text-zinc-500 dark:text-zinc-400">
+                {selectedVerbIds.size} / {verbs.length} 語を選択中
+              </span>
+            </div>
             <div className="flex gap-3 text-sm">
               <button
                 type="button"
                 onClick={() => setAllVerbs(true)}
                 className="text-tealblue-600 hover:underline dark:text-tealblue-400"
               >
-                全て選択
+                {normalizedQuery ? "表示中を全て選択" : "全て選択"}
               </button>
               <button
                 type="button"
                 onClick={() => setAllVerbs(false)}
                 className="text-tealblue-600 hover:underline dark:text-tealblue-400"
               >
-                全て解除
+                {normalizedQuery ? "表示中を全て解除" : "全て解除"}
               </button>
             </div>
           </div>
+          {verbGroups && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {verbGroups.map((group) => {
+                const members = verbs.filter(group.match);
+                const allSelected =
+                  members.length > 0 && members.every((v) => selectedVerbIds.has(v.id));
+                return (
+                  <button
+                    key={group.label}
+                    type="button"
+                    onClick={() => setVerbsSelected(members, !allSelected)}
+                    aria-pressed={allSelected}
+                    className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                      allSelected
+                        ? "bg-tealblue-600 text-white hover:bg-tealblue-700"
+                        : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                    }`}
+                  >
+                    {group.label}（{members.length}）
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <input
+            type="search"
+            value={verbQuery}
+            onChange={(e) => setVerbQuery(e.target.value)}
+            placeholder="動詞を検索（原形・意味）"
+            aria-label="動詞を検索"
+            className="mb-3 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 outline-none focus:border-tealblue-400 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-100"
+          />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {verbs.map((v) => (
+            {visibleVerbs.map((v) => (
               <label
                 key={v.id}
                 className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm transition-colors hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:hover:border-tealblue-600"
@@ -242,6 +305,11 @@ export function ConjugationPractice<V extends VerbLike, T>({
               </label>
             ))}
           </div>
+          {visibleVerbs.length === 0 && (
+            <div className="py-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+              「{verbQuery.trim()}」に一致する動詞がありません。
+            </div>
+          )}
         </section>
 
         <section>
