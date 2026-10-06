@@ -22,7 +22,6 @@ export default function SignupForm() {
     setError(null);
 
     const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") ?? "").trim();
     const username = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "");
 
@@ -33,7 +32,8 @@ export default function SignupForm() {
 
     setPending(true);
     const { error } = await authClient.signUp.email({
-      name,
+      // 表示名はユーザー名と共通にする（DBのnameは必須のため同じ値を入れる）
+      name: username,
       email: syntheticEmail(username),
       password,
       username,
@@ -54,20 +54,6 @@ export default function SignupForm() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950"
     >
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          名前
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          autoComplete="name"
-          required
-          className="rounded-lg border border-black/[.08] bg-transparent px-3 py-2 text-sm outline-none focus:border-black/[.3] dark:border-white/[.145] dark:focus:border-white/[.4]"
-        />
-      </div>
-
       <div className="flex flex-col gap-1.5">
         <label htmlFor="username" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           ユーザー名
