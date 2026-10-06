@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bebas_Neue } from "next/font/google";
 
 import HeaderNav from "@/components/HeaderNav";
+import HeaderSearch from "@/components/HeaderSearch";
 import type { HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -46,6 +47,8 @@ export default function Header() {
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {/* PCではヘッダーに検索欄を置く。スマホはハンバーガーメニュー内に表示する */}
+          <HeaderSearch className="hidden w-48 md:block lg:w-60" />
           <nav className="hidden items-center gap-x-4 text-[clamp(1rem,2.2vw,1.125rem)] font-semibold tracking-[0.04em] text-zinc-600 md:flex dark:text-zinc-200">
             {NAV_LINKS.map((link) => (
               <Link

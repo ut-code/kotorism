@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import HeaderSearch from "@/components/HeaderSearch";
 import AuthNavLinks from "@/components/auth/AuthNavLinks";
 import LogoutButton from "@/components/auth/LogoutButton";
 
@@ -84,6 +85,11 @@ export default function HeaderNavClient({ links, userName }: HeaderNavClientProp
           onClick={() => setIsMenuOpen(false)}
           className="absolute inset-x-0 top-full border-b border-black/[.08] bg-white px-6 py-4 shadow-lg md:hidden dark:border-white/[.145] dark:bg-zinc-900"
         >
+          {/* メニュー全体のクリックで閉じる処理（上のonClick）に巻き込まれて、入力欄をタップした瞬間に
+              閉じてしまわないよう、クリックは外へ伝えない。検索を送信したときだけ閉じる */}
+          <div onClick={(e) => e.stopPropagation()} onSubmit={() => setIsMenuOpen(false)}>
+            <HeaderSearch className="mb-3" />
+          </div>
           <nav className="flex flex-col gap-1">
             {links.map((link) => (
               <Link
