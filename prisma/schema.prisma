@@ -28,6 +28,8 @@ model Notebook {
   invites   NotebookInvite[]
 
   @@index([userId])
+
+  @@map("notebooks")
 }
 
 // 単語帳の共同編集者（招待リンク経由で参加したユーザー）。カード・列の追加/編集/削除が可能。
@@ -43,6 +45,8 @@ model NotebookShare {
 
   @@unique([notebookId, userId])
   @@index([userId])
+
+  @@map("notebook_shares")
 }
 
 // 単語帳作成者が発行する、編集可能な共同編集者への招待リンク。トークンを知っていてログイン済みなら
@@ -55,6 +59,8 @@ model NotebookInvite {
   createdAt  DateTime @default(now())
 
   @@index([notebookId])
+
+  @@map("notebook_invites")
 }
 
 // 単語帳内の1単語（1行）分のデータ
@@ -72,6 +78,8 @@ model Card {
   progress   CardProgress[]
 
   @@index([notebookId, position])
+
+  @@map("cards")
 }
 
 // 単語1件に対する、ユーザーごとの学習進捗。単語帳は共同編集者間で共有されるが、
@@ -92,6 +100,8 @@ model CardProgress {
 
   @@unique([cardId, userId])
   @@index([userId, starred])
+
+  @@map("card_progress")
 }
 
 model User {
@@ -115,7 +125,8 @@ model User {
 
   @@unique([email])
   @@unique([username])
-  @@map("user")
+
+  @@map("users")
 }
 
 // 学習教材（/learn/[language]/[sectionSlug]）における、ユーザーごと・セクションごとの学習進捗。
@@ -148,6 +159,8 @@ model SectionProgress {
 
   @@unique([userId, language, sectionSlug])
   @@index([userId, language, needsReview])
+
+  @@map("section_progress")
 }
 
 // 作文セクション（/learn/essay/[language]）での1回分の提出・AI添削結果
@@ -177,6 +190,8 @@ model EssaySubmission {
   createdAt DateTime @default(now())
 
   @@index([userId, language, createdAt])
+
+  @@map("essay_submissions")
 }
 
 // 翻訳セクション（/learn/[language]/02）での1回分の提出・AI添削結果
@@ -210,6 +225,8 @@ model TranslationSubmission {
   createdAt DateTime @default(now())
 
   @@index([userId, language, createdAt])
+
+  @@map("translation_submissions")
 }
 
 model Session {
@@ -225,7 +242,8 @@ model Session {
 
   @@unique([token])
   @@index([userId])
-  @@map("session")
+
+  @@map("sessions")
 }
 
 model Account {
@@ -249,7 +267,8 @@ model Account {
 
   @@unique([issuer, accountId])
   @@index([userId])
-  @@map("account")
+
+  @@map("accounts")
 }
 
 model Verification {
@@ -261,5 +280,6 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
-  @@map("verification")
+
+  @@map("verifications")
 }
