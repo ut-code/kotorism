@@ -78,6 +78,8 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
   const starredCount = cards.filter((card) => card.starred).length;
   // ★の回数が1回でも付いている単語があれば「一括リセット」の導線を出す
   const hasAnyStars = cards.some((card) => card.starCount > 0);
+  // 覚えた単語数（暗記学習で1回以上表示され、★が付いていない単語）
+  const masteredCount = cards.filter((card) => card.viewCount > 0 && !card.starred).length;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
@@ -95,7 +97,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
               {notebook.title}
             </h1>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-              {notebook.cards.length}語
+              {notebook.cards.length}語 ・ 覚えた {masteredCount}語
               {!isOwner && (
                 <span className="ml-2 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                   共同編集者として参加中

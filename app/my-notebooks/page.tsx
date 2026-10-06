@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import CreateBlankNotebookForm from "@/components/my-notebooks/CreateBlankNotebookForm";
 import { requireUser } from "@/lib/session";
+import { countMasteredByNotebook } from "@/lib/mastered";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
 import NotebookGuideButton from "@/components/my-notebooks/NotebookGuideButton";
@@ -32,6 +33,13 @@ export default async function MyNotebooksPage() {
     },
   });
 
+  // 覚えた単語数（暗記学習で表示済みかつ★なし）。自分の単語帳・共有された単語帳をまとめて集計する
+  const masteredByNotebook = await countMasteredByNotebook(user.id, [
+    ...notebooks.map((notebook) => notebook.id),
+    ...sharedNotebooks.map((share) => share.notebook.id),
+  ]);
+  const totalMastered = [...masteredByNotebook.values()].reduce((sum, count) => sum + count, 0);
+
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-24">
       <div className="w-full max-w-2xl text-center">
@@ -41,6 +49,11 @@ export default async function MyNotebooksPage() {
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           単語帳を新規作成し、Excelファイルから単語をまとめて追加できます。
         </p>
+        {totalMastered > 0 && (
+          <p className="mt-2 text-sm font-medium text-coral-700 dark:text-coral-300">
+            これまでに覚えた単語: {totalMastered}語
+          </p>
+        )}
         <div className="mt-4 flex justify-center gap-3">
           <NotebookGuideButton />
           <StarColorSettings />
@@ -76,7 +89,7 @@ export default async function MyNotebooksPage() {
                 <Link href={`/my-notebooks/${notebook.id}`} className="flex-1 text-left">
                   <p className="font-medium text-black dark:text-zinc-50">{notebook.title}</p>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-                    {notebook._count.cards}語
+                    {notebook._count.cards}語 ・ 覚えた {masteredByNotebook.get(notebook.id) ?? 0}語
                   </p>
                 </Link>
                 <DeleteNotebookButton notebookId={notebook.id} />
@@ -108,7 +121,9 @@ export default async function MyNotebooksPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-                    {share.notebook._count.cards}語 ・ {share.notebook.user.name}さんが作成
+                    {share.notebook._count.cards}語 ・ 覚えた{" "}
+                    {masteredByNotebook.get(share.notebook.id) ?? 0}語 ・ {share.notebook.user.name}
+                    さんが作成
                   </p>
                 </Link>
               </li>
