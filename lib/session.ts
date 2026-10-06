@@ -19,3 +19,12 @@ export async function requireUser() {
   }
   return user;
 }
+
+// ログイン済みなら /my-notebooks へ移動する。/login・/signup から使う。
+// Cookieの有無ではなくDB上のセッションで判定するので、無効なCookieが残っていてもループしない
+export async function redirectIfLoggedIn() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect("/my-notebooks");
+  }
+}

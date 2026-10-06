@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { redirectIfLoggedIn } from "@/lib/session";
 import SignupForm from "@/components/auth/SignupForm";
 
 export const metadata: Metadata = {
   title: "新規登録 | Vocabook",
 };
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  await redirectIfLoggedIn();
+
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-24">
       <div className="w-full max-w-sm">
