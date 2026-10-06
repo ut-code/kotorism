@@ -102,19 +102,19 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
           })}
         </div>
 
-        {/* 左側ホバー時の矢印ガイド（前へ＋前の要素） */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-1/2 items-center justify-start pl-3 opacity-0 transition-opacity group-hover:opacity-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 text-xs font-bold text-black backdrop-blur-sm dark:bg-white/10 dark:text-white">
-            <span>◀</span>
-            <span>{prevLabel}</span>
+        {/* 左側ホバー時の矢印ガイド（前へ＋前の要素）。本文と重ならないようカード下端に置き、列名の長さに合わせて幅が伸び、はみ出す分は省略する */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-1/2 items-end justify-start pl-2 pb-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="flex h-6 max-w-full items-center gap-1 rounded-full bg-black/10 px-2 text-xs font-bold whitespace-nowrap text-black backdrop-blur-sm dark:bg-white/10 dark:text-white">
+            <span className="shrink-0">◀</span>
+            <span className="truncate">{prevLabel}</span>
           </span>
         </div>
 
         {/* 右側ホバー時の矢印ガイド（次の要素＋次へ） */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex w-1/2 items-center justify-end pr-3 opacity-0 transition-opacity group-hover:opacity-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/10 text-xs font-bold text-black backdrop-blur-sm dark:bg-white/10 dark:text-white">
-            <span>{nextLabel}</span>
-            <span>▶</span>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex w-1/2 items-end justify-end pr-2 pb-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="flex h-6 max-w-full items-center gap-1 rounded-full bg-black/10 px-2 text-xs font-bold whitespace-nowrap text-black backdrop-blur-sm dark:bg-white/10 dark:text-white">
+            <span className="truncate">{nextLabel}</span>
+            <span className="shrink-0">▶</span>
           </span>
         </div>
       </div>
