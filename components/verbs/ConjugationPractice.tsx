@@ -4,6 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { tenseKey, type SixForms, type TenseOption, type VerbLike } from "@/lib/conjugation/shared";
 import { recordSectionQuizAnswer } from "@/lib/learn/actions";
 import { AccentInput } from "@/components/verbs/AccentInput";
+import {
+  getNotebookHeadwords,
+  listNotebooksForConjugation,
+  type NotebookOption,
+} from "@/lib/conjugation/notebook-actions";
 
 // 言語ごとに異なる部分（人称・時制・活用エンジン・発音・アクセント入力）をまとめた設定。
 // 新しい言語を追加するときは、この形にそって lib/conjugation/<lang>/config.ts を作る
@@ -71,6 +76,14 @@ export function ConjugationPractice<V extends VerbLike, T>({
   );
   // 動詞一覧の絞り込み文字列。原形と意味（日本語）のどちらにも部分一致する
   const [verbQuery, setVerbQuery] = useState("");
+  // 「My単語帳から選ぶ」: ログイン中のみ単語帳の一覧が入る。結果は直近の取り込み結果（一致数・未対応の語）
+  const [notebooks, setNotebooks] = useState<NotebookOption[]>([]);
+  const [notebookImport, setNotebookImport] = useState<{
+    title: string;
+    matched: number;
+    unmatched: string[];
+  } | null>(null);
+  const [importing, setImporting] = useState(false);
   const [selectedTenseKeys, setSelectedTenseKeys] = useState<Set<string>>(
     () => new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))),
   );
@@ -87,6 +100,18 @@ export function ConjugationPractice<V extends VerbLike, T>({
   useEffect(() => {
     return () => {
       if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    listNotebooksForConjugation()
+      .then((list) => {
+        if (!cancelled) setNotebooks(list);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -217,6 +242,30 @@ export function ConjugationPractice<V extends VerbLike, T>({
       }
       return next;
     });
+  // 単語帳の見出し語のうち、この演習で活用できる動詞（原形が一致するもの）だけを出題対象にする。
+  // 一致しなかった語は活用形を持たないため出題できず、結果として一覧で知らせる
+  const selectFromNotebook = async (notebook: NotebookOption) => {
+    setImporting(true);
+    try {
+      const heads = await getNotebookHeadwords(notebook.id);
+      const byInfinitive = new Map(verbs.map((v) => [v.infinitive.toLowerCase(), v]));
+      const matchedIds = new Set<string>();
+      const unmatched: string[] = [];
+      for (const head of heads) {
+        const verb = byInfinitive.get(head.trim().toLowerCase());
+        if (verb) matchedIds.add(verb.id);
+        else unmatched.push(head);
+      }
+      // 一致する動詞が1つも無いときは、今の選択を空にしてしまわないよう変更しない
+      if (matchedIds.size > 0) setSelectedVerbIds(matchedIds);
+      setNotebookImport({ title: notebook.title, matched: matchedIds.size, unmatched });
+    } catch {
+      setNotebookImport({ title: notebook.title, matched: 0, unmatched: [] });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const setAllVerbs = (on: boolean) => setVerbsSelected(visibleVerbs, on);
   const setAllTenses = (on: boolean) =>
     setSelectedTenseKeys(
@@ -274,6 +323,41 @@ export function ConjugationPractice<V extends VerbLike, T>({
                   </button>
                 );
               })}
+            </div>
+          )}
+          {notebooks.length > 0 && (
+            <div className="mb-3 rounded-xl border border-zinc-200 bg-white px-3 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
+              <div className="mb-2 text-xs font-bold text-zinc-600 dark:text-zinc-300">
+                My単語帳の単語から選ぶ
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {notebooks.map((notebook) => (
+                  <button
+                    key={notebook.id}
+                    type="button"
+                    disabled={importing}
+                    onClick={() => selectFromNotebook(notebook)}
+                    className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600 transition-colors hover:bg-tealblue-50 hover:text-tealblue-700 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-tealblue-900/30"
+                  >
+                    {notebook.title}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                単語帳の見出し語のうち、この演習で扱える動詞だけを選択します（一致があれば今の選択は置き換わります）。
+              </div>
+              {notebookImport && (
+                <div className="mt-2 text-xs text-zinc-700 dark:text-zinc-200">
+                  「{notebookImport.title}」: {notebookImport.matched}語を選択しました。
+                  {notebookImport.unmatched.length > 0 && (
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      未対応（{notebookImport.unmatched.length}語）:{" "}
+                      {notebookImport.unmatched.slice(0, 10).join("、")}
+                      {notebookImport.unmatched.length > 10 && " ほか"}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <input
