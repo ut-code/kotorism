@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Bebas_Neue, Shippori_Mincho } from "next/font/google";
 
 import Background from "@/components/background";
 import BookShape from "@/components/book-shape";
+import RecentActivity from "@/components/home/RecentActivity";
 import { MaterialsPreview } from "@/components/home/MaterialsPreview";
 import { StudyModePreview } from "@/components/home/StudyModePreview";
 
@@ -132,6 +134,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ログイン中のみ、最近使った単語帳・学習ページを表示する（未ログイン時は何も出ない） */}
+      <Suspense>
+        <RecentActivity />
+      </Suspense>
 
       {/* カードは縦に並べ、各カードの中で説明文と機能のプレビューを横に並べる。
       プレビューの位置はカードごとに左右交互（My単語帳は右、学習教材は左） */}
