@@ -13,7 +13,6 @@ sql target *query:
     trap 'rm -rf "$tmp"' EXIT
     ssh {{target}} 'c=$(docker ps --filter "name=^{{app_uuid}}" -q | head -n1); test -n "$c" || { echo "container not found" >&2; exit 1; }; docker exec "$c" cat /data/prod.db' > "$tmp/prod.db"
     test -s "$tmp/prod.db" || { echo "Failed to fetch the DB (empty file)" >&2; exit 1; }
-    chmod 444 "$tmp/prod.db"
     q={{quote(query)}}
     if [ -n "$q" ]; then
         sqlite3 -readonly "$tmp/prod.db" "$q"
