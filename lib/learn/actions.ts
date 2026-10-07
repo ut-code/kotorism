@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
+import { recordSectionView as recordSectionViewForUser } from "@/lib/recent-activity";
 import {
   applyManualToggle,
   applyMarkReviewed,
@@ -107,4 +108,12 @@ export async function toggleManualSectionTag(language: string, sectionSlug: stri
   const key: Key = { language, sectionSlug };
   const next = applyManualToggle(await loadState(user.id, key), new Date());
   await saveState(user.id, key, next);
+}
+
+// セクションページを開いたときに呼び、閲覧日時を記録する（トップページの「最近見た学習ページ」用）。
+// 未ログインなら何もしない
+export async function recordSectionView(language: string, sectionSlug: string) {
+  const user = await getCurrentUser();
+  if (!user) return;
+  await recordSectionViewForUser(user.id, language, sectionSlug);
 }
