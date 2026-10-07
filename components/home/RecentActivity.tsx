@@ -1,23 +1,32 @@
 import Link from "next/link";
 
 import { getRecentNotebooks, getRecentSections } from "@/lib/recent-activity";
-import { getCurrentUser } from "@/lib/session";
 
-// ログイン中のユーザーに、最近見た単語帳・学習ページを並べて、すぐ学習を再開できるようにする。
-// 未ログイン、またはまだ何も使っていない場合は何も描画しない。
-// セッションを参照するため、呼び出し側でSuspenseに包んでトップページ全体が動的にならないようにする
-export default async function RecentActivity() {
-  const user = await getCurrentUser();
-  if (!user) return null;
-
+// 最近見た単語帳・学習ページを並べて、すぐ学習を再開できるようにする（/history 用）。
+// まだ何も見ていない場合は、はじめ方の案内を出す
+export default async function RecentActivity({ userId }: { userId: string }) {
   const [notebooks, sections] = await Promise.all([
-    getRecentNotebooks(user.id),
-    getRecentSections(user.id),
+    getRecentNotebooks(userId),
+    getRecentSections(userId),
   ]);
-  if (notebooks.length === 0 && sections.length === 0) return null;
+  if (notebooks.length === 0 && sections.length === 0) {
+    return (
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        まだ閲覧履歴がありません。
+        <Link href="/my-notebooks" className="underline">
+          単語帳
+        </Link>
+        や
+        <Link href="/learn" className="underline">
+          学習ページ
+        </Link>
+        を開くと、ここに表示されます。
+      </p>
+    );
+  }
 
   return (
-    <section className="flex w-full max-w-5xl flex-col gap-6 px-6 pb-12 sm:flex-row">
+    <section className="flex w-full flex-col gap-6 sm:flex-row">
       {notebooks.length > 0 && (
         <div className="flex-1">
           <h2 className="mb-3 text-sm font-semibold tracking-wide text-coral-900 uppercase dark:text-coral-100">
