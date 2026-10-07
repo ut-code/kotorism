@@ -1,5 +1,6 @@
 import { getLanguage } from "@/app/learn/languages";
 import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
+import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
 import { getSections } from "@/app/learn/content";
 
 import SectionNav from "./SectionNav";
@@ -16,6 +17,7 @@ export default async function FrenchSectionLayout({ children }: { children: Reac
       <div className="flex w-full max-w-3xl items-center justify-between">
         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{language?.label}</p>
         <SectionReviewControls />
+        <SectionViewTracker />
       </div>
       <article className="french-content mt-8 w-full max-w-3xl rounded-2xl border border-black/[.08] bg-white p-8 text-left shadow-sm dark:border-white/[.145] dark:bg-zinc-950 sm:p-10">
         {children}

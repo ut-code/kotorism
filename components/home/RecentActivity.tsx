@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getRecentNotebooks, getRecentSections } from "@/lib/recent-activity";
 import { getCurrentUser } from "@/lib/session";
 
-// ログイン中のユーザーに、最近使った単語帳・学習ページを並べて、すぐ学習を再開できるようにする。
+// ログイン中のユーザーに、最近見た単語帳・学習ページを並べて、すぐ学習を再開できるようにする。
 // 未ログイン、またはまだ何も使っていない場合は何も描画しない。
 // セッションを参照するため、呼び出し側でSuspenseに包んでトップページ全体が動的にならないようにする
 export default async function RecentActivity() {
@@ -21,13 +21,13 @@ export default async function RecentActivity() {
       {notebooks.length > 0 && (
         <div className="flex-1">
           <h2 className="mb-3 text-sm font-semibold tracking-wide text-coral-900 uppercase dark:text-coral-100">
-            最近使った単語帳
+            最近見た単語帳
           </h2>
           <ul className="flex flex-col gap-2">
             {notebooks.map((notebook) => (
               <li key={notebook.id}>
                 <Link
-                  href={`/my-notebooks/${notebook.id}/study`}
+                  href={`/my-notebooks/${notebook.id}`}
                   className="block rounded-2xl border border-coral-200 bg-white px-5 py-3 text-left font-medium text-black transition-all hover:-translate-y-0.5 hover:border-coral-300 hover:shadow-lg hover:shadow-coral-100 dark:border-coral-900/40 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:border-coral-700/60 dark:hover:shadow-none"
                 >
                   {notebook.title}
@@ -40,7 +40,7 @@ export default async function RecentActivity() {
       {sections.length > 0 && (
         <div className="flex-1">
           <h2 className="mb-3 text-sm font-semibold tracking-wide text-tealblue-900 uppercase dark:text-tealblue-100">
-            最近使った学習ページ
+            最近見た学習ページ
           </h2>
           <ul className="flex flex-col gap-2">
             {sections.map((section) => (

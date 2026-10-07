@@ -135,7 +135,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ログイン中のみ、最近使った単語帳・学習ページを表示する（未ログイン時は何も出ない） */}
+      {/* ログイン中のみ、最近見た単語帳・学習ページを表示する（未ログイン時は何も出ない） */}
       <Suspense>
         <RecentActivity />
       </Suspense>
