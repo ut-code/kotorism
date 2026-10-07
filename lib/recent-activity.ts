@@ -5,7 +5,7 @@ import { getLanguage } from "@/app/learn/languages";
 import { prisma } from "@/lib/prisma";
 
 const RECENT_NOTEBOOK_LIMIT = 3;
-const RECENT_SECTION_LIMIT = 4;
+const RECENT_SECTION_LIMIT = 3;
 // 削除・改名・アクセス権の喪失で表示できない履歴が混ざっても、上限件数をそろえられるよう多めに読む
 const SCAN_FACTOR = 3;
 
