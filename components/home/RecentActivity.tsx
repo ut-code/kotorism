@@ -14,11 +14,11 @@ export default async function RecentActivity({ userId }: { userId: string }) {
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         まだ閲覧履歴がありません。
         <Link href="/my-notebooks" className="underline">
-          単語帳
+          My単語帳
         </Link>
         や
         <Link href="/learn" className="underline">
-          学習ページ
+          学習教材
         </Link>
         を開くと、ここに表示されます。
       </p>
@@ -29,8 +29,8 @@ export default async function RecentActivity({ userId }: { userId: string }) {
     <section className="flex w-full flex-col gap-6 sm:flex-row">
       {notebooks.length > 0 && (
         <div className="flex-1">
-          <h2 className="mb-3 text-sm font-semibold tracking-wide text-coral-900 uppercase dark:text-coral-100">
-            最近見た単語帳
+          <h2 className="mb-3 text-sm font-semibold tracking-wide text-coral-900 dark:text-coral-100">
+            My単語帳
           </h2>
           <ul className="flex flex-col gap-2">
             {notebooks.map((notebook) => (
@@ -48,8 +48,8 @@ export default async function RecentActivity({ userId }: { userId: string }) {
       )}
       {sections.length > 0 && (
         <div className="flex-1">
-          <h2 className="mb-3 text-sm font-semibold tracking-wide text-tealblue-900 uppercase dark:text-tealblue-100">
-            最近見た学習ページ
+          <h2 className="mb-3 text-sm font-semibold tracking-wide text-tealblue-900 dark:text-tealblue-100">
+            学習教材
           </h2>
           <ul className="flex flex-col gap-2">
             {sections.map((section) => (
