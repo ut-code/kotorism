@@ -1,26 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bebas_Neue, Shippori_Mincho } from "next/font/google";
 
 import Background from "@/components/background";
 import BookShape from "@/components/book-shape";
+import SplashScreen from "@/components/SplashScreen";
 import { MaterialsPreview } from "@/components/home/MaterialsPreview";
 import { StudyModePreview } from "@/components/home/StudyModePreview";
 import { getCurrentUser } from "@/lib/session";
-
-// トップページのメインコピー「Vocabook」専用の見出しフォント（映画ポスター風の存在感を演出）
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas-neue",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-// キャッチコピー専用の明朝体（洋画の邦題コピーのような、字間の空いた上品な佇まいを演出）
-const shipporiMincho = Shippori_Mincho({
-  variable: "--font-shippori-mincho",
-  subsets: ["latin"],
-  weight: "500",
-});
 
 // ボタン内の、ホバー中に右へ流れ続ける矢印（アニメーションはglobals.cssのvb-arrow-*）
 function FlowArrow() {
@@ -78,6 +64,7 @@ export default async function Home() {
 
   return (
     <main className="flex flex-1 flex-col items-center bg-zinc-50 dark:bg-black">
+      <SplashScreen />
       {/* 上padding・高さはglobals.cssの.vb-heroで指定（スマホでは1画面ぴったりの高さ） */}
       <section className="vb-hero relative flex w-full flex-col items-center overflow-hidden px-6 pb-10 text-center sm:pb-24">
         <Background />
@@ -88,20 +75,20 @@ export default async function Home() {
           <div className="relative flex flex-col items-center gap-6">
             <BookShape />
             <span
-              className={`${shipporiMincho.variable} inline-flex items-center gap-3 text-xs tracking-[0.3em] text-zinc-500 [font-family:var(--font-shippori-mincho)] dark:text-zinc-500`}
+              className="inline-flex items-center gap-3 font-serif text-xs font-medium tracking-[0.3em] text-zinc-500 dark:text-zinc-500"
             >
               <span className="h-px w-6 bg-zinc-300 dark:bg-zinc-700" />
               多言語対応 語学暗記アプリ
               <span className="h-px w-6 bg-zinc-300 dark:bg-zinc-700" />
             </span>
             <h1
-              className={`${bebasNeue.variable} relative tracking-[0.06em] text-black [font-family:var(--font-bebas-neue)] dark:text-zinc-50`}
+              className="relative tracking-[0.06em] text-black dark:text-zinc-50"
               style={{ textShadow: "0 2px 24px rgba(0,0,0,0.12)", fontSize: "var(--vb-title)" }}
             >
-              Vocabook
+              ことりずむ
             </h1>
             <p
-              className={`${shipporiMincho.variable} max-w-xl text-[13px] leading-8 tracking-[0.08em] text-zinc-600 sm:text-lg sm:leading-9 sm:tracking-[0.15em] [font-family:var(--font-shippori-mincho)] dark:text-zinc-400`}
+              className="max-w-xl font-serif text-[13px] font-medium leading-8 tracking-[0.08em] text-zinc-600 sm:text-lg sm:leading-9 sm:tracking-[0.15em] dark:text-zinc-400"
               // VOCABOOKの見出し(h1)はBebas Neueのディセンダー分の余白が下に大きく、
               // gap-6だけだと文字の見た目より間隔が広く見えるため、フォントサイズ(--vb-title)に
               // 比例させて少し引き上げて詰めている
@@ -121,7 +108,7 @@ export default async function Home() {
               href="/my-notebooks"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-coral-500 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-coral-600 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              単語帳を作ってみる
+              ログインして使ってみる
               {/* 幅の狭いスマホではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
@@ -131,7 +118,7 @@ export default async function Home() {
               href="/learn"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-tealblue-600 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-tealblue-700 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              教材を見てみる
+              ログインなしで学習する
               {/* 幅の狭いスマホではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
@@ -148,7 +135,7 @@ export default async function Home() {
           <Link
             href="/my-notebooks"
             className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="単語帳を作ってみる"
+            aria-label="ログインして使ってみる"
           />
 
           <div className="flex flex-col gap-6 sm:flex-1">
@@ -172,7 +159,7 @@ export default async function Home() {
           <Link
             href="/learn"
             className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="学習教材を見てみる"
+            aria-label="ログインなしで学習する"
           />
 
           <MaterialsPreview>

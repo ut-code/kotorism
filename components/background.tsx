@@ -1,19 +1,6 @@
-import { Fraunces } from "next/font/google";
-
-/* 4言語（vocabulary/vocabulaire/Wortschatz/vocabulario、book/livre/Buch/libro）に共通で使うフォント。
-next/font/googleは中国語フォントに不具合があるため、中国語（词汇・书）はOSの標準フォント。*/
-const bookFont = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-book",
-});
-
 const vocabularyWords = ["vocabulary", "词汇", "vocabulaire", "Wortschatz", "vocabulario"];
 
 const bookWords = ["book", "书", "livre", "Buch", "libro"];
-
-function isCJK(word: string) {
-  return /[\u4E00-\u9FFF]/.test(word);
-}
 
 // 単語ごとの見た目上の横幅を文字数から概算（1文字あたりのem係数。
 // CJKは全角文字なので、フォントによらず送り幅がちょうど1emになる）
@@ -156,9 +143,7 @@ function WaveCurve({
       {items.map(({ word, delaySeconds }, i) => (
         <span
           key={`${word}-${i}`}
-          className={`vb-wave-item vb-wave-item--${curve.shape} whitespace-nowrap ${
-            isCJK(word) ? "font-serif" : bookFont.className
-          } ${className}`}
+          className={`vb-wave-item vb-wave-item--${curve.shape} whitespace-nowrap font-serif ${className}`}
           style={{
             top: curve.baselineTop,
             fontSize: `clamp(${curve.fontSizeMinRem}rem, ${curve.fontSizeVw}vw, ${curve.fontSizeMaxRem}rem)`,
