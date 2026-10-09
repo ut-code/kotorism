@@ -5,6 +5,7 @@ import Link from "next/link";
 import HeaderNav from "@/components/HeaderNav";
 import type { HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
+import BrandName from "@/components/brand-name";
 
 const NAV_LINKS: HeaderNavLink[] = [
   {
@@ -32,7 +33,7 @@ export default function Header() {
             className="h-10 w-auto object-contain"
           />
           <span className="inline-block self-center text-[clamp(1.2rem,4.5vw,2.125rem)] tracking-[0.06em]">
-            ことりずむ
+            <BrandName />
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

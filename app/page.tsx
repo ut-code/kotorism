@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import Background from "@/components/background";
+// デザイン調整中のため、背景の動く文字のアニメーションを一時的に外している
+// import Background from "@/components/background";
 import BookShape from "@/components/book-shape";
+import BrandName from "@/components/brand-name";
+import ShapeDivider from "@/components/shape-divider";
 import SplashScreen from "@/components/SplashScreen";
+// デザイン調整中のため、見出し後ろの流体シェイプを一時的に外している
+// import TitleBlob from "@/components/title-blob";
 import { MaterialsPreview } from "@/components/home/MaterialsPreview";
 import { StudyModePreview } from "@/components/home/StudyModePreview";
 import { getCurrentUser } from "@/lib/session";
@@ -67,7 +72,10 @@ export default async function Home() {
       <SplashScreen />
       {/* 上padding・高さはglobals.cssの.vb-heroで指定（スマホでは1画面ぴったりの高さ） */}
       <section className="vb-hero relative flex w-full flex-col items-center overflow-hidden px-6 pb-10 text-center sm:pb-24">
-        <Background />
+        {/* <Background /> */}
+        {/* デザイン調整中: ヘッダー直下に垂れ下がる波形の区切り。
+        position・height・widthPercent・fillClassName・flipXで見た目を試せる */}
+        <ShapeDivider widthPercent={184.5} height={159} />
         <div className="relative z-10 flex max-w-3xl flex-col items-center gap-6">
           {/* 本の形は、バッジ・見出し・説明文をまとめたこのdivにぶら下げる。このdivは中身の
           実際の幅（VOCABOOKか説明文の広い方）と高さにシュリンクラップされるため、
@@ -83,7 +91,8 @@ export default async function Home() {
               className="relative tracking-[0.06em] text-black dark:text-zinc-50"
               style={{ textShadow: "0 2px 24px rgba(0,0,0,0.12)", fontSize: "var(--vb-title)" }}
             >
-              ことりずむ
+              {/* <TitleBlob /> */}
+              <BrandName />
             </h1>
             <p
               className="max-w-xl font-serif text-[13px] font-medium leading-8 tracking-[0.08em] text-zinc-600 sm:text-lg sm:leading-9 sm:tracking-[0.15em] dark:text-zinc-400"

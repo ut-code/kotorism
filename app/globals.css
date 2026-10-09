@@ -21,6 +21,8 @@
   --font-sans: var(--font-noto-sans-jp);
   --font-serif: var(--font-shippori-mincho), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono);
+  --font-brand-koto: var(--font-hina-mincho), ui-serif, serif;
+  --font-brand-rism: var(--font-murecho), var(--font-noto-sans-jp), sans-serif;
 }
 
 @theme {
@@ -230,7 +232,9 @@ body {
 /* トップページのヒーロー（VOCABOOKの見出し）のレイアウト用の値。
 --vb-title: 見出しのフォントサイズ。説明文の位置・背景の弧の中心など、
   見出しに合わせて配置するものはこの値の倍数で指定している。
-  スマホでは画面幅いっぱい近くまで大きく（22vw）、sm以上ではボタンを置く分だけ小さくする。
+  「ことりずむ」（全角5文字 + 字間0.06em ≒ 5.3em幅）が画面からはみ出さないよう、
+  スマホでは画面幅の8割ほど（15vw）、sm以上では画面幅に合わせて伸ばしつつ、
+  大きな画面で大きくなりすぎないよう上限（8rem）を設ける。
 --vb-hero-pt: ヒーローの上padding。
   スマホではヒーローを1画面ぴったり（100svhからヘッダーの高さ73pxを引いた高さ）にして
   下のカードがスクロールして初めて見えるようにし、中身（バッジ〜ボタン）はその中で上下中央に置く。
@@ -240,7 +244,7 @@ body {
 --vb-h1-top: ヒーロー上端からh1の行ボックス上端までの距離（背景の弧の中心の計算に使う）。
   上padding + バッジの行の高さ(16px) + gap-6(24px)。 */
 .vb-hero {
-  --vb-title: 22vw;
+  --vb-title: 15vw;
   --vb-hero-pt: max(40px, calc((100svh - 73px - 236px - 1.222 * var(--vb-title)) / 2));
   --vb-h1-top: calc(var(--vb-hero-pt) + 40px);
   min-height: calc(100svh - 73px);
@@ -249,7 +253,7 @@ body {
 
 @media (min-width: 640px) {
   .vb-hero {
-    --vb-title: 12vw;
+    --vb-title: min(11vw, 8rem);
     --vb-hero-pt: 96px;
     min-height: 0;
   }
@@ -414,6 +418,19 @@ VOCABOOKの実際の文字の高さの2倍になるよう決めた値: 0.72 * 18
   .vb-wave-item {
     animation: none;
   }
+}
+
+/* ロゴ文字「りずむ」の縁の虹色（components/brand-name.tsx）。プリズムで分かれた光を表す */
+.vb-brand-rainbow {
+  background-image: linear-gradient(
+    100deg,
+    #ff6b6b 0%,
+    #f7a440 20%,
+    #e2c63b 40%,
+    #4cc38a 60%,
+    #3fa7d6 80%,
+    #7c6cf0 100%
+  );
 }
 
 /* LP表示前のスプラッシュ画面（components/SplashScreen.tsx）。
