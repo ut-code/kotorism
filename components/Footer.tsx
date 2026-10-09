@@ -1,9 +1,10 @@
 //花沢
 import Link from "next/link";
 
+const CONTACT_LINK = { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "お問い合わせ" };
+
 const NAV_LINKS = [
-  { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "お問い合わせ" },
-  { href: "https://utcode.net/", label: "ut.code();" },
+  { href: "https://utcode.net/", label: "ut.code();とは" },
   {
     href: "https://x.com/utokyo_code",
     label: (
@@ -47,7 +48,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-black/[.08] bg-white dark:border-white/[.145] dark:bg-zinc-600">
       <div className="px-[5%] pt-5 pb-3">
-        {/* 画面幅によらず、1行目にSNSアイコン、2行目にリンク、3行目にコピーライトを中央揃えで縦に並べる */}
+        {/* 画面幅によらず、1行目にSNSアイコンとお問い合わせ、2行目にut.code();関連のリンク、3行目にコピーライトを中央揃えで縦に並べる */}
         <div className="flex flex-col items-center gap-2.5 sm:gap-3">
           <div className="flex items-center justify-center gap-x-4 text-black sm:gap-x-5 dark:text-zinc-100">
             {SOCIAL_LINKS.map(({ href, label, icon: Icon }) => (
@@ -62,6 +63,12 @@ export default function Footer() {
                 <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </a>
             ))}
+            <Link
+              href={CONTACT_LINK.href}
+              className="inline-block text-sm font-semibold tracking-[0.04em] sm:text-xl"
+            >
+              {CONTACT_LINK.label}
+            </Link>
           </div>
 
           <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm font-semibold tracking-[0.04em] text-black sm:gap-x-8 sm:text-xl dark:text-zinc-100">
@@ -73,7 +80,7 @@ export default function Footer() {
           </nav>
 
           <div className="flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:text-xl dark:text-zinc-400">
-            <span>© {new Date().getFullYear()}</span>
+            <span>©︎{new Date().getFullYear()}</span>
             <span className="leading-none tracking-[0.06em]">ことりずむ</span>
           </div>
         </div>
