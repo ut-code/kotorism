@@ -74,9 +74,7 @@ export default async function Home() {
           本の形がどの画面幅でも文字全体を覆う */}
           <div className="relative flex flex-col items-center gap-6">
             <BookShape />
-            <span
-              className="inline-flex items-center gap-3 font-serif text-xs font-medium tracking-[0.3em] text-zinc-500 dark:text-zinc-500"
-            >
+            <span className="inline-flex items-center gap-3 font-serif text-xs font-medium tracking-[0.3em] text-zinc-500 dark:text-zinc-500">
               <span className="h-px w-6 bg-zinc-300 dark:bg-zinc-700" />
               多言語対応 語学暗記アプリ
               <span className="h-px w-6 bg-zinc-300 dark:bg-zinc-700" />

@@ -31,9 +31,7 @@ export default function Header() {
             height={32}
             className="h-10 w-auto object-contain"
           />
-          <span
-            className="inline-block self-center text-[clamp(1.2rem,4.5vw,2.125rem)] tracking-[0.06em]"
-          >
+          <span className="inline-block self-center text-[clamp(1.2rem,4.5vw,2.125rem)] tracking-[0.06em]">
             ことりずむ
           </span>
         </Link>

@@ -24,7 +24,14 @@ export default function SplashScreen() {
       aria-hidden="true"
     >
       <div className="vb-splash-logo flex flex-col items-center gap-4">
-        <Image src="/logo-dummy.png" alt="" width={517} height={624} preload className="h-20 w-auto" />
+        <Image
+          src="/logo-dummy.png"
+          alt=""
+          width={517}
+          height={624}
+          preload
+          className="h-20 w-auto"
+        />
         <span className="text-3xl font-semibold tracking-[0.2em] text-zinc-800">ことりずむ</span>
       </div>
     </div>
