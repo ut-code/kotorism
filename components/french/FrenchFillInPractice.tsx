@@ -372,7 +372,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                 onClick={() => handleCategoryChange("all")}
                 className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                   selectedCategory === "all"
-                    ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                    ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                     : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -385,7 +385,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                   onClick={() => handleCategoryChange(cat)}
                   className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedCategory === cat
-                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                       : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -411,7 +411,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                   onClick={() => handleCountChange(opt.value as CountOption)}
                   className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedCount === opt.value
-                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                       : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -439,7 +439,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                   onClick={() => handleTimerChange(opt.value as TimerOption)}
                   className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedTimer === opt.value
-                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                       : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -459,14 +459,16 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
           <h3 className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-50">演習終了！</h3>
           <p className="mt-4 text-xl text-zinc-700 dark:text-zinc-300">
             スコア:{" "}
-            <span className="font-bold text-teal-600 dark:text-teal-400 text-2xl">{score}</span> /{" "}
-            {questions.length} (
+            <span className="font-bold text-tealblue-600 dark:text-tealblue-400 text-2xl">
+              {score}
+            </span>{" "}
+            / {questions.length} (
             {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%)
           </p>
           <button
             type="button"
             onClick={() => resetQuiz(selectedCategory, selectedCount, selectedTimer)}
-            className="mt-8 inline-flex items-center rounded-xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+            className="mt-8 inline-flex items-center rounded-xl bg-tealblue-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-tealblue-700 dark:bg-tealblue-500 dark:hover:bg-tealblue-600"
           >
             もう一度挑戦する
           </button>
@@ -492,7 +494,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                   className={`text-base font-extrabold px-2.5 py-0.5 rounded-md ${
                     timeLeft !== null && timeLeft <= 5
                       ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400 animate-pulse"
-                      : "bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300"
+                      : "bg-tealblue-50 text-tealblue-700 dark:bg-tealblue-950 dark:text-tealblue-300"
                   }`}
                 >
                   {timeLeft !== null ? `${timeLeft}秒` : "-"}
@@ -502,7 +504,9 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
 
             <span>
               正解数:{" "}
-              <strong className="text-base text-teal-600 dark:text-teal-400">{score}</strong>
+              <strong className="text-base text-tealblue-600 dark:text-tealblue-400">
+                {score}
+              </strong>
             </span>
           </div>
 
@@ -511,7 +515,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
               <div
                 className={`h-full transition-all duration-1000 ease-linear ${
-                  timeLeft !== null && timeLeft <= 5 ? "bg-rose-500" : "bg-teal-500"
+                  timeLeft !== null && timeLeft <= 5 ? "bg-rose-500" : "bg-tealblue-500"
                 }`}
                 style={{ width: `${timerPercentage}%` }}
               />
@@ -520,7 +524,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
 
           {/* 出題カード表示 */}
           <div className="mt-8 text-center">
-            <span className="inline-block rounded-full bg-teal-50 px-4 py-1.5 text-sm font-bold text-teal-700 dark:bg-teal-950/70 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+            <span className="inline-block rounded-full bg-tealblue-50 px-4 py-1.5 text-sm font-bold text-tealblue-700 dark:bg-tealblue-950/70 dark:text-tealblue-300 border border-tealblue-200 dark:border-tealblue-800">
               {currentQuestion?.categoryTitle}
             </span>
             <div className="mt-5 text-3xl md:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 leading-snug">
@@ -542,7 +546,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                 onChange={(e) => setUserAnswer(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="空欄に入る適切な語形を入力..."
-                className="w-full rounded-2xl border-2 border-zinc-300 bg-white px-5 py-4 text-center text-2xl font-semibold text-zinc-900 outline-none transition-colors focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 disabled:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-teal-400 dark:disabled:bg-zinc-800"
+                className="w-full rounded-2xl border-2 border-zinc-300 bg-white px-5 py-4 text-center text-2xl font-semibold text-zinc-900 outline-none transition-colors focus:border-tealblue-500 focus:ring-4 focus:ring-tealblue-500/20 disabled:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-tealblue-400 dark:disabled:bg-zinc-800"
               />
 
               {/* 特殊文字ボタンキーボード */}
@@ -613,7 +617,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                 <button
                   type="button"
                   onClick={goNext}
-                  className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+                  className="rounded-2xl bg-tealblue-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-tealblue-700 dark:bg-tealblue-500 dark:hover:bg-tealblue-600"
                 >
                   {currentIndex + 1 < questions.length ? "次の問題へ" : "結果を見る"}
                 </button>
@@ -622,7 +626,7 @@ export default function FrenchFillInPractice({ items }: { items: FillInQuestionI
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+                    className="rounded-2xl bg-tealblue-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-tealblue-700 dark:bg-tealblue-500 dark:hover:bg-tealblue-600"
                   >
                     回答する
                   </button>

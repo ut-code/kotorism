@@ -51,7 +51,12 @@ export default function Quiz() {
             <button
               key={index}
               onClick={() => handleSelect(index)}
-              className="rounded-xl border p-3 text-left"
+              // 選んだ選択肢は色を変えて、どれを選んだか分かるようにする
+              className={`rounded-xl border p-3 text-left transition-colors ${
+                selectedIndex === index
+                  ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
+                  : "border-zinc-200 bg-white hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50"
+              }`}
             >
               {choice}
             </button>

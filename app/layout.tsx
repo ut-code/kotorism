@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Hina_Mincho, Murecho, Noto_Sans_JP, Shippori_Mincho } from "next/font/google";
+import { Geist_Mono, Hina_Mincho, Noto_Sans_JP, Shippori_Mincho } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Sidebar from "@/components/Sidebar";
@@ -20,19 +20,12 @@ const shipporiMincho = Shippori_Mincho({
   weight: ["400", "500", "600"],
 });
 
-// ロゴ文字「ことりずむ」（components/brand-name.tsx）専用。「こと」に Hina Mincho、「りずむ」に Murecho を使う。
+// ロゴ文字「ことりずむ」（components/brand-name.tsx）専用の明朝体。
 // 日本語の文字はsubsetsで指定できず、使う文字の分だけ表示時に読み込まれるため、latinのpreloadはしない
 const hinaMincho = Hina_Mincho({
   variable: "--font-hina-mincho",
   subsets: ["latin"],
   weight: "400",
-  preload: false,
-});
-
-const murecho = Murecho({
-  variable: "--font-murecho",
-  subsets: ["latin"],
-  weight: "300",
   preload: false,
 });
 
@@ -58,7 +51,7 @@ export default async function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${notoSansJP.variable} ${shipporiMincho.variable} ${hinaMincho.variable} ${murecho.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${notoSansJP.variable} ${shipporiMincho.variable} ${hinaMincho.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import HeaderNav from "@/components/HeaderNav";
+import HelpButton from "@/components/HelpButton";
 import type { HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
 import BrandName from "@/components/brand-name";
@@ -11,7 +12,7 @@ const NAV_LINKS: HeaderNavLink[] = [
   {
     href: "/my-notebooks",
     label: "My単語帳",
-    hoverClassName: "hover:text-[#FF7F50] dark:hover:text-[#FF7F50]",
+    hoverClassName: "hover:text-coral-500 dark:hover:text-coral-500",
   },
   {
     href: "/learn",
@@ -59,6 +60,7 @@ export default function Header() {
             <HeaderNav links={NAV_LINKS} />
           </Suspense>
           <ThemeToggle />
+          <HelpButton />
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import BrandName from "@/components/brand-name";
 
 // sessionStorageのキー。layout.tsxの<head>内スクリプトでも同じキーを参照している
 const SPLASH_SEEN_KEY = "vb-splash-seen";
@@ -32,7 +33,10 @@ export default function SplashScreen() {
           preload
           className="h-20 w-auto"
         />
-        <span className="text-3xl font-semibold tracking-[0.2em] text-zinc-800">ことりずむ</span>
+        {/* ヘッダー・LPの見出しと同じロゴ文字（フォント・グラデーション）で表示する */}
+        <span className="text-4xl tracking-[0.06em] text-black">
+          <BrandName />
+        </span>
       </div>
     </div>
   );

@@ -42,7 +42,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
 
   // React Hooks の呼び出しルールを守るため、条件分岐より前にすべてのフックを呼び出す
   // サイドバー自体の折りたたみ状態を管理するState
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  // null はユーザー未操作の状態で、画面幅に応じてCSSで出し分ける（狭い画面では閉じ、md以上では開く）
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean | null>(null);
 
   // 大枠グループのアコーディオン開閉状態を管理するState
   const [isLearnOpen, setIsLearnOpen] = useState<boolean>(true);
@@ -74,31 +75,37 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
     setOpenLanguages((prev) => ({ ...prev, [slug]: true }));
   };
 
-  // サイドバーが閉じられている場合の「開くボタン」を表示
-  if (!isSidebarOpen) {
-    return (
-      <div className="p-3 border-b border-black/[.08] bg-white dark:border-white/[.145] dark:bg-zinc-950 md:border-r md:border-b-0">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          title="サイドバーを開く"
-          aria-label="サイドバーを開く"
-          className="flex items-center gap-2 rounded-lg border border-black/[.08] p-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-black dark:border-white/[.145] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </div>
-    );
+  // サイドバーが閉じられている場合の「開くボタン」
+  const closedSidebar = (
+    <div
+      className={`${isSidebarOpen === null ? "md:hidden " : ""}p-3 border-b border-black/[.08] bg-white dark:border-white/[.145] dark:bg-zinc-950 md:border-r md:border-b-0`}
+    >
+      <button
+        onClick={() => setIsSidebarOpen(true)}
+        title="サイドバーを開く"
+        aria-label="サイドバーを開く"
+        className="flex items-center gap-2 rounded-lg border border-black/[.08] p-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-black dark:border-white/[.145] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white"
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+
+  if (isSidebarOpen === false) {
+    return closedSidebar;
   }
 
-  return (
-    <aside className="w-full shrink-0 border-b border-black/[.08] bg-white p-4 dark:border-white/[.145] dark:bg-zinc-950 md:w-64 md:border-r md:border-b-0 md:min-h-[calc(100vh-73px)]">
+  const openSidebar = (
+    <aside
+      className={`${isSidebarOpen === null ? "hidden md:block " : ""}w-full shrink-0 border-b border-black/[.08] bg-white p-4 dark:border-white/[.145] dark:bg-zinc-950 md:w-64 md:border-r md:border-b-0 md:min-h-[calc(100vh-73px)]`}
+    >
       {/* サイドバーヘッダー（全体の折りたたみボタン） */}
       <div className="mb-4 flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-900">
         <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -129,8 +136,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
               href="/my-notebooks"
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isMyNotebooksActive
-                  ? "bg-[#FF7F50]/10 text-[#FF7F50] dark:bg-[#FF7F50]/20 dark:text-[#FF7F50]"
-                  : "text-zinc-700 hover:bg-zinc-100 hover:text-[#FF7F50] dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-[#FF7F50]"
+                  ? "bg-coral-500/10 text-coral-500 dark:bg-coral-500/20 dark:text-coral-500"
+                  : "text-zinc-700 hover:bg-zinc-100 hover:text-coral-500 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-coral-500"
               }`}
             >
               My単語帳
@@ -146,8 +153,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
               onClick={() => setIsLearnOpen(true)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isLearnActive && !currentLanguageSlug
-                  ? "bg-[#367588]/10 text-[#367588] dark:bg-[#367588]/20 dark:text-[#367588]"
-                  : "text-zinc-700 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
+                  ? "bg-tealblue-600/10 text-tealblue-600 dark:bg-tealblue-600/20 dark:text-tealblue-600"
+                  : "text-zinc-700 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
               }`}
             >
               学習教材
@@ -196,7 +203,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                         className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                           isLangActive && !currentSectionSlug
                             ? "bg-zinc-200/70 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 font-semibold"
-                            : "text-zinc-600 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
+                            : "text-zinc-600 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
                         }`}
                       >
                         {lang.label}
@@ -238,8 +245,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
                               href={`/learn/${lang.languageSlug}/${section.sectionSlug}`}
                               className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
                                 isSectionActive
-                                  ? "bg-[#367588]/10 text-[#367588] font-semibold dark:bg-[#367588]/20 dark:text-[#367588]"
-                                  : "text-zinc-500 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
+                                  ? "bg-tealblue-600/10 text-tealblue-600 font-semibold dark:bg-tealblue-600/20 dark:text-tealblue-600"
+                                  : "text-zinc-500 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
                               }`}
                             >
                               {section.title}
@@ -257,4 +264,16 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
       </nav>
     </aside>
   );
+
+  // ユーザー未操作の間は両方を描画し、画面幅に応じてどちらか一方だけを表示する
+  if (isSidebarOpen === null) {
+    return (
+      <>
+        {closedSidebar}
+        {openSidebar}
+      </>
+    );
+  }
+
+  return openSidebar;
 }

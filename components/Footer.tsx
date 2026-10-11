@@ -4,12 +4,12 @@ import Link from "next/link";
 const CONTACT_LINK = { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "お問い合わせ" };
 
 const NAV_LINKS = [
-  { href: "https://utcode.net/", label: "ut.code();とは" },
+  { href: "https://utcode.net/", label: "ut.code(); HP" },
   {
     href: "https://x.com/utokyo_code",
     label: (
       <>
-        ut.code();公式
+        ut.code(); 公式
         <XIcon className="ml-1 inline-block h-[0.8em] w-[0.8em] align-[-0.08em]" />
         <span className="sr-only">X</span>
       </>
@@ -48,38 +48,52 @@ export default function Footer() {
   return (
     <footer className="border-t border-black/[.08] bg-white dark:border-white/[.145] dark:bg-zinc-600">
       <div className="px-[5%] pt-5 pb-3">
-        {/* 画面幅によらず、1行目にSNSアイコンとお問い合わせ、2行目にut.code();関連のリンク、3行目にコピーライトを中央揃えで縦に並べる */}
         <div className="flex flex-col items-center gap-2.5 sm:gap-3">
-          <div className="flex items-center justify-center gap-x-4 text-black sm:gap-x-5 dark:text-zinc-100">
-            {SOCIAL_LINKS.map(({ href, label, icon: Icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="inline-flex items-center transition-opacity hover:opacity-60"
+          <div className="flex flex-col items-center gap-1 text-center">
+            <p className="text-xs tracking-[0.04em] text-zinc-400 sm:text-sm dark:text-zinc-400">
+              ことりずむについて
+            </p>
+            <div className="flex items-center gap-x-4 text-black sm:gap-x-5 dark:text-zinc-100">
+              <Link
+                href={CONTACT_LINK.href}
+                className="inline-block text-sm font-semibold tracking-[0.04em] sm:text-xl"
               >
-                <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-              </a>
-            ))}
-            <Link
-              href={CONTACT_LINK.href}
-              className="inline-block text-sm font-semibold tracking-[0.04em] sm:text-xl"
-            >
-              {CONTACT_LINK.label}
-            </Link>
+                {CONTACT_LINK.label}
+              </Link>
+              {SOCIAL_LINKS.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="inline-flex items-center transition-opacity hover:opacity-60"
+                >
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                </a>
+              ))}
+            </div>
           </div>
 
-          <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm font-semibold tracking-[0.04em] text-black sm:gap-x-8 sm:text-xl dark:text-zinc-100">
-            {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="inline-block">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="mt-3 flex flex-col items-center gap-1 text-center sm:mt-4">
+            <p className="text-xs tracking-[0.04em] text-zinc-400 sm:text-sm dark:text-zinc-400">
+              ut.code();について
+            </p>
+            <p className="text-xs tracking-[0.04em] text-zinc-600 max-[379px]:text-[11px] sm:text-base dark:text-zinc-200">
+              ことりずむは、東京大学のソフトウェア開発サークル
+              {/* 画面幅によって折り返す位置が変わらないよう、「サークル」の後で改行 */}
+              <br className="sm:hidden" /> ut.code(); のプロジェクトです。
+            </p>
+            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm font-semibold tracking-[0.04em] text-black sm:gap-x-8 sm:text-xl dark:text-zinc-100">
+              {NAV_LINKS.map((link) => (
+                <Link key={link.href} href={link.href} className="inline-block">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
 
-          <div className="flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:text-xl dark:text-zinc-400">
+          <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:mt-4 sm:text-xl dark:text-zinc-400">
             <span>©︎{new Date().getFullYear()}</span>
             <span className="leading-none tracking-[0.06em]">ことりずむ</span>
           </div>

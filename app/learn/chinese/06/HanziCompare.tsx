@@ -48,7 +48,12 @@ export default function HanziCompare() {
           <button
             key={item.id}
             onClick={() => handleSelect(item)}
-            className="rounded-xl border p-3 text-left"
+            // 選んでいる単語は色を変えて、どれを選んだか分かるようにする
+            className={`rounded-xl border p-3 text-left transition-colors ${
+              selected?.id === item.id
+                ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
+                : "border-zinc-200 bg-white hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50"
+            }`}
           >
             <span className="text-2xl">{item.japanese}</span>
             <span className="ml-2 text-sm text-zinc-500">{item.meaning}</span>

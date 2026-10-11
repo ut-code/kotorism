@@ -12,11 +12,11 @@ function estimateWidthEm(word: string) {
   return width;
 }
 
-// VOCABOOKの見出し(h1)の中心に、流れる文字の縦の中心を合わせるための計算。
+// ことりずむの見出し(h1)の中心に、流れる文字の縦の中心を合わせるための計算。
 // h1の行ボックス上端の位置（ヒーロー上端からの距離）は、globals.cssの.vb-heroで
-// --vb-h1-topとして画面幅ごとに定義している（page.tsxの上padding・バッジ・gapから算出）。
+// --vb-h1-topとして画面幅ごとに定義している（page.tsxの上paddingから算出）。
 
-// VOCABOOKの「見た目の高さの中心」＝実際に文字が塗られているピクセル（インク）の
+// ことりずむの「見た目の高さの中心」＝実際に文字が塗られているピクセル（インク）の
 // 上端と下端の中間点。h1の行ボックス上端からの距離を、フォントサイズに対する比率で
 // 表したもの。
 //   line-height比 = 1.5
@@ -26,17 +26,17 @@ function estimateWidthEm(word: string) {
 // （h1のフォントや文字列を変えたら、この値も実測し直すこと）
 const VOCABOOK_INK_CENTER_RATIO = 0.7;
 
-// VOCABOOKのインクの高さ（上端〜下端）は、上と同じ実測により
+// ことりずむのインクの高さ（上端〜下端）は、上と同じ実測により
 // actualBoundingBoxAscent比(0.71) + actualBoundingBoxDescent比(0.01) = フォントサイズの0.72倍
 const VOCABOOK_INK_HEIGHT_RATIO = 0.72;
 
-// VOCABOOKのフォントサイズはglobals.cssの.vb-heroで定義しているCSS変数--vb-title。
+// ことりずむのフォントサイズはglobals.cssの.vb-heroで定義しているCSS変数--vb-title。
 // 縦方向の位置はすべてその倍数で指定する
-// VOCABOOKの視覚的な縦中心（背景コンテナ上端からの距離、px + --vb-titleの倍数）
+// ことりずむの視覚的な縦中心（背景コンテナ上端からの距離、px + --vb-titleの倍数）
 const VOCABOOK_CENTER = `calc(var(--vb-h1-top) + ${VOCABOOK_INK_CENTER_RATIO} * var(--vb-title))`;
 
-// 二次曲線の頂点（画面中央、単語がVOCABOOKの前を横切る瞬間）どうしの距離は、
-// 元のデザイン（見出しが18.7vw）でのVOCABOOKの実際の文字の高さ（インクの上端〜下端）の2倍。
+// 二次曲線の頂点（画面中央、単語がことりずむの前を横切る瞬間）どうしの距離は、
+// 元のデザイン（見出しが18.7vw）でのことりずむの実際の文字の高さ（インクの上端〜下端）の2倍。
 // 見出しを小さくした後も、弧の大きさは元のデザインのまま保っている。
 // 頂点は中心から一番遠い位置（弧の基準位置＝画面外の待機列にいる間は中心に寄り、
 // 中央で最も離れる向き）になるようにし、そこから中心までの距離はその半分
@@ -65,10 +65,10 @@ type Curve = {
 };
 
 const TOP_CURVE: Curve = {
-  // "peak"（頂点でVERTEX_OFFSET_VW分上に動く）にすることで、画面中央でVOCABOOKから
+  // "peak"（頂点でVERTEX_OFFSET_VW分上に動く）にすることで、画面中央でことりずむから
   // 一番遠ざかる（＝重ならない）向きにする
   shape: "peak",
-  // 弧の基準位置（画面外の待機列にいる高さ）はVOCABOOKの縦中心そのもの。
+  // 弧の基準位置（画面外の待機列にいる高さ）はことりずむの縦中心そのもの。
   // 頂点（画面中央）ではそこからVERTEX_OFFSET_VW分上に離れる
   baselineTop: VOCABOOK_CENTER,
   travelVw: 124,
@@ -81,10 +81,10 @@ const TOP_CURVE: Curve = {
 };
 
 const BOTTOM_CURVE: Curve = {
-  // "dip"（頂点でVERTEX_OFFSET_VW分下に動く）にすることで、画面中央でVOCABOOKから
+  // "dip"（頂点でVERTEX_OFFSET_VW分下に動く）にすることで、画面中央でことりずむから
   // 一番遠ざかる（＝重ならない）向きにする
   shape: "dip",
-  // 弧の基準位置（画面外の待機列にいる高さ）はVOCABOOKの縦中心そのもの。
+  // 弧の基準位置（画面外の待機列にいる高さ）はことりずむの縦中心そのもの。
   // 頂点（画面中央）ではそこからVERTEX_OFFSET_VW分下に離れる
   baselineTop: VOCABOOK_CENTER,
   travelVw: 124,

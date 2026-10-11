@@ -392,7 +392,7 @@ export function ConjugationPractice<V extends VerbLike, T>({
             !submitted
               ? "border-zinc-200 bg-white focus:border-tealblue-400 dark:border-zinc-700 dark:bg-zinc-800"
               : isCorrect
-                ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
                 : "border-red-500 bg-red-50 dark:bg-red-900/20"
           }`}
         />
@@ -400,7 +400,7 @@ export function ConjugationPractice<V extends VerbLike, T>({
         {submitted && (
           <div className="mt-4 flex flex-col items-center gap-2 text-center">
             {isCorrect ? (
-              <div className="font-bold text-green-600 dark:text-green-400">正解！</div>
+              <div className="font-bold text-emerald-600 dark:text-emerald-400">正解！</div>
             ) : (
               <div className="font-bold text-red-600 dark:text-red-400">
                 不正解 — 正解は「{question.answer}」
