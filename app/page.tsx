@@ -145,9 +145,7 @@ export default async function Home() {
               <p className="mb-2 text-sm font-semibold text-coral-600 dark:text-coral-400">
                 ログインすると→
               </p>
-              <h2 className="text-3xl font-bold text-coral-900 dark:text-coral-100">
-                My単語帳
-              </h2>
+              <h2 className="text-3xl font-bold text-coral-900 dark:text-coral-100">My単語帳</h2>
               <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
                 意味・発音・例文など複数の軸を持つ、
                 <br className="hidden sm:inline" />
