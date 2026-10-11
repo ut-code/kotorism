@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { SectionCard } from "@/components/learn/SectionCard";
 import { getLanguage, LANGUAGES } from "../languages";
 import { getSections } from "../content";
@@ -29,12 +29,10 @@ export default async function LearnLanguagePage(
 
   const sections = await getSections(language.languageSlug);
 
-  const user = await getCurrentUser();
-  const progressRows = user
-    ? await prisma.sectionProgress.findMany({
-        where: { userId: user.id, language: language.languageSlug },
-      })
-    : [];
+  const user = await requireUser();
+  const progressRows = await prisma.sectionProgress.findMany({
+    where: { userId: user.id, language: language.languageSlug },
+  });
   const progressBySlug = new Map(progressRows.map((row) => [row.sectionSlug, row]));
 
   return (

@@ -15,7 +15,9 @@ export const getCurrentUser = cache(async () => {
 export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    // proxy.ts が載せた元のパスがあれば、ログイン後にそこへ戻れるよう redirect に渡す
+    const path = (await headers()).get("x-pathname");
+    redirect(path ? `/login?redirect=${encodeURIComponent(path)}` : "/login");
   }
   return user;
 }
