@@ -26,11 +26,7 @@ type HeaderNavClientProps = {
 
 // ヘッダー右側のナビゲーション。PCではリンクを横並びで表示し、
 // スマホではハンバーガーメニューにまとめて、タップしやすい縦並びにする
-export default function HeaderNavClient({
-  links,
-  userName,
-  allSections,
-}: HeaderNavClientProps) {
+export default function HeaderNavClient({ links, userName, allSections }: HeaderNavClientProps) {
   const pathname = usePathname();
   const isLearnActive = pathname.startsWith("/learn");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -72,11 +68,7 @@ export default function HeaderNavClient({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18 18 6M6 6l12 12"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
         ) : (
           <svg
@@ -87,11 +79,7 @@ export default function HeaderNavClient({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         )}
       </button>

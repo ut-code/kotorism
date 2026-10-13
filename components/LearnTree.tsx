@@ -19,21 +19,17 @@ export default function LearnTree({ allSections = {} }: LearnTreeProps) {
 
   // 現在のURLパスから言語スラッグとセクションスラッグを抽出 (例: /learn/chinese/01 -> ["learn", "chinese", "01"])
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentLanguageSlug =
-    pathSegments[0] === "learn" ? pathSegments[1] : undefined;
-  const currentSectionSlug =
-    pathSegments[0] === "learn" ? pathSegments[2] : undefined;
+  const currentLanguageSlug = pathSegments[0] === "learn" ? pathSegments[1] : undefined;
+  const currentSectionSlug = pathSegments[0] === "learn" ? pathSegments[2] : undefined;
 
   // 各言語アコーディオンの開閉状態を管理するState (現在アクセス中の言語は初期状態で自動オープン)
-  const [openLanguages, setOpenLanguages] = useState<Record<string, boolean>>(
-    () => {
-      const initial: Record<string, boolean> = {};
-      LANGUAGES.forEach((lang) => {
-        initial[lang.languageSlug] = lang.languageSlug === currentLanguageSlug;
-      });
-      return initial;
-    },
-  );
+  const [openLanguages, setOpenLanguages] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    LANGUAGES.forEach((lang) => {
+      initial[lang.languageSlug] = lang.languageSlug === currentLanguageSlug;
+    });
+    return initial;
+  });
 
   // 言語ごとのアコーディオン開閉を切り替えるハンドラー関数
   const toggleLanguage = (slug: string) => {

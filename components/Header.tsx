@@ -28,11 +28,7 @@ const NAV_LINKS: HeaderNavLink[] = [
   },
 ];
 
-export default function Header({
-  allSections,
-}: {
-  allSections: AllLanguageSections;
-}) {
+export default function Header({ allSections }: { allSections: AllLanguageSections }) {
   return (
     <header className="sticky top-0 z-50 bg-white/5 dark:bg-zinc-600/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.145]">
       <div className="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
