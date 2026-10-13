@@ -1,17 +1,12 @@
-"use server";
+import { redirect } from "react-router";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
-import { requireNotebookRole } from "@/lib/notebook-access";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
+import { requireNotebookRole } from "@/lib/notebook-access.server";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/excel";
 import { normalizeCardData, type CardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
-
-// added: 直前に追加できた単語（見出し語）。連続登録時の成功表示に使う
-export type FormState = { error?: string; added?: string };
+import type { FormState } from "@/lib/form-state";
 
 function readCardData(columns: string[], formData: FormData): CardData {
   const head = String(formData.get("head") ?? "").trim();
@@ -40,7 +35,6 @@ function readCardData(columns: string[], formData: FormData): CardData {
 // 一致する列名があればそこに追加し、無ければ単語帳の末尾に新しい列として追加する
 export async function importCardsFromExcel(
   notebookId: string,
-  _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
@@ -91,17 +85,13 @@ export async function importCardsFromExcel(
     ),
   ]);
 
-  revalidatePath(`/my-notebooks/${notebookId}`);
   return {};
 }
 
 // Excelを介さず、アプリ上でゼロから単語帳を作成する。
 // 「見出し語」「意味」の2列・単語0件で作成し、以降は列の追加/変更（ColumnsEditor）と
 // 単語の追加（CreateCardForm）をこの単語帳のページ上でそのまま行える
-export async function createBlankNotebook(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
+export async function createBlankNotebook(formData: FormData): Promise<FormState> {
   const user = await requireUser();
 
   const title = String(formData.get("title") ?? "").trim();
@@ -117,8 +107,7 @@ export async function createBlankNotebook(
     },
   });
 
-  revalidatePath("/my-notebooks");
-  redirect(`/my-notebooks/${notebook.id}`);
+  throw redirect(`/my-notebooks/${notebook.id}`);
 }
 
 // 単語帳を削除する（中の単語もまとめて削除される）。作成者のみ実行可能
@@ -127,16 +116,11 @@ export async function deleteNotebook(notebookId: string) {
   await requireNotebookRole(notebookId, user.id, "owner");
 
   await prisma.notebook.delete({ where: { id: notebookId, userId: user.id } });
-  revalidatePath("/my-notebooks");
-  redirect("/my-notebooks");
+  throw redirect("/my-notebooks");
 }
 
 // 単語帳に単語を1件、手動で追加する
-export async function createCard(
-  notebookId: string,
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
+export async function createCard(notebookId: string, formData: FormData): Promise<FormState> {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "member");
 
@@ -162,7 +146,6 @@ export async function createCard(
     data: { notebookId, data, position: (last._max.position ?? -1) + 1 },
   });
 
-  revalidatePath(`/my-notebooks/${notebookId}`);
   return { added: data.head };
 }
 
@@ -170,7 +153,6 @@ export async function createCard(
 export async function updateCard(
   cardId: string,
   notebookId: string,
-  _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
@@ -192,7 +174,6 @@ export async function updateCard(
     data: { data },
   });
 
-  revalidatePath(`/my-notebooks/${notebookId}`);
   return {};
 }
 
@@ -222,7 +203,6 @@ async function migrateAllCards(
 // （CardFieldsForm側でキー無し＝空欄として表示される）
 export async function addNotebookColumn(
   notebookId: string,
-  _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
@@ -248,7 +228,6 @@ export async function addNotebookColumn(
     data: { columns: [...columns, name] },
   });
 
-  revalidatePath(`/my-notebooks/${notebookId}`);
   return {};
 }
 
@@ -258,7 +237,6 @@ export async function addNotebookColumn(
 export async function renameNotebookColumn(
   notebookId: string,
   columnIndex: number,
-  _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
@@ -302,7 +280,6 @@ export async function renameNotebookColumn(
     });
   }
 
-  revalidatePath(`/my-notebooks/${notebookId}`);
   return {};
 }
 
@@ -332,8 +309,6 @@ export async function deleteNotebookColumn(notebookId: string, columnIndex: numb
     );
     return { ...data, rows };
   });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
 // 単語帳内の単語を1件、削除する
@@ -342,7 +317,6 @@ export async function deleteCard(cardId: string, notebookId: string) {
   await requireNotebookRole(notebookId, user.id, "member");
 
   await prisma.card.delete({ where: { id: cardId, notebookId } });
-  revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
 // 単語帳の公開・非公開を切り替える。公開中は /share/[notebookId] からログイン無しで閲覧できる。作成者のみ実行可能
@@ -359,9 +333,6 @@ export async function toggleNotebookPublic(notebookId: string) {
     where: { id: notebookId },
     data: { isPublic: !notebook.isPublic },
   });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
-  revalidatePath(`/share/${notebookId}`);
 }
 
 // 単語の★を付け外しする。付けるときだけ starCount を+1し、外してもstarCountは減らさない。
@@ -383,10 +354,8 @@ export async function toggleStar(cardId: string, notebookId: string) {
     create: { cardId, userId: user.id, starred: true, starCount: 1 },
   });
 
-  revalidatePath(`/my-notebooks/${notebookId}`);
   // 通常の暗記学習（全件）は並び順・件数が変わらないので再検証してよい
   // 復習モード（★のみ）は外した瞬間にカードが抜けて表示中のインデックスがずれるため、セッション中は再検証せず、次回開いたときのDB取得だけに反映させる
-  revalidatePath(`/my-notebooks/${notebookId}/study`);
 }
 
 // 誤ってクリックした場合などに、★の回数を手動で書き換える
@@ -404,9 +373,6 @@ export async function setStarCount(cardId: string, notebookId: string, formData:
     update: count === 0 ? { starCount: 0, starred: false } : { starCount: count },
     create: { cardId, userId: user.id, starCount: count },
   });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
-  revalidatePath(`/my-notebooks/${notebookId}/study`);
 }
 
 // ★の回数・付け外し状態をまとめて未使用の状態（0・未付与）に戻す
@@ -420,9 +386,6 @@ export async function resetStar(cardId: string, notebookId: string) {
     update: { starCount: 0, starred: false },
     create: { cardId, userId: user.id, starCount: 0, starred: false },
   });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
-  revalidatePath(`/my-notebooks/${notebookId}/study`);
 }
 
 // 単語帳内の全カードの★（回数・付け外し状態）を一括でリセットする（自分の進捗のみ）
@@ -434,9 +397,6 @@ export async function resetAllStars(notebookId: string) {
     where: { userId: user.id, card: { notebookId } },
     data: { starCount: 0, starred: false },
   });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
-  revalidatePath(`/my-notebooks/${notebookId}/study`);
 }
 
 // 暗記学習モード（/study, /review）でカードが1枚表示されるたびに呼び、表示回数を+1する
@@ -451,8 +411,4 @@ export async function incrementViewCount(cardId: string, notebookId: string) {
     update: { viewCount: { increment: 1 } },
     create: { cardId, userId: user.id, viewCount: 1 },
   });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
-  revalidatePath(`/my-notebooks/${notebookId}/study`);
-  revalidatePath(`/my-notebooks/${notebookId}/review`);
 }

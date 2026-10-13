@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 
-export async function GET(request: NextRequest) {
+export async function loader({ request }: { request: Request }) {
   const { searchParams } = new URL(request.url);
   const filename = searchParams.get("filename") || "単語帳テンプレート";
   const language = searchParams.get("language") || "英語";
@@ -123,7 +122,7 @@ export async function GET(request: NextRequest) {
 
   const buffer = await workbook.xlsx.writeBuffer();
 
-  return new NextResponse(buffer, {
+  return new Response(buffer as ArrayBuffer, {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

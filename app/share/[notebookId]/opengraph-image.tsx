@@ -1,17 +1,14 @@
-import { ImageResponse } from "next/og";
+import { Resvg } from "@resvg/resvg-js";
+import satori from "satori";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 
-export const alt = "ことりずむの共有された単語帳";
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+// 共有リンクのOGP画像(1200x630のPNG)。画像のURLは共有ページの meta で指定している
+const SIZE = { width: 1200, height: 630 };
 
-// 公開状態はDBの最新値を見る必要があるため、ページと同様に静的化しない
-export const dynamic = "force-dynamic";
-
-// ImageResponseは日本語のグリフを持つフォントを自前で渡さないと文字化けするため、
+// 日本語のグリフを持つフォントを自前で渡さないと文字化けするため、
 // Google FontsからNoto Sans JPを、画像に使う文字のぶんだけ取得する（文字数が少ないので軽い）。
-// UAを指定しないとtruetypeで返ってくる（ImageResponseはwoff2に非対応）
+// UAを指定しないとtruetypeで返ってくる（satoriはwoff2に非対応）
 async function loadFont(text: string): Promise<ArrayBuffer | null> {
   try {
     const css = await (
@@ -29,8 +26,8 @@ async function loadFont(text: string): Promise<ArrayBuffer | null> {
 
 const MAX_TITLE_LENGTH = 40;
 
-export default async function Image({ params }: { params: Promise<{ notebookId: string }> }) {
-  const { notebookId } = await params;
+export async function loader({ params }: { params: { notebookId: string } }) {
+  const { notebookId } = params;
 
   // 非公開・存在しない単語帳のタイトルは画像に載せない（共通の見た目にする）
   const notebook = await prisma.notebook.findUnique({
@@ -47,7 +44,10 @@ export default async function Image({ params }: { params: Promise<{ notebookId: 
 
   const fontData = await loadFont(`${title}${subtitle}ことりずむ共有された単語帳`);
 
-  return new ImageResponse(
+  // satori はフォント無しでは描画できない。Google Fonts の取得に失敗したときは画像を返さない
+  if (!fontData) return new Response(null, { status: 503 });
+
+  const svg = await satori(
     <div
       style={{
         width: "100%",
@@ -58,7 +58,7 @@ export default async function Image({ params }: { params: Promise<{ notebookId: 
         padding: 72,
         background: "#fff7f3",
         borderLeft: "24px solid #FF7F50",
-        fontFamily: fontData ? "Noto Sans JP" : undefined,
+        fontFamily: "Noto Sans JP",
       }}
     >
       <div style={{ display: "flex", fontSize: 36, color: "#FF7F50", fontWeight: 700 }}>
@@ -83,10 +83,17 @@ export default async function Image({ params }: { params: Promise<{ notebookId: 
       </div>
     </div>,
     {
-      ...size,
-      fonts: fontData
-        ? [{ name: "Noto Sans JP", data: fontData, style: "normal", weight: 700 }]
-        : undefined,
+      ...SIZE,
+      fonts: [{ name: "Noto Sans JP", data: fontData, style: "normal", weight: 700 }],
     },
   );
+
+  const png = new Resvg(svg, { fitTo: { mode: "width", value: SIZE.width } }).render().asPng();
+  return new Response(new Uint8Array(png), {
+    headers: {
+      "Content-Type": "image/png",
+      // 公開状態やタイトルの変更が長く残らないよう、短めにキャッシュする
+      "Cache-Control": "public, max-age=300",
+    },
+  });
 }

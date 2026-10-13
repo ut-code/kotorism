@@ -1,20 +1,18 @@
-import { after } from "next/server";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "react-router";
+import { notFound } from "@/lib/http.server";
 
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
-import { recordNotebookView } from "@/lib/recent-activity";
-import { getNotebookRole } from "@/lib/notebook-access";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
+import { recordNotebookView } from "@/lib/recent-activity.server";
+import { getNotebookRole } from "@/lib/notebook-access.server";
 import StudyDeck from "./StudyDeck";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
+import type { Route } from "./+types/page";
 
-// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
-export const dynamic = "force-dynamic";
-
-export default async function StudyPage(props: PageProps<"/my-notebooks/[notebookId]/study">) {
+export async function loader({ params }: Route.LoaderArgs) {
   const user = await requireUser();
-  const { notebookId } = await props.params;
+  const { notebookId } = params;
 
   // 作成者・共同編集者（編集可/閲覧のみ）のいずれでもなければ404にする
   const role = await getNotebookRole(notebookId, user.id);
@@ -22,8 +20,8 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
     notFound();
   }
 
-  // 最近見た単語帳としてトップページに出すため、レスポンスを返した後に閲覧日時を記録する
-  after(() => recordNotebookView(user.id, notebookId));
+  // 最近見た単語帳としてトップページに出すため、レスポンスを待たずに閲覧日時を記録する
+  void recordNotebookView(user.id, notebookId).catch(console.error);
 
   // 単語帳と、その中のカードをposition昇順（表側の並び順）で取得する
   const notebook = await prisma.notebook.findUniqueOrThrow({
@@ -34,7 +32,7 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
   // 暗記するカードが1件も無い状態では学習モードが成立しないため、
   // 単語帳のトップページ（追加フォームがある場所）へ差し戻す
   if (notebook.cards.length === 0) {
-    redirect(`/my-notebooks/${notebook.id}`);
+    throw redirect(`/my-notebooks/${notebook.id}`);
   }
 
   // ★・暗記モード表示回数はユーザーごとに独立しているため、自分の進捗だけを取得してカードにマージする
@@ -56,6 +54,12 @@ export default async function StudyPage(props: PageProps<"/my-notebooks/[noteboo
       viewCount: progress?.viewCount ?? 0,
     };
   });
+
+  return { notebook: { id: notebook.id, title: notebook.title }, columns, cards };
+}
+
+export default function StudyPage({ loaderData }: Route.ComponentProps) {
+  const { notebook, columns, cards } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 text-center">

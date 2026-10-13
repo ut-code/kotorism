@@ -1,16 +1,13 @@
-import "server-only";
-
 import { getSections } from "@/app/learn/content";
 import { getLanguage } from "@/app/learn/languages";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 
 const RECENT_NOTEBOOK_LIMIT = 3;
 const RECENT_SECTION_LIMIT = 3;
 // 削除・改名・アクセス権の喪失で表示できない履歴が混ざっても、上限件数をそろえられるよう多めに読む
 const SCAN_FACTOR = 3;
 
-export type RecentNotebook = { id: string; title: string };
-export type RecentSection = { href: string; languageLabel: string; title: string };
+import type { RecentNotebook, RecentSection } from "@/components/home/RecentActivity";
 
 // 単語帳を開いた日時を記録する。呼び出し側でアクセス権の確認を済ませてから呼ぶ
 export async function recordNotebookView(userId: string, notebookId: string) {

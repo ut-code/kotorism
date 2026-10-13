@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/Image";
 import BrandName from "@/components/brand-name";
 
 // sessionStorageのキー。layout.tsxの<head>内スクリプトでも同じキーを参照している

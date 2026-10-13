@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 
 import type { AllLanguageSections } from "@/app/learn/content";
 import LearnTree from "@/components/LearnTree";
@@ -27,7 +27,7 @@ type HeaderNavClientProps = {
 // ヘッダー右側のナビゲーション。PCではリンクを横並びで表示し、
 // スマホではハンバーガーメニューにまとめて、タップしやすい縦並びにする
 export default function HeaderNavClient({ links, userName, allSections }: HeaderNavClientProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const isLearnActive = pathname.startsWith("/learn");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

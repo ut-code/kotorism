@@ -1,17 +1,25 @@
-import { after } from "next/server";
-import { notFound, redirect } from "next/navigation";
+import { redirect, type ShouldRevalidateFunction } from "react-router";
+import { notFound } from "@/lib/http.server";
 
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
-import { recordNotebookView } from "@/lib/recent-activity";
-import { getNotebookRole } from "@/lib/notebook-access";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
+import { recordNotebookView } from "@/lib/recent-activity.server";
+import { getNotebookRole } from "@/lib/notebook-access.server";
 import StudyDeck from "../study/StudyDeck";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
+import type { Route } from "./+types/page";
 
-export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebookId]/review">) {
+// 復習モードは★を外してもカードが一覧から抜けないよう、★の付け外し(toggleStar)では再取得しない。
+// 抜けると表示中の位置がずれてしまうため。次にこのページを開いたときのDB取得に反映される
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  formData,
+  defaultShouldRevalidate,
+}) => (formData?.get("intent") === "toggleStar" ? false : defaultShouldRevalidate);
+
+export async function loader({ params }: Route.LoaderArgs) {
   const user = await requireUser();
-  const { notebookId } = await props.params;
+  const { notebookId } = params;
 
   // 作成者・共同編集者（編集可/閲覧のみ）のいずれでもなければ404にする
   const role = await getNotebookRole(notebookId, user.id);
@@ -19,8 +27,8 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
     notFound();
   }
 
-  // 最近見た単語帳としてトップページに出すため、レスポンスを返した後に閲覧日時を記録する
-  after(() => recordNotebookView(user.id, notebookId));
+  // 最近見た単語帳としてトップページに出すため、レスポンスを待たずに閲覧日時を記録する
+  void recordNotebookView(user.id, notebookId).catch(console.error);
 
   const notebook = await prisma.notebook.findUniqueOrThrow({
     where: { id: notebookId },
@@ -36,7 +44,7 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
 
   // ★のついた単語が1件も無い状態では復習モードが成立しないため、単語帳のトップページへ差し戻す
   if (progressRows.length === 0) {
-    redirect(`/my-notebooks/${notebook.id}`);
+    throw redirect(`/my-notebooks/${notebook.id}`);
   }
 
   // 表示・フリップ・★の付け外しはすべてクライアント側のStudyDeckが担当するため、
@@ -49,6 +57,12 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
     starCount: progress.starCount,
     viewCount: progress.viewCount,
   }));
+
+  return { notebook: { id: notebook.id, title: notebook.title }, columns, cards };
+}
+
+export default function ReviewPage({ loaderData }: Route.ComponentProps) {
+  const { notebook, columns, cards } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 text-center">

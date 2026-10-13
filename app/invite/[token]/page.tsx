@@ -1,21 +1,22 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import Link from "@/components/Link";
+import { redirect, useFetcher } from "react-router";
 
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
-import { acceptInvite } from "@/app/my-notebooks/[notebookId]/sharing-actions";
+import { prisma } from "@/lib/prisma.server";
+import { getCurrentUser } from "@/lib/session.server";
+import { acceptInvite } from "@/app/my-notebooks/[notebookId]/sharing-actions.server";
+import type { Route } from "./+types/page";
 
-// DBの最新状態（招待の失効など）を常に見る必要があるため静的化しない
-export const dynamic = "force-dynamic";
+// 「参加する」ボタンからの送信を受ける。参加を確定して単語帳ページへ redirect する
+export async function action({ params }: Route.ActionArgs) {
+  return acceptInvite(params.token);
+}
 
-// 招待リンクの受け口。GETだけで参加が確定しないよう、ここでは招待内容を表示するだけにし、
-// 実際の参加（NotebookShareの作成）は「参加する」ボタンからacceptInviteを呼んだときに行う
-export default async function InvitePage(props: PageProps<"/invite/[token]">) {
-  const { token } = await props.params;
+export async function loader({ params }: Route.LoaderArgs) {
+  const { token } = params;
 
   const user = await getCurrentUser();
   if (!user) {
-    redirect(`/login?redirect=${encodeURIComponent(`/invite/${token}`)}`);
+    throw redirect(`/login?redirect=${encodeURIComponent(`/invite/${token}`)}`);
   }
 
   const invite = await prisma.notebookInvite.findUnique({
@@ -25,7 +26,31 @@ export default async function InvitePage(props: PageProps<"/invite/[token]">) {
     },
   });
 
-  if (!invite) {
+  // 無効な招待リンク。ページ側で案内を表示する
+  if (!invite) return { notebookTitle: null };
+
+  // 既に作成者本人、または共同編集者として参加済みなら、確認なしでそのまま単語帳へ
+  if (invite.notebook.userId === user.id) {
+    throw redirect(`/my-notebooks/${invite.notebook.id}`);
+  }
+  const existingShare = await prisma.notebookShare.findUnique({
+    where: { notebookId_userId: { notebookId: invite.notebook.id, userId: user.id } },
+    select: { id: true },
+  });
+  if (existingShare) {
+    throw redirect(`/my-notebooks/${invite.notebook.id}`);
+  }
+
+  return { notebookTitle: invite.notebook.title };
+}
+
+// 招待リンクの受け口。GETだけで参加が確定しないよう、ここでは招待内容を表示するだけにし、
+// 実際の参加（NotebookShareの作成）は「参加する」ボタンから action を呼んだときに行う
+export default function InvitePage({ loaderData }: Route.ComponentProps) {
+  const { notebookTitle } = loaderData;
+  const fetcher = useFetcher();
+
+  if (notebookTitle === null) {
     return (
       <main className="flex flex-1 flex-col items-center px-6 py-24 text-center">
         <div className="w-full max-w-sm">
@@ -46,37 +71,25 @@ export default async function InvitePage(props: PageProps<"/invite/[token]">) {
     );
   }
 
-  // 既に作成者本人、または共同編集者として参加済みなら、確認なしでそのまま単語帳へ
-  if (invite.notebook.userId === user.id) {
-    redirect(`/my-notebooks/${invite.notebook.id}`);
-  }
-  const existingShare = await prisma.notebookShare.findUnique({
-    where: { notebookId_userId: { notebookId: invite.notebook.id, userId: user.id } },
-    select: { id: true },
-  });
-  if (existingShare) {
-    redirect(`/my-notebooks/${invite.notebook.id}`);
-  }
-
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-24 text-center">
       <div className="w-full max-w-sm">
         <h1 className="text-xl font-semibold text-black dark:text-zinc-50">単語帳への招待</h1>
         <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
-          「{invite.notebook.title}」に
+          「{notebookTitle}」に
           <br />
           <span className="font-medium text-black dark:text-zinc-50">共同編集者</span>
           として参加します。
         </p>
 
-        <form action={acceptInvite.bind(null, token)} className="mt-8">
+        <fetcher.Form method="post" className="mt-8">
           <button
             type="submit"
             className="rounded-full bg-coral-500 px-6 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
           >
             参加する
           </button>
-        </form>
+        </fetcher.Form>
 
         <Link
           href="/my-notebooks"

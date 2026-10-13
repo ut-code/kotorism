@@ -1,5 +1,3 @@
-import "server-only";
-
 import { essayLengthUnitLabel, type EssayLengthUnit } from "./length";
 import {
   ESSAY_CRITERIA,

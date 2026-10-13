@@ -1,15 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { useFetcher } from "react-router";
 
-import { createBlankNotebook, type FormState } from "@/app/my-notebooks/actions";
+import type { FormState } from "@/lib/form-state";
 
 const initialState: FormState = {};
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -25,13 +22,17 @@ function SubmitButton() {
 // 作成直後は「見出し語」「意味」の2列・単語0件の状態になり、
 // 単語帳ページ上の「列を編集」「単語を追加」でそのまま組み立てていける
 export default function CreateBlankNotebookForm() {
-  const [state, formAction] = useActionState(createBlankNotebook, initialState);
+  // /my-notebooks ページの action に送信する。作成に成功するとサーバー側で単語帳ページへ redirect される
+  const fetcher = useFetcher<FormState>();
+  const state = fetcher.data ?? initialState;
 
   return (
-    <form
-      action={formAction}
+    <fetcher.Form
+      method="post"
+      action="/my-notebooks"
       className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950"
     >
+      <input type="hidden" name="intent" value="createBlankNotebook" />
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="blankTitle"
@@ -60,8 +61,8 @@ export default function CreateBlankNotebookForm() {
       )}
 
       <div>
-        <SubmitButton />
+        <SubmitButton pending={fetcher.state !== "idle"} />
       </div>
-    </form>
+    </fetcher.Form>
   );
 }

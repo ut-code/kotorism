@@ -1,11 +1,8 @@
-"use server";
+import { redirect } from "react-router";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
-import { requireNotebookRole } from "@/lib/notebook-access";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
+import { requireNotebookRole } from "@/lib/notebook-access.server";
 
 // 単語帳の共同編集者を招待するリンクを新規発行する（常に編集可能）。作成者のみ実行可能
 export async function createInvite(notebookId: string) {
@@ -13,8 +10,6 @@ export async function createInvite(notebookId: string) {
   await requireNotebookRole(notebookId, user.id, "owner");
 
   await prisma.notebookInvite.create({ data: { notebookId } });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
 // 発行済みの招待リンクを1件失効させる（削除するとそのリンクはもう使えなくなる）。作成者のみ実行可能
@@ -23,8 +18,6 @@ export async function revokeInvite(inviteId: string, notebookId: string) {
   await requireNotebookRole(notebookId, user.id, "owner");
 
   await prisma.notebookInvite.delete({ where: { id: inviteId, notebookId } });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
 // 共同編集者を単語帳から外す。作成者のみ実行可能
@@ -33,8 +26,6 @@ export async function removeShare(shareId: string, notebookId: string) {
   await requireNotebookRole(notebookId, user.id, "owner");
 
   await prisma.notebookShare.delete({ where: { id: shareId, notebookId } });
-
-  revalidatePath(`/my-notebooks/${notebookId}`);
 }
 
 // 招待リンクを開いたログイン済みユーザーが「参加する」を押した際に呼ぶ。
@@ -49,7 +40,7 @@ export async function acceptInvite(token: string) {
 
   // 招待ページ側で存在確認済みのはずだが、直接叩かれた場合や失効直後の二重送信に備えて再確認する
   if (!invite) {
-    redirect("/my-notebooks");
+    throw redirect("/my-notebooks");
   }
 
   if (invite.notebook.userId !== user.id) {
@@ -60,6 +51,5 @@ export async function acceptInvite(token: string) {
     });
   }
 
-  revalidatePath(`/my-notebooks/${invite.notebookId}`);
-  redirect(`/my-notebooks/${invite.notebookId}`);
+  throw redirect(`/my-notebooks/${invite.notebookId}`);
 }

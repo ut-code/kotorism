@@ -1,5 +1,5 @@
 //花沢
-import Link from "next/link";
+import Link from "@/components/Link";
 
 const CONTACT_LINK = { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "お問い合わせ" };
 

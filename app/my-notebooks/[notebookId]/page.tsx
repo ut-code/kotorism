@@ -1,11 +1,10 @@
-import Link from "next/link";
-import { after } from "next/server";
-import { notFound } from "next/navigation";
+import Link from "@/components/Link";
 
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
-import { recordNotebookView } from "@/lib/recent-activity";
-import { getNotebookRole } from "@/lib/notebook-access";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
+import { recordNotebookView } from "@/lib/recent-activity.server";
+import { getNotebookRole } from "@/lib/notebook-access.server";
+import { notFound } from "@/lib/http.server";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
 import ColumnsEditor from "@/components/my-notebooks/ColumnsEditor";
@@ -15,13 +14,80 @@ import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
 import ShareManager from "@/components/my-notebooks/ShareManager";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
+import {
+  addNotebookColumn,
+  createCard,
+  deleteCard,
+  deleteNotebook,
+  deleteNotebookColumn,
+  importCardsFromExcel,
+  incrementViewCount,
+  renameNotebookColumn,
+  resetAllStars,
+  resetStar,
+  setStarCount,
+  toggleNotebookPublic,
+  toggleStar,
+  updateCard,
+} from "@/app/my-notebooks/actions.server";
+import { createInvite, removeShare, revokeInvite } from "./sharing-actions.server";
+import type { Route } from "./+types/page";
 
-// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
-export const dynamic = "force-dynamic";
+// ページ内のすべての更新操作(単語・列・共有・★など)はこの action で受け、intent で振り分ける。
+// 単語帳の学習ページ(study など)からも、この URL に送信して★や表示回数を更新する。
+// 処理後は React Router が自動で loader を再実行するので、手動の再検証は不要
+export async function action({ request, params }: Route.ActionArgs) {
+  const { notebookId } = params;
+  const formData = await request.formData();
+  const text = (key: string) => String(formData.get(key) ?? "");
 
-export default async function NotebookPage(props: PageProps<"/my-notebooks/[notebookId]">) {
+  const result = await (async () => {
+    switch (text("intent")) {
+      case "createCard":
+        return createCard(notebookId, formData);
+      case "updateCard":
+        return updateCard(text("cardId"), notebookId, formData);
+      case "deleteCard":
+        return deleteCard(text("cardId"), notebookId);
+      case "toggleStar":
+        return toggleStar(text("cardId"), notebookId);
+      case "setStarCount":
+        return setStarCount(text("cardId"), notebookId, formData);
+      case "resetStar":
+        return resetStar(text("cardId"), notebookId);
+      case "resetAllStars":
+        return resetAllStars(notebookId);
+      case "incrementViewCount":
+        return incrementViewCount(text("cardId"), notebookId);
+      case "importCards":
+        return importCardsFromExcel(notebookId, formData);
+      case "addColumn":
+        return addNotebookColumn(notebookId, formData);
+      case "renameColumn":
+        return renameNotebookColumn(notebookId, Number(text("columnIndex")), formData);
+      case "deleteColumn":
+        return deleteNotebookColumn(notebookId, Number(text("columnIndex")));
+      case "togglePublic":
+        return toggleNotebookPublic(notebookId);
+      case "deleteNotebook":
+        return deleteNotebook(notebookId);
+      case "createInvite":
+        return createInvite(notebookId);
+      case "revokeInvite":
+        return revokeInvite(text("inviteId"), notebookId);
+      case "removeShare":
+        return removeShare(text("shareId"), notebookId);
+      default:
+        throw new Response("Bad Request", { status: 400 });
+    }
+  })();
+  // React Router の action は undefined を返せないため、戻り値の無い操作は空オブジェクトにする
+  return result ?? {};
+}
+
+export async function loader({ params }: Route.LoaderArgs) {
   const user = await requireUser();
-  const { notebookId } = await props.params;
+  const { notebookId } = params;
 
   // 作成者本人か、共有された共同編集者かを判定する。
   // どちらでもなければ他人の単語帳なので404にする（共同編集者は常に編集可能）
@@ -30,8 +96,8 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
     notFound();
   }
 
-  // 最近見た単語帳としてトップページに出すため、レスポンスを返した後に閲覧日時を記録する
-  after(() => recordNotebookView(user.id, notebookId));
+  // 最近見た単語帳としてトップページに出すため、レスポンスを待たずに閲覧日時を記録する
+  void recordNotebookView(user.id, notebookId).catch(console.error);
   const isOwner = role === "owner";
 
   // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する
@@ -84,6 +150,30 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
   // ★の回数が1回でも付いている単語があれば「一括リセット」の導線を出す
   const hasAnyStars = cards.some((card) => card.starCount > 0);
 
+  return {
+    notebook: {
+      id: notebook.id,
+      title: notebook.title,
+      isPublic: notebook.isPublic,
+      cardCount: notebook.cards.length,
+    },
+    isOwner,
+    invites,
+    shares: shares.map((share) => ({
+      id: share.id,
+      userName: share.user.username ?? share.user.name,
+    })),
+    columns,
+    cards,
+    starredCount,
+    hasAnyStars,
+  };
+}
+
+export default function NotebookPage({ loaderData }: Route.ComponentProps) {
+  const { notebook, isOwner, invites, shares, columns, cards, starredCount, hasAnyStars } =
+    loaderData;
+
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
       <div className="w-full max-w-4xl">
@@ -100,7 +190,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
               {notebook.title}
             </h1>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-              {notebook.cards.length}語
+              {notebook.cardCount}語
               {!isOwner && (
                 <span className="ml-2 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                   共同編集者として参加中
@@ -110,18 +200,11 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
             {isOwner && (
               <div className="mt-3 flex flex-col items-start gap-2">
                 <ShareNotebookButton notebookId={notebook.id} isPublic={notebook.isPublic} />
-                <ShareManager
-                  notebookId={notebook.id}
-                  invites={invites}
-                  shares={shares.map((share) => ({
-                    id: share.id,
-                    userName: share.user.username ?? share.user.name,
-                  }))}
-                />
+                <ShareManager notebookId={notebook.id} invites={invites} shares={shares} />
               </div>
             )}
           </div>
-          {notebook.cards.length > 0 && (
+          {notebook.cardCount > 0 && (
             <div className="flex items-center gap-3">
               {starredCount > 0 && (
                 <Link
@@ -188,7 +271,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                 </tr>
               ) : (
                 // 単語1件ずつをCardRowに委譲する。表示・編集・削除の切り替えは
-                // 各CardRow内で完結し、このページ自体は再取得（revalidatePath）でのみ更新される
+                // 各CardRow内で完結し、このページ自体は action 実行後の loader 再取得でのみ更新される
                 cards.map((card) => (
                   <CardRow key={card.id} notebookId={notebook.id} columns={columns} card={card} />
                 ))

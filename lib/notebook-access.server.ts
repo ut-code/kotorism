@@ -1,6 +1,4 @@
-import "server-only";
-
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 
 // "owner": 作成者。"editor": 招待リンク経由で参加した共同編集者（常に編集可能。
 // 閲覧のみの共有は別途 isPublic の公開リンクが担うため、ここに"viewer"は無い）

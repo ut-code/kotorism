@@ -1,10 +1,6 @@
-"use server";
-
-import { revalidatePath } from "next/cache";
-
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
-import { recordSectionView as recordSectionViewForUser } from "@/lib/recent-activity";
+import { prisma } from "@/lib/prisma.server";
+import { getCurrentUser } from "@/lib/session.server";
+import { recordSectionView as recordSectionViewForUser } from "@/lib/recent-activity.server";
 import {
   applyManualToggle,
   applyMarkReviewed,
@@ -57,7 +53,6 @@ async function saveState(userId: string, key: Key, next: SectionProgressState) {
     update: next,
   });
   // セクション一覧ページ（苦手バッジ表示）を次回アクセス時に最新化する
-  revalidatePath(`/learn/${key.language}`);
 }
 
 // 現在ログイン中のユーザーの、このセクションにおける学習進捗を返す。

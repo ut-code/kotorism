@@ -1,5 +1,4 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { listMdxSources } from "@/lib/mdx-source";
 import FrenchNumberPractice, { type FrenchNumberItem } from "./FrenchNumberPractice";
 
 /**
@@ -10,21 +9,17 @@ import FrenchNumberPractice, { type FrenchNumberItem } from "./FrenchNumberPract
  * ハードコーディング（ベタ打ち）を回避し、MDX教材ファイル自身を単一のデータソース（Single Source of Truth）
  * として扱うことで、データの二重管理を防止している。
  */
-async function getFrenchNumbersFromMdx(): Promise<FrenchNumberItem[]> {
-  // フランス語教材が配置されているルートディレクトリの絶対パスを取得
-  const frenchDir = path.join(process.cwd(), "app", "learn", "french");
+function getFrenchNumbersFromMdx(): FrenchNumberItem[] {
   const items: FrenchNumberItem[] = [];
 
   try {
-    // ディレクトリ内のすべてのエントリ（"01", "02" などのセクションフォルダ）を取得
-    const entries = await fs.readdir(frenchDir, { withFileTypes: true });
+    // 全セクションの MDX を取り込む(ビルド時に埋め込み済み)
+    const entries = listMdxSources("french");
 
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const mdxPath = path.join(frenchDir, entry.name, "page.mdx");
+      if (entry.content) {
         try {
-          // MDX ファイルのテキスト内容を非同期で読み込み
-          const content = await fs.readFile(mdxPath, "utf-8");
+          const content = entry.content;
           const lines = content.split("\n");
 
           for (const line of lines) {
@@ -71,9 +66,9 @@ async function getFrenchNumbersFromMdx(): Promise<FrenchNumberItem[]> {
  * サーバー側でMDXデータを読み込み、クライアントUIコンポーネント（FrenchNumberPractice）
  * へデータを受け渡すためのReact Server Component。
  */
-export default async function FrenchNumberPracticeLoader() {
+export default function FrenchNumberPracticeLoader() {
   // サーバー側で既存ファイルから出題データ一覧を取得
-  const items = await getFrenchNumbersFromMdx();
+  const items = getFrenchNumbersFromMdx();
 
   // クライアントコンポーネントへ引き渡し
   return <FrenchNumberPractice items={items} />;

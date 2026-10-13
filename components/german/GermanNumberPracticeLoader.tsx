@@ -1,5 +1,4 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { listMdxSources } from "@/lib/mdx-source";
 import GermanNumberPractice, { type GermanNumberItem } from "./GermanNumberPractice";
 
 /**
@@ -10,21 +9,17 @@ import GermanNumberPractice, { type GermanNumberItem } from "./GermanNumberPract
  * ハードコーディング（ベタ打ち）を回避し、MDX教材ファイル自身を単一のデータソース（Single Source of Truth）
  * として扱うことで、データの二重管理を防止している。
  */
-async function getGermanNumbersFromMdx(): Promise<GermanNumberItem[]> {
-  // ドイツ語教材が配置されているルートディレクトリの絶対パスを取得
-  const germanDir = path.join(process.cwd(), "app", "learn", "german");
+function getGermanNumbersFromMdx(): GermanNumberItem[] {
   const items: GermanNumberItem[] = [];
 
   try {
-    // ディレクトリ内のすべてのエントリ（"01", "02" などのセクションフォルダ）を取得
-    const entries = await fs.readdir(germanDir, { withFileTypes: true });
+    // 全セクションの MDX を取り込む(ビルド時に埋め込み済み)
+    const entries = listMdxSources("german");
 
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const mdxPath = path.join(germanDir, entry.name, "page.mdx");
+      if (entry.content) {
         try {
-          // MDX ファイルのテキスト内容を非同期で読み込み
-          const content = await fs.readFile(mdxPath, "utf-8");
+          const content = entry.content;
           const lines = content.split("\n");
 
           for (const line of lines) {
@@ -71,9 +66,9 @@ async function getGermanNumbersFromMdx(): Promise<GermanNumberItem[]> {
  * サーバー側でMDXデータを読み込み、クライアントUIコンポーネント（GermanNumberPractice）
  * へデータを受け渡すためのReact Server Component。
  */
-export default async function GermanNumberPracticeLoader() {
+export default function GermanNumberPracticeLoader() {
   // サーバー側で既存ファイルから出題データ一覧を取得
-  const items = await getGermanNumbersFromMdx();
+  const items = getGermanNumbersFromMdx();
 
   // クライアントコンポーネントへ引き渡し
   return <GermanNumberPractice items={items} />;

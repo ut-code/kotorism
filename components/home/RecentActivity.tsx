@@ -1,14 +1,17 @@
-import Link from "next/link";
-
-import { getRecentNotebooks, getRecentSections } from "@/lib/recent-activity";
+import Link from "@/components/Link";
 
 // 最近見た単語帳・学習ページを並べて、すぐ学習を再開できるようにする（/history 用）。
 // まだ何も見ていない場合は、はじめ方の案内を出す
-export default async function RecentActivity({ userId }: { userId: string }) {
-  const [notebooks, sections] = await Promise.all([
-    getRecentNotebooks(userId),
-    getRecentSections(userId),
-  ]);
+export type RecentNotebook = { id: string; title: string };
+export type RecentSection = { href: string; languageLabel: string; title: string };
+
+export default function RecentActivity({
+  notebooks,
+  sections,
+}: {
+  notebooks: RecentNotebook[];
+  sections: RecentSection[];
+}) {
   if (notebooks.length === 0 && sections.length === 0) {
     return (
       <p className="text-sm text-zinc-500 dark:text-zinc-400">

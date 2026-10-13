@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useLocation } from "react-router";
 
-import { getSectionProgress } from "@/lib/learn/actions";
+import { apiGet } from "@/lib/api-client";
+import type { SectionProgressDTO } from "@/lib/learn/shared";
 import { SectionBookmarkButton } from "@/components/learn/SectionBookmarkButton";
 
 // URL "/learn/french/02" から language・sectionSlug を取り出す。呼び出し側が既に知っている
@@ -21,7 +22,7 @@ interface SectionReviewControlsProps {
 // 各セクションページの右上に置く、苦手タグのON/OFFだけを行うブックマークボタン。
 // 未ログインでもボタン自体は表示し、押すと会員登録ページに誘導する
 export function SectionReviewControls(props: SectionReviewControlsProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   // pathname（セクション）が変わるたびに内側のコンポーネントを作り直すことで、
   // 「読み込み中」状態をエフェクト内で同期的にリセットせずに済ませる
   return <SectionReviewControlsForPath key={pathname} pathname={pathname} {...props} />;
@@ -43,7 +44,10 @@ function SectionReviewControlsForPath({
   useEffect(() => {
     if (!language || !sectionSlug) return;
     let cancelled = false;
-    getSectionProgress(language, sectionSlug).then((result) => {
+    apiGet<{ isLoggedIn: boolean; progress: SectionProgressDTO | null }>("/api/learn", {
+      language,
+      sectionSlug,
+    }).then((result) => {
       if (cancelled) return;
       setIsLoggedIn(result.isLoggedIn);
       setManuallyTagged(result.progress?.manuallyTagged ?? false);

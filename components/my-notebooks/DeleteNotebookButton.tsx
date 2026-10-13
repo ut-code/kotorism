@@ -1,12 +1,13 @@
 "use client";
 
-import { deleteNotebook } from "@/app/my-notebooks/actions";
+import IntentForm from "@/components/IntentForm";
 
 // 単語帳ごと削除するボタン。取り消せない操作なので確認ダイアログを挟む
 export default function DeleteNotebookButton({ notebookId }: { notebookId: string }) {
   return (
-    <form
-      action={deleteNotebook.bind(null, notebookId)}
+    <IntentForm
+      action={`/my-notebooks/${notebookId}`}
+      intent="deleteNotebook"
       onSubmit={(event) => {
         if (
           !window.confirm(
@@ -23,6 +24,6 @@ export default function DeleteNotebookButton({ notebookId }: { notebookId: strin
       >
         削除
       </button>
-    </form>
+    </IntentForm>
   );
 }

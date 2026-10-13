@@ -1,5 +1,4 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { readMdxSource } from "@/lib/mdx-source";
 import SpanishFillInPractice, { type FillInQuestionItem } from "./SpanishFillInPractice";
 
 /**
@@ -7,12 +6,11 @@ import SpanishFillInPractice, { type FillInQuestionItem } from "./SpanishFillInP
  * 穴埋め文法問題データを動的に抽出する関数。
  * データのベタ打ちを排除し、教材ファイルを唯一のデータソースとして使用する。
  */
-async function getFillInQuestionsFromMdx(): Promise<FillInQuestionItem[]> {
-  const filePath = path.join(process.cwd(), "app", "learn", "spanish", "05", "page.mdx");
+function getFillInQuestionsFromMdx(): FillInQuestionItem[] {
   const items: FillInQuestionItem[] = [];
 
   try {
-    const content = await fs.readFile(filePath, "utf-8");
+    const content = readMdxSource("spanish", "05");
     const lines = content.split("\n");
 
     let currentCategory = "文法問題";
@@ -63,7 +61,7 @@ async function getFillInQuestionsFromMdx(): Promise<FillInQuestionItem[]> {
  * サーバー側でMDXから穴埋め出題データを読み込み、
  * 穴埋め演習コンポーネント（SpanishFillInPractice）へ受け渡すServer Component。
  */
-export default async function SpanishFillInPracticeLoader() {
-  const items = await getFillInQuestionsFromMdx();
+export default function SpanishFillInPracticeLoader() {
+  const items = getFillInQuestionsFromMdx();
   return <SpanishFillInPractice items={items} />;
 }

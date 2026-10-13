@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useOptimistic, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFetcher } from "react-router";
+import Link from "@/components/Link";
 
-import { incrementViewCount, toggleStar } from "../../actions";
 import EyeIcon from "@/components/EyeIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/components/UseStarColors";
@@ -115,23 +115,30 @@ export default function StudyDeck({
     return <CardFace key={colName} colName={colName} value={values[0] ?? "—"} isHead={isHead} />;
   });
 
-  // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるためのUI
-  // idも保持し、往復の間にカードを送り進めても別カードへ誤って適用されないようにする
-  const [optimisticStar, setOptimisticStar] = useOptimistic(
-    { id: currentCard.id, starred: currentCard.starred, starCount: currentCard.starCount },
-    (_state, next: { id: string; starred: boolean; starCount: number }) => next,
-  );
+  // ★の付け外しは、サーバーの往復を待たず、クリックした瞬間に★・回数・色を切り替える。
+  // 切り替え後の値はカードidごとにここへ保持する。baseStarred は切り替え前にサーバーから受け取っていた値で、
+  // 再検証でサーバー側の値が追いついたとき（baseStarred と食い違ったとき）は、サーバーの値を優先する。
+  // 復習モード（/review）は再検証しない（カードが一覧から抜けて表示中の位置がずれるため）ので、
+  // その場合はこの保持した値が表示され続ける
+  const actionUrl = `/my-notebooks/${notebookId}`;
+  const starFetcher = useFetcher();
+  const viewFetcher = useFetcher();
+  const [starOverrides, setStarOverrides] = useState<
+    Record<string, { baseStarred: boolean; starred: boolean; starCount: number }>
+  >({});
+  const override = starOverrides[currentCard.id];
   const displayedStar =
-    optimisticStar.id === currentCard.id
-      ? optimisticStar
-      : { id: currentCard.id, starred: currentCard.starred, starCount: currentCard.starCount };
-  async function handleToggleStar() {
-    setOptimisticStar(
-      currentCard.starred
-        ? { id: currentCard.id, starred: false, starCount: currentCard.starCount }
-        : { id: currentCard.id, starred: true, starCount: currentCard.starCount + 1 },
-    );
-    await toggleStar(currentCard.id, notebookId);
+    override && override.baseStarred === currentCard.starred
+      ? override
+      : { starred: currentCard.starred, starCount: currentCard.starCount };
+  function handleToggleStar() {
+    const next = displayedStar.starred
+      ? { starred: false, starCount: displayedStar.starCount }
+      : { starred: true, starCount: displayedStar.starCount + 1 };
+    setStarOverrides((prev) => ({
+      ...prev,
+      [currentCard.id]: { baseStarred: currentCard.starred, ...next },
+    }));
   }
 
   // ★を付けた回数（displayedStar.starCount）に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
@@ -146,8 +153,13 @@ export default function StudyDeck({
   useEffect(() => {
     if (countedIdRef.current === currentCard.id) return;
     countedIdRef.current = currentCard.id;
-    incrementViewCount(currentCard.id, notebookId).catch(() => {});
-  }, [currentCard.id, notebookId]);
+    viewFetcher.submit(
+      { intent: "incrementViewCount", cardId: currentCard.id },
+      { method: "post", action: actionUrl },
+    );
+    // viewFetcher は毎レンダリングで同一とは限らないため、依存にはカードidだけを持たせる
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCard.id]);
 
   // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
   // カードが切り替わったら必ず表向きに戻す
@@ -262,8 +274,8 @@ export default function StudyDeck({
           </button>
         )}
 
-        {/* handleToggleStar は楽観的UI: optimisticStar を即座に切り替えてから
-            toggleStar（サーバー更新）を呼ぶ。表示も current.starred ではなく
+        {/* handleToggleStar は楽観的UI: starOverrides を即座に切り替えてから
+            toggleStar（サーバー更新）を送る。表示も current.starred ではなく
             displayedStar.starred を見るため、通信を待たずに★が切り替わる。
 
             ★ボタンはフリップボタンと別要素にし、右上に絶対的に配置。
@@ -275,7 +287,9 @@ export default function StudyDeck({
             全件モード（/study）は再検証しても件数・並び順が変わらないため、
             ★の付け外しをその場で反映できる。 */}
         <div className="absolute top-10 right-3 flex items-center gap-1">
-          <form action={handleToggleStar}>
+          <starFetcher.Form method="post" action={actionUrl} onSubmit={handleToggleStar}>
+            <input type="hidden" name="intent" value="toggleStar" />
+            <input type="hidden" name="cardId" value={currentCard.id} />
             <button
               type="submit"
               aria-label={displayedStar.starred ? "★を外す" : "★をつける"}
@@ -288,7 +302,7 @@ export default function StudyDeck({
             >
               {displayedStar.starred ? "★" : "☆"}
             </button>
-          </form>
+          </starFetcher.Form>
           <StarCountEditor
             cardId={currentCard.id}
             notebookId={notebookId}
