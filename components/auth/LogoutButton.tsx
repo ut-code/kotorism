@@ -12,7 +12,7 @@ export default function LogoutButton() {
   async function handleLogout() {
     setPending(true);
     await authClient.signOut();
-    router.push("/login");
+    router.push("/");
     router.refresh();
   }
 

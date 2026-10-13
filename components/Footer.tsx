@@ -56,7 +56,7 @@ export default function Footer() {
             <div className="flex items-center gap-x-4 text-black sm:gap-x-5 dark:text-zinc-100">
               <Link
                 href={CONTACT_LINK.href}
-                className="inline-block text-sm font-semibold tracking-[0.04em] sm:text-xl"
+                className="inline-block text-sm tracking-[0.04em] underline underline-offset-4 sm:text-base"
               >
                 {CONTACT_LINK.label}
               </Link>
@@ -84,16 +84,20 @@ export default function Footer() {
               {/* 画面幅によって折り返す位置が変わらないよう、「サークル」の後で改行 */}
               <br className="sm:hidden" /> ut.code(); のプロジェクトです。
             </p>
-            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm font-semibold tracking-[0.04em] text-black sm:gap-x-8 sm:text-xl dark:text-zinc-100">
+            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm tracking-[0.04em] text-black sm:gap-x-8 sm:text-base dark:text-zinc-100">
               {NAV_LINKS.map((link) => (
-                <Link key={link.href} href={link.href} className="inline-block">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="inline-block underline underline-offset-4"
+                >
                   {link.label}
                 </Link>
               ))}
             </nav>
           </div>
 
-          <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:mt-4 sm:text-xl dark:text-zinc-400">
+          <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:mt-4 sm:text-base dark:text-zinc-400">
             <span>©︎{new Date().getFullYear()}</span>
             <span className="leading-none tracking-[0.06em]">ことりずむ</span>
           </div>

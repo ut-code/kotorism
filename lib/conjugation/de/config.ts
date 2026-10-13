@@ -15,6 +15,10 @@ const TOOLBAR_CHARS = ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"];
 export const germanConjugationConfig: ConjugationLanguageConfig<VerbEntry, ConjugationTable> = {
   languageSlug: "german",
   persons: PERSONS,
+  verbGroups: [
+    { label: "弱変化(規則)", match: (v) => v.kind === "regular" },
+    { label: "強変化・混合変化(不規則)", match: (v) => v.kind === "irregular" },
+  ],
   tenseOptions: TENSE_OPTIONS,
   buildConjugation,
   formsFor,

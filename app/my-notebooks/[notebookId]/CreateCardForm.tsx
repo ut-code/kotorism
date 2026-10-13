@@ -52,11 +52,20 @@ export default function CreateCardForm({
         action={formAction}
         className="flex flex-col gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]"
       >
-        <CardFieldsForm columns={columns} />
-        <div>
+        {/* 2件目以降（追加後にフォームが作り直されたとき）は見出し語へフォーカスを戻し、続けて入力できるようにする */}
+        <CardFieldsForm columns={columns} autoFocusHead={formKey > 0} />
+        <div className="flex flex-wrap items-center gap-3">
           <AddButton />
+          <span className="text-xs text-zinc-500 dark:text-zinc-500">
+            Tabキーで次の欄へ、Enterキーで追加できます。追加すると見出し語の欄に戻ります。
+          </span>
         </div>
       </form>
+      {state?.added && !state.error && (
+        <p role="status" className="mt-2 text-sm text-green-700 dark:text-green-400">
+          「{state.added}」を追加しました。
+        </p>
+      )}
       {state?.error && (
         <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
           {state.error}

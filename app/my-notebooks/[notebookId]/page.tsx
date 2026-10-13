@@ -132,6 +132,12 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
                 </Link>
               )}
               <Link
+                href={`/my-notebooks/${notebook.id}/quiz`}
+                className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
+              >
+                クイズに挑戦
+              </Link>
+              <Link
                 href={`/my-notebooks/${notebook.id}/study`}
                 className="rounded-full bg-coral-500 px-5 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
               >
@@ -143,6 +149,13 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
+          {/* 登録フォームは一覧の下にあるため、単語が増えても迷わず辿り着けるよう上からジャンプできるようにする */}
+          <a
+            href="#add-card"
+            className="rounded-full bg-coral-500 px-4 py-1.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
+          >
+            ＋ 単語を追加
+          </a>
           <ImportCardsForm notebookId={notebook.id} />
           <ColumnsEditor notebookId={notebook.id} columns={columns} />
         </div>
@@ -184,7 +197,7 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
           </table>
         </div>
 
-        <section className="mt-8">
+        <section id="add-card" className="mt-8 scroll-mt-24">
           <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
             単語を追加
           </h2>

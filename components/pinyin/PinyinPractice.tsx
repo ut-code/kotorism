@@ -108,12 +108,19 @@ interface Question {
   meaning: string;
 }
 
+// 1ラウンドの問題数の選択肢。全問正解まで続けず、短い単位で区切って達成感を得られるようにする
+const ROUND_SIZES = [5, 10, 20];
+const DEFAULT_ROUND_SIZE = 10;
+
 interface PinyinPracticeProps {
   characters: HanziEntry[];
 }
 
 export function PinyinPractice({ characters }: PinyinPracticeProps) {
-  const [phase, setPhase] = useState<"settings" | "practice">("settings");
+  const [phase, setPhase] = useState<"settings" | "practice" | "result">("settings");
+  const [roundSize, setRoundSize] = useState(DEFAULT_ROUND_SIZE);
+  // このラウンドで間違えた漢字（結果画面で復習できるよう、重複なしで出題順に保持する）
+  const [mistakes, setMistakes] = useState<Question[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(characters.map((c) => c.id)),
   );
@@ -177,6 +184,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
 
   const startPractice = () => {
     setScore({ correct: 0, total: 0 });
+    setMistakes([]);
     setRecentIds([]);
     setPhase("practice");
     generateQuestion(selectedCharacters, []);
@@ -189,7 +197,16 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
       setIsCorrect(correct);
       setSubmitted(true);
       setScore((prev) => ({ correct: prev.correct + (correct ? 1 : 0), total: prev.total + 1 }));
+      if (!correct) {
+        setMistakes((prev) =>
+          prev.some((m) => m.id === question.id) ? prev : [...prev, question],
+        );
+      }
       if (audioEnabled) speakHanzi(question.hanzi);
+    } else if (score.total >= roundSize) {
+      window.speechSynthesis?.cancel();
+      setSpeaking(false);
+      setPhase("result");
     } else {
       generateQuestion();
     }
@@ -243,6 +260,29 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
         </section>
 
         <section>
+          <div className="mb-3 text-base font-bold text-zinc-800 dark:text-zinc-100">
+            1ラウンドの問題数
+          </div>
+          <div className="flex gap-2">
+            {ROUND_SIZES.map((size) => (
+              <button
+                key={size}
+                type="button"
+                onClick={() => setRoundSize(size)}
+                aria-pressed={roundSize === size}
+                className={`rounded-full px-5 py-2 text-sm font-bold transition-colors ${
+                  roundSize === size
+                    ? "bg-tealblue-600 text-white"
+                    : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                {size}問
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
           <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
             <div>
               <div className="font-bold text-zinc-800 dark:text-zinc-100">音声読み上げ</div>
@@ -284,6 +324,59 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
     );
   }
 
+  if (phase === "result") {
+    const percent = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
+    return (
+      <div className="mx-auto max-w-xl space-y-6">
+        <div className="rounded-2xl bg-white p-6 text-center shadow-sm dark:bg-zinc-900/50">
+          <div className="text-sm font-medium text-zinc-400 dark:text-zinc-500">ラウンド完了！</div>
+          <div className="mt-2 text-5xl font-bold text-zinc-800 dark:text-zinc-100">
+            {score.correct} / {score.total}
+          </div>
+          <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">正答率 {percent}%</div>
+
+          {mistakes.length > 0 ? (
+            <div className="mt-6 text-left">
+              <div className="mb-2 text-sm font-bold text-zinc-700 dark:text-zinc-200">
+                間違えた漢字
+              </div>
+              <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {mistakes.map((m) => (
+                  <li key={m.id} className="flex items-baseline gap-3 py-2">
+                    <span className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">
+                      {m.hanzi}
+                    </span>
+                    <span className="text-zinc-700 dark:text-zinc-200">{m.pinyin}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">{m.meaning}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="mt-6 font-bold text-green-600 dark:text-green-400">全問正解です！</div>
+          )}
+
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={startPractice}
+              className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+            >
+              もう一度
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhase("settings")}
+              className="rounded-full border border-zinc-200 px-8 py-3 font-bold text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              設定に戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!question) {
     return (
       <div className="py-16 text-center text-zinc-500 dark:text-zinc-400">
@@ -310,7 +403,8 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
           設定に戻る
         </button>
         <span>
-          正解: {score.correct} / {score.total}
+          {Math.min(score.total + (submitted ? 0 : 1), roundSize)} / {roundSize}問目 ・ 正解:{" "}
+          {score.correct}
         </span>
       </div>
 
@@ -381,7 +475,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
             onClick={handleSubmit}
             className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
           >
-            {submitted ? "次の問題へ" : "答え合わせ"}
+            {submitted ? (score.total >= roundSize ? "結果を見る" : "次の問題へ") : "答え合わせ"}
           </button>
         </div>
       </div>

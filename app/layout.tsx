@@ -35,6 +35,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // OGP画像などの相対URLを絶対URLにするための基準。アプリのオリジンは認証と同じ環境変数を使う
+  metadataBase: new URL(process.env.BETTER_AUTH_URL ?? "http://localhost:3000"),
   title: "ことりずむ | 多次元単語帳アプリ",
   description: "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
 };
@@ -69,7 +71,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <Header />
+        <Header allSections={allSections} />
         <div className="flex flex-1 flex-col md:flex-row">
           {/* ルートレイアウト直下にSidebarを組み込み（/ などのTOPページではSidebar内部で表示を判定制御） */}
           <Sidebar allSections={allSections} />

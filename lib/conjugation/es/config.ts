@@ -16,6 +16,12 @@ const TOOLBAR_CHARS = ["á", "é", "í", "ó", "ú", "ü", "ñ"];
 
 export const spanishConjugationConfig: ConjugationLanguageConfig<VerbEntry, ConjugationTable> = {
   persons: PERSONS,
+  verbGroups: [
+    { label: "規則 -ar", match: (v) => v.kind === "regular" && v.group === "ar" },
+    { label: "規則 -er", match: (v) => v.kind === "regular" && v.group === "er" },
+    { label: "規則 -ir", match: (v) => v.kind === "regular" && v.group === "ir" },
+    { label: "不規則動詞", match: (v) => v.kind === "irregular" },
+  ],
   tenseOptions: TENSE_OPTIONS,
   buildConjugation,
   formsFor,

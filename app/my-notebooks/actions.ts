@@ -10,7 +10,8 @@ import { ExcelParseError, parseExcelWorkbook } from "@/lib/excel";
 import { normalizeCardData, type CardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
 
-export type FormState = { error?: string };
+// added: 直前に追加できた単語（見出し語）。連続登録時の成功表示に使う
+export type FormState = { error?: string; added?: string };
 
 function readCardData(columns: string[], formData: FormData): CardData {
   const head = String(formData.get("head") ?? "").trim();
@@ -162,7 +163,7 @@ export async function createCard(
   });
 
   revalidatePath(`/my-notebooks/${notebookId}`);
-  return {};
+  return { added: data.head };
 }
 
 // 単語帳内の単語を1件、編集する

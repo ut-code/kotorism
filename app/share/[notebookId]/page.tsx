@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -20,6 +21,25 @@ function computeRowSpans(values: string[]): number[] {
     }
   }
   return spans;
+}
+
+// 共有リンクをDiscordなどに貼ったときに、単語帳の名前・語数が表示されるようにする。
+// 画像は同じ階層の opengraph-image.tsx が生成する。非公開・存在しないIDでは何も設定しない
+export async function generateMetadata(props: PageProps<"/share/[notebookId]">): Promise<Metadata> {
+  const { notebookId } = await props.params;
+  const notebook = await prisma.notebook.findUnique({
+    where: { id: notebookId, isPublic: true },
+    select: { title: true, _count: { select: { cards: true } } },
+  });
+  if (!notebook) return {};
+
+  const description = `${notebook._count.cards}語の単語帳 | ことりずむ`;
+  return {
+    title: `${notebook.title} | ことりずむ`,
+    description,
+    openGraph: { title: notebook.title, description, type: "website", siteName: "ことりずむ" },
+    twitter: { card: "summary_large_image", title: notebook.title, description },
+  };
 }
 
 export default async function SharedNotebookPage(props: PageProps<"/share/[notebookId]">) {
