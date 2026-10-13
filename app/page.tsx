@@ -115,7 +115,7 @@ export default async function Home() {
               href="/learn"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-tealblue-600 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-tealblue-700 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              ログインなしで学習する
+              ログインして学習する
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
@@ -159,12 +159,12 @@ export default async function Home() {
           <Link
             href="/learn"
             className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="ログインなしで学習する"
+            aria-label="ログインして学習する"
           />
 
           <div className="pointer-events-none relative z-10">
             <p className="mb-2 text-sm font-semibold text-tealblue-600 dark:text-tealblue-400">
-              ログインなしでも→
+              ログインすると→
             </p>
             <h2 className="text-3xl font-bold text-tealblue-900 dark:text-tealblue-100">
               学習教材
