@@ -1,8 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-
-// デザイン調整中のため、背景の動く文字のアニメーションを一時的に外している
-// import Background from "@/components/background";
 import BookShape from "@/components/book-shape";
 import BrandName from "@/components/brand-name";
 import ShapeDivider from "@/components/shape-divider";
@@ -72,8 +69,7 @@ export default async function Home() {
       <SplashScreen />
       {/* 上padding・高さはglobals.cssの.vb-heroで指定（スマホでは1画面ぴったりの高さ） */}
       <section className="vb-hero relative flex w-full flex-col items-center overflow-hidden px-6 pb-10 text-center sm:pb-24">
-        {/* <Background /> */}
-        {/* デザイン調整中: ヘッダー直下に垂れ下がる波形の区切り。
+        {/* ヘッダー直下に垂れ下がる波形の区切り。
         position・height・widthPercent・fillClassName・flipXで見た目を試せる */}
         <ShapeDivider widthPercent={184.5} height={159} />
         <div className="relative z-10 flex max-w-3xl flex-col items-center gap-6">
