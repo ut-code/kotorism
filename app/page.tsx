@@ -105,7 +105,7 @@ export default async function Home() {
               href="/my-notebooks"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-coral-500 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-coral-600 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              ログインして使ってみる
+              My単語帳を使ってみる
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
@@ -115,7 +115,7 @@ export default async function Home() {
               href="/learn"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-tealblue-600 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-tealblue-700 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              ログインなしで学習する
+              学習教材をみてみる
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
@@ -133,14 +133,11 @@ export default async function Home() {
           <Link
             href="/my-notebooks"
             className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="ログインして使ってみる"
+            aria-label="My単語帳を使ってみる"
           />
 
           <div className="flex flex-col gap-6 sm:flex-1">
             <div className="pointer-events-none relative z-10">
-              <p className="mb-2 text-sm font-semibold text-coral-600 dark:text-coral-400">
-                ログインすると→
-              </p>
               <h2 className="text-3xl font-bold text-coral-900 dark:text-coral-100">My単語帳</h2>
               <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
                 意味・発音・例文など複数の軸を持つ、
@@ -159,13 +156,10 @@ export default async function Home() {
           <Link
             href="/learn"
             className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="ログインなしで学習する"
+            aria-label="学習教材をみてみる"
           />
 
           <div className="pointer-events-none relative z-10">
-            <p className="mb-2 text-sm font-semibold text-tealblue-600 dark:text-tealblue-400">
-              ログインなしでも→
-            </p>
             <h2 className="text-3xl font-bold text-tealblue-900 dark:text-tealblue-100">
               学習教材
             </h2>
