@@ -19,6 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // OGP画像などの相対URLを絶対URLにするための基準。アプリのオリジンは認証と同じ環境変数を使う
+  metadataBase: new URL(process.env.BETTER_AUTH_URL ?? "http://localhost:3000"),
   title: "Vocabook | 多次元単語帳アプリ",
   description: "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
 };
