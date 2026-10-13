@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Bebas_Neue, Shippori_Mincho } from "next/font/google";
 
 import Background from "@/components/background";
 import BookShape from "@/components/book-shape";
 import { MaterialsPreview } from "@/components/home/MaterialsPreview";
 import { StudyModePreview } from "@/components/home/StudyModePreview";
+import { getCurrentUser } from "@/lib/session";
 
 // トップページのメインコピー「Vocabook」専用の見出しフォント（映画ポスター風の存在感を演出）
 const bebasNeue = Bebas_Neue({
@@ -67,7 +69,13 @@ function FlowArrow() {
 }
 
 // ルートページ
-export default function Home() {
+// ログイン中は閲覧履歴ページへ移し、未ログインのときだけこのトップページ（サービス紹介）を表示する。
+// 判定はCookieではなくDB上のセッションで行う（無効なCookieが残っていてもループしないように。proxy.tsと同じ理由）
+export default async function Home() {
+  if (await getCurrentUser()) {
+    redirect("/history");
+  }
+
   return (
     <main className="flex flex-1 flex-col items-center bg-zinc-50 dark:bg-black">
       {/* 上padding・高さはglobals.cssの.vb-heroで指定（スマホでは1画面ぴったりの高さ） */}

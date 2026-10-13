@@ -1,7 +1,9 @@
+import { after } from "next/server";
 import { notFound, redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
+import { recordNotebookView } from "@/lib/recent-activity";
 import { getNotebookRole } from "@/lib/notebook-access";
 import StudyDeck from "../study/StudyDeck";
 import { normalizeCardData } from "@/lib/card-data";
@@ -16,6 +18,9 @@ export default async function ReviewPage(props: PageProps<"/my-notebooks/[notebo
   if (!role) {
     notFound();
   }
+
+  // 最近見た単語帳としてトップページに出すため、レスポンスを返した後に閲覧日時を記録する
+  after(() => recordNotebookView(user.id, notebookId));
 
   const notebook = await prisma.notebook.findUniqueOrThrow({
     where: { id: notebookId },

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { after } from "next/server";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
+import { recordNotebookView } from "@/lib/recent-activity";
 import { getNotebookRole } from "@/lib/notebook-access";
 import CardRow from "./CardRow";
 import CreateCardForm from "./CreateCardForm";
@@ -27,6 +29,9 @@ export default async function NotebookPage(props: PageProps<"/my-notebooks/[note
   if (!role) {
     notFound();
   }
+
+  // 最近見た単語帳としてトップページに出すため、レスポンスを返した後に閲覧日時を記録する
+  after(() => recordNotebookView(user.id, notebookId));
   const isOwner = role === "owner";
 
   // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する

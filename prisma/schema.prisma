@@ -26,6 +26,7 @@ model Notebook {
   cards     Card[]
   shares    NotebookShare[]
   invites   NotebookInvite[]
+  views     NotebookView[]
 
   @@index([userId])
 
@@ -120,6 +121,8 @@ model User {
   notebookShares         NotebookShare[]
   cardProgress           CardProgress[]
   sectionProgress        SectionProgress[]
+  notebookViews          NotebookView[]
+  sectionViews           SectionView[]
   essaySubmissions       EssaySubmission[]
   translationSubmissions TranslationSubmission[]
 
@@ -282,4 +285,38 @@ model Verification {
   @@index([identifier])
 
   @@map("verifications")
+}
+
+// ユーザーが単語帳を最後に開いた日時。トップページの「最近見た単語帳」に使う。
+// 進捗（CardProgress）は学習操作をしたときだけ更新されるため、閲覧だけの履歴は別に持つ
+model NotebookView {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notebookId   String
+  notebook     Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  lastViewedAt DateTime @default(now())
+
+  @@unique([userId, notebookId])
+  @@index([userId, lastViewedAt])
+
+  @@map("notebook_views")
+}
+
+// ユーザーが学習ページ（/learn/[language]/[sectionSlug]）を最後に開いた日時。
+// 読み物セクションのように進捗を操作しないページも履歴に残すため、SectionProgress とは別に持つ
+model SectionView {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 言語スラッグ（例: "french"）
+  language     String
+  // セクションのスラッグ（例: "01"）
+  sectionSlug  String
+  lastViewedAt DateTime @default(now())
+
+  @@unique([userId, language, sectionSlug])
+  @@index([userId, lastViewedAt])
+
+  @@map("section_views")
 }
