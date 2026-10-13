@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import type { AllLanguageSections } from "@/app/learn/content";
+import LearnTree from "@/components/LearnTree";
 
 import AuthNavLinks from "@/components/auth/AuthNavLinks";
 import LogoutButton from "@/components/auth/LogoutButton";
@@ -16,11 +20,19 @@ type HeaderNavClientProps = {
   links: HeaderNavLink[];
   // ログイン中のユーザー名。未ログインならnull
   userName: string | null;
+  // 学習教材の章ツリー用。/learn 配下でメニューに展開する
+  allSections: AllLanguageSections;
 };
 
 // ヘッダー右側のナビゲーション。PCではリンクを横並びで表示し、
 // スマホではハンバーガーメニューにまとめて、タップしやすい縦並びにする
-export default function HeaderNavClient({ links, userName }: HeaderNavClientProps) {
+export default function HeaderNavClient({
+  links,
+  userName,
+  allSections,
+}: HeaderNavClientProps) {
+  const pathname = usePathname();
+  const isLearnActive = pathname.startsWith("/learn");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // ログイン状態に応じた表示。PC用・スマホ用に同じ内容を使い回す
@@ -60,7 +72,11 @@ export default function HeaderNavClient({ links, userName }: HeaderNavClientProp
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18 18 6M6 6l12 12"
+            />
           </svg>
         ) : (
           <svg
@@ -71,7 +87,11 @@ export default function HeaderNavClient({ links, userName }: HeaderNavClientProp
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         )}
       </button>
@@ -81,18 +101,27 @@ export default function HeaderNavClient({ links, userName }: HeaderNavClientProp
         <div
           id="header-mobile-menu"
           // メニュー内のリンクからページ遷移する際、メニューを閉じる（イベントのバブリングを利用）
-          onClick={() => setIsMenuOpen(false)}
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("a")) setIsMenuOpen(false);
+          }}
           className="absolute inset-x-0 top-full border-b border-black/[.08] bg-white px-6 py-4 shadow-lg md:hidden dark:border-white/[.145] dark:bg-zinc-900"
         >
           <nav className="flex flex-col gap-1">
             {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-lg px-3 py-2 text-base font-semibold tracking-[0.04em] text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 ${link.hoverClassName}`}
-              >
-                {link.label}
-              </Link>
+              <div key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`block rounded-lg px-3 py-2 text-base font-semibold tracking-[0.04em] text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 ${link.hoverClassName}`}
+                >
+                  {link.label}
+                </Link>
+                {/* /learn 配下では「学習教材」の下に章ツリーを展開する */}
+                {link.href === "/learn" && isLearnActive && (
+                  <div className="max-h-[50vh] overflow-y-auto">
+                    <LearnTree allSections={allSections} />
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-black/[.08] pt-3 dark:border-white/[.145]">

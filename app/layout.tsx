@@ -47,7 +47,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <Header />
+        <Header allSections={allSections} />
         <div className="flex flex-1 flex-col md:flex-row">
           {/* ルートレイアウト直下にSidebarを組み込み（/ などのTOPページではSidebar内部で表示を判定制御） */}
           <Sidebar allSections={allSections} />

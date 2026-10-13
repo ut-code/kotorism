@@ -6,6 +6,7 @@ import { Bebas_Neue } from "next/font/google";
 import HeaderNav from "@/components/HeaderNav";
 import type { HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
+import type { AllLanguageSections } from "@/app/learn/content";
 
 // ヘッダーロゴ「Vocabook」専用の見出しフォント（トップページの見出しと統一感を出す）
 const bebasNeue = Bebas_Neue({
@@ -27,7 +28,11 @@ const NAV_LINKS: HeaderNavLink[] = [
   },
 ];
 
-export default function Header() {
+export default function Header({
+  allSections,
+}: {
+  allSections: AllLanguageSections;
+}) {
   return (
     <header className="sticky top-0 z-50 bg-white/5 dark:bg-zinc-600/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.145]">
       <div className="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
@@ -65,7 +70,7 @@ export default function Header() {
               </>
             }
           >
-            <HeaderNav links={NAV_LINKS} />
+            <HeaderNav links={NAV_LINKS} allSections={allSections} />
           </Suspense>
           <ThemeToggle />
         </div>
