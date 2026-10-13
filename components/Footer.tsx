@@ -1,48 +1,105 @@
 //花沢
 import Link from "next/link";
-import { Bebas_Neue } from "next/font/google";
+
+const CONTACT_LINK = { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "お問い合わせ" };
 
 const NAV_LINKS = [
-  { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "ご意見" },
-  { href: "https://utcode.net/", label: "ut.code():" },
-  { href: "https://x.com/utokyo_code", label: "公式X" },
+  { href: "https://utcode.net/", label: "ut.code(); HP" },
+  {
+    href: "https://x.com/utokyo_code",
+    label: (
+      <>
+        ut.code(); 公式
+        <XIcon className="ml-1 inline-block h-[0.8em] w-[0.8em] align-[-0.08em]" />
+        <span className="sr-only">X</span>
+      </>
+    ),
+  },
 ];
 
-// フッターの「Vocabook」をヘッダーロゴと統一する見出しフォント
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas-neue",
-  subsets: ["latin"],
-  weight: "400",
-});
+// TODO: アカウント開設後に各URLを実際のアカウントのものに差し替える
+const SOCIAL_LINKS = [
+  { href: "https://x.com/", label: "X", icon: XIcon },
+  { href: "https://www.instagram.com/", label: "Instagram", icon: InstagramIcon },
+];
+
+// X公式ロゴ（x-logo/logo.svg）。currentColorでダークモードにも追従させる
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 1200 1227" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" />
+    </svg>
+  );
+}
+
+// Instagram公式のグリフ（Instagram_Glyph_Black.svg）。currentColorでダークモードにも追従させる
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 1000 1000" fill="currentColor" aria-hidden="true" className={className}>
+      <path
+        transform="translate(-2.5 -2.5)"
+        d="M295.42,6c-53.2,2.51-89.53,11-121.29,23.48-32.87,12.81-60.73,30-88.45,57.82S40.89,143,28.17,175.92c-12.31,31.83-20.65,68.19-23,121.42S2.3,367.68,2.56,503.46,3.42,656.26,6,709.6c2.54,53.19,11,89.51,23.48,121.28,12.83,32.87,30,60.72,57.83,88.45S143,964.09,176,976.83c31.8,12.29,68.17,20.67,121.39,23s70.35,2.87,206.09,2.61,152.83-.86,206.16-3.39S799.1,988,830.88,975.58c32.87-12.86,60.74-30,88.45-57.84S964.1,862,976.81,829.06c12.32-31.8,20.69-68.17,23-121.35,2.33-53.37,2.88-70.41,2.62-206.17s-.87-152.78-3.4-206.1-11-89.53-23.47-121.32c-12.85-32.87-30-60.7-57.82-88.45S862,40.87,829.07,28.19c-31.82-12.31-68.17-20.7-121.39-23S637.33,2.3,501.54,2.56,348.75,3.4,295.42,6m5.84,903.88c-48.75-2.12-75.22-10.22-92.86-17-23.36-9-40-19.88-57.58-37.29s-28.38-34.11-37.5-57.42c-6.85-17.64-15.1-44.08-17.38-92.83-2.48-52.69-3-68.51-3.29-202s.22-149.29,2.53-202c2.08-48.71,10.23-75.21,17-92.84,9-23.39,19.84-40,37.29-57.57s34.1-28.39,57.43-37.51c17.62-6.88,44.06-15.06,92.79-17.38,52.73-2.5,68.53-3,202-3.29s149.31.21,202.06,2.53c48.71,2.12,75.22,10.19,92.83,17,23.37,9,40,19.81,57.57,37.29s28.4,34.07,37.52,57.45c6.89,17.57,15.07,44,17.37,92.76,2.51,52.73,3.08,68.54,3.32,202s-.23,149.31-2.54,202c-2.13,48.75-10.21,75.23-17,92.89-9,23.35-19.85,40-37.31,57.56s-34.09,28.38-57.43,37.5c-17.6,6.87-44.07,15.07-92.76,17.39-52.73,2.48-68.53,3-202.05,3.29s-149.27-.25-202-2.53m407.6-674.61a60,60,0,1,0,59.88-60.1,60,60,0,0,0-59.88,60.1M245.77,503c.28,141.8,115.44,256.49,257.21,256.22S759.52,643.8,759.25,502,643.79,245.48,502,245.76,245.5,361.22,245.77,503m90.06-.18a166.67,166.67,0,1,1,167,166.34,166.65,166.65,0,0,1-167-166.34"
+      />
+    </svg>
+  );
+}
 
 export default function Footer() {
   return (
-    <footer className="border-t border-black/[.08] bg-zinc-300 dark:border-white/[.145] dark:bg-zinc-600">
-      <div className="px-[5%] pt-4 pb-1.5">
-        {/*
-          スマホは右寄せで縦積み、PCは「コピーライト（左）／リンク（右）」の1行に揃える。
-          row-reverseを使うことで、DOM順（リンク→コピーライト）を変えずにPCでリンクを右端に置いている
-        */}
-        <div className="flex flex-col items-end gap-1 sm:flex-row-reverse sm:items-baseline sm:justify-between">
-          <nav className="flex flex-wrap justify-end gap-x-5 gap-y-1 text-lg font-semibold tracking-[0.04em] text-zinc-600 sm:gap-x-8 sm:text-2xl dark:text-zinc-100">
-            {NAV_LINKS.map((link) => (
+    <footer className="border-t border-black/[.08] bg-white dark:border-white/[.145] dark:bg-zinc-600">
+      <div className="px-[5%] pt-5 pb-3">
+        <div className="flex flex-col items-center gap-2.5 sm:gap-3">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <p className="text-xs tracking-[0.04em] text-zinc-400 sm:text-sm dark:text-zinc-400">
+              ことりずむについて
+            </p>
+            <div className="flex items-center gap-x-4 text-black sm:gap-x-5 dark:text-zinc-100">
               <Link
-                key={link.href}
-                href={link.href}
-                className="inline-block transition-transform duration-300 ease-out hover:scale-110 hover:[text-shadow:0_2px_3px_rgba(39,39,42,0.55)] dark:hover:[text-shadow:0_2px_3px_rgba(228,228,231,0.45)]"
+                href={CONTACT_LINK.href}
+                className="inline-block text-sm tracking-[0.04em] underline underline-offset-4 sm:text-base"
               >
-                {link.label}
+                {CONTACT_LINK.label}
               </Link>
-            ))}
-          </nav>
+              {SOCIAL_LINKS.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="inline-flex items-center transition-opacity hover:opacity-60"
+                >
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                </a>
+              ))}
+            </div>
+          </div>
 
-          <div className="flex items-baseline justify-end gap-1.5 text-sm tracking-wide text-zinc-400 sm:text-xl dark:text-zinc-400">
-            <span>© {new Date().getFullYear()}</span>
-            <span
-              className={`${bebasNeue.variable} leading-none tracking-[0.06em] [font-family:var(--font-bebas-neue)]`}
-            >
-              Vocabook
-            </span>
+          <div className="mt-3 flex flex-col items-center gap-1 text-center sm:mt-4">
+            <p className="text-xs tracking-[0.04em] text-zinc-400 sm:text-sm dark:text-zinc-400">
+              ut.code();について
+            </p>
+            <p className="text-xs tracking-[0.04em] text-zinc-600 max-[379px]:text-[11px] sm:text-base dark:text-zinc-200">
+              ことりずむは、東京大学のソフトウェア開発サークル
+              {/* 画面幅によって折り返す位置が変わらないよう、「サークル」の後で改行 */}
+              <br className="sm:hidden" /> ut.code(); のプロジェクトです。
+            </p>
+            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm tracking-[0.04em] text-black sm:gap-x-8 sm:text-base dark:text-zinc-100">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="inline-block underline underline-offset-4"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:mt-4 sm:text-base dark:text-zinc-400">
+            <span>©︎{new Date().getFullYear()}</span>
+            <span className="leading-none tracking-[0.06em]">ことりずむ</span>
           </div>
         </div>
       </div>

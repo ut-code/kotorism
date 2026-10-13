@@ -33,11 +33,11 @@ export async function generateMetadata(props: PageProps<"/share/[notebookId]">):
   });
   if (!notebook) return {};
 
-  const description = `${notebook._count.cards}語の単語帳 | Vocabook`;
+  const description = `${notebook._count.cards}語の単語帳 | ことりずむ`;
   return {
-    title: `${notebook.title} | Vocabook`,
+    title: `${notebook.title} | ことりずむ`,
     description,
-    openGraph: { title: notebook.title, description, type: "website", siteName: "Vocabook" },
+    openGraph: { title: notebook.title, description, type: "website", siteName: "ことりずむ" },
     twitter: { card: "summary_large_image", title: notebook.title, description },
   };
 }

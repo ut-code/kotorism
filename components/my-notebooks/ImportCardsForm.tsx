@@ -96,7 +96,7 @@ function ImportTemplate() {
                 className={[
                   "rounded-full border px-3 py-1.5 text-sm transition-colors",
                   isSelected
-                    ? "border-blue-600 bg-blue-600 text-white"
+                    ? "border-tealblue-600 bg-tealblue-600 text-white"
                     : "border-black/[.08] bg-white text-zinc-700 hover:bg-zinc-100 dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800",
                 ].join(" ")}
               >

@@ -103,7 +103,7 @@ export default function SignupForm() {
 
       <p className="text-center text-sm text-zinc-500 dark:text-zinc-500">
         すでにアカウントをお持ちの場合は{" "}
-        <Link href="/login" className="text-[#FF7F50] hover:underline dark:text-[#FF7F50]">
+        <Link href="/login" className="text-coral-500 hover:underline dark:text-coral-500">
           ログイン
         </Link>
       </p>

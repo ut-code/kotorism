@@ -93,8 +93,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
           href="/my-notebooks"
           className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
             isMyNotebooksActive
-              ? "bg-[#FF7F50]/10 text-[#FF7F50] dark:bg-[#FF7F50]/20 dark:text-[#FF7F50]"
-              : "text-zinc-700 hover:bg-zinc-100 hover:text-[#FF7F50] dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-[#FF7F50]"
+              ? "bg-coral-500/10 text-coral-500 dark:bg-coral-500/20 dark:text-coral-500"
+              : "text-zinc-700 hover:bg-zinc-100 hover:text-coral-500 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-coral-500"
           }`}
         >
           My単語帳
@@ -108,8 +108,8 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
               onClick={() => setIsLearnOpen(true)}
               className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                 isLearnActive && !currentLanguageSlug
-                  ? "bg-[#367588]/10 text-[#367588] dark:bg-[#367588]/20 dark:text-[#367588]"
-                  : "text-zinc-700 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
+                  ? "bg-tealblue-600/10 text-tealblue-600 dark:bg-tealblue-600/20 dark:text-tealblue-600"
+                  : "text-zinc-700 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
               }`}
             >
               学習教材

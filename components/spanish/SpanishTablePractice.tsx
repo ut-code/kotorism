@@ -351,7 +351,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
                 onClick={() => handleCategoryChange("all")}
                 className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                   selectedCategory === "all"
-                    ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                    ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                     : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -364,7 +364,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
                   onClick={() => handleCategoryChange(t.categoryTitle)}
                   className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     selectedCategory === t.categoryTitle
-                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                       : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -392,7 +392,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
                   onClick={() => handleBlankRatioChange(opt.value as BlankRatioOption)}
                   className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     blankRatio === opt.value
-                      ? "bg-teal-600 text-white shadow-sm dark:bg-teal-500"
+                      ? "bg-tealblue-600 text-white shadow-sm dark:bg-tealblue-500"
                       : "bg-white text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -482,7 +482,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
                                     ? isCellCorrect
                                       ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
                                       : "border-rose-500 bg-rose-50 text-rose-900 dark:bg-rose-950/60 dark:text-rose-300"
-                                    : "border-zinc-300 bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 dark:border-zinc-700 dark:focus:border-teal-400"
+                                    : "border-zinc-300 bg-white focus:border-tealblue-500 focus:ring-4 focus:ring-tealblue-500/20 dark:border-zinc-700 dark:focus:border-tealblue-400"
                                 }`}
                               />
                               {isCellWrong && (
@@ -513,7 +513,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
           <div className="w-full max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center font-medium text-emerald-900 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-200">
             <p className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-50">
               答え合わせ結果:{" "}
-              <span className="text-teal-600 dark:text-teal-400 text-3xl font-black">
+              <span className="text-tealblue-600 dark:text-tealblue-400 text-3xl font-black">
                 {correctCount}
               </span>{" "}
               / {totalBlankCells} 空欄正解 (
@@ -527,7 +527,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
             <button
               type="button"
               onClick={handleCheckAnswers}
-              className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+              className="rounded-2xl bg-tealblue-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-tealblue-700 dark:bg-tealblue-500 dark:hover:bg-tealblue-600"
             >
               答え合わせ
             </button>
@@ -535,7 +535,7 @@ export default function SpanishTablePractice({ tables }: { tables: GrammarTableD
             <button
               type="button"
               onClick={() => resetPractice(selectedCategory, blankRatio)}
-              className="rounded-2xl bg-teal-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+              className="rounded-2xl bg-tealblue-600 px-8 py-3.5 text-base font-bold text-white shadow-md transition-colors hover:bg-tealblue-700 dark:bg-tealblue-500 dark:hover:bg-tealblue-600"
             >
               もう一度挑戦する
             </button>

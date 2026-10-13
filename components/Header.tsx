@@ -1,25 +1,18 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bebas_Neue } from "next/font/google";
 
 import HeaderNav from "@/components/HeaderNav";
 import type { HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
+import BrandName from "@/components/brand-name";
 import type { AllLanguageSections } from "@/app/learn/content";
-
-// ヘッダーロゴ「Vocabook」専用の見出しフォント（トップページの見出しと統一感を出す）
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas-neue",
-  subsets: ["latin"],
-  weight: "400",
-});
 
 const NAV_LINKS: HeaderNavLink[] = [
   {
     href: "/my-notebooks",
     label: "My単語帳",
-    hoverClassName: "hover:text-[#FF7F50] dark:hover:text-[#FF7F50]",
+    hoverClassName: "hover:text-coral-500 dark:hover:text-coral-500",
   },
   {
     href: "/learn",
@@ -35,15 +28,13 @@ export default function Header({ allSections }: { allSections: AllLanguageSectio
         <Link href="/" className="flex item-center gap-3">
           <Image
             src="/logo-dummy.png"
-            alt="Vocabook ロゴ"
+            alt="ことりずむ ロゴ"
             width={32}
             height={32}
             className="h-10 w-auto object-contain"
           />
-          <span
-            className={`${bebasNeue.variable} inline-block text-[clamp(1.2rem,4.5vw,2.125rem)] tracking-[0.06em] self-center transition-transform duration-300 ease-out [font-family:var(--font-bebas-neue)] hover:scale-110 hover:[text-shadow:0_2px_3px_rgba(39,39,42,0.55)] dark:hover:[text-shadow:0_2px_3px_rgba(228,228,231,0.45)]`}
-          >
-            Vocabook
+          <span className="inline-block self-center text-[clamp(1.2rem,4.5vw,2.125rem)] tracking-[0.06em]">
+            <BrandName />
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

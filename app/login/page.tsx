@@ -5,7 +5,7 @@ import { redirectIfLoggedIn } from "@/lib/session";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
-  title: "ログイン | Vocabook",
+  title: "ログイン | ことりずむ",
 };
 
 export default async function LoginPage() {

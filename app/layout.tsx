@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Noto_Sans_JP } from "next/font/google";
+import { Geist_Mono, Hina_Mincho, Noto_Sans_JP, Shippori_Mincho } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Sidebar from "@/components/Sidebar";
@@ -13,6 +13,22 @@ const notoSansJP = Noto_Sans_JP({
   weight: "variable",
 });
 
+// サイト共通の明朝体（font-serif）。キャッチコピー・背景の単語・フッターのリンクで使う
+const shipporiMincho = Shippori_Mincho({
+  variable: "--font-shippori-mincho",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+// ロゴ文字「ことりずむ」（components/brand-name.tsx）専用の明朝体。
+// 日本語の文字はsubsetsで指定できず、使う文字の分だけ表示時に読み込まれるため、latinのpreloadはしない
+const hinaMincho = Hina_Mincho({
+  variable: "--font-hina-mincho",
+  subsets: ["latin"],
+  weight: "400",
+  preload: false,
+});
+
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -21,7 +37,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   // OGP画像などの相対URLを絶対URLにするための基準。アプリのオリジンは認証と同じ環境変数を使う
   metadataBase: new URL(process.env.BETTER_AUTH_URL ?? "http://localhost:3000"),
-  title: "Vocabook | 多次元単語帳アプリ",
+  title: "ことりずむ | 多次元単語帳アプリ",
   description: "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
 };
 
@@ -37,7 +53,7 @@ export default async function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${notoSansJP.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${notoSansJP.variable} ${shipporiMincho.variable} ${hinaMincho.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -45,6 +61,12 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})()`,
+          }}
+        />
+        {/* 同じセッションでスプラッシュ画面（components/SplashScreen.tsx）を表示済みなら、初回描画前に非表示にする */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(sessionStorage.getItem("vb-splash-seen"))document.documentElement.classList.add("vb-splash-seen");}catch(e){}})()`,
           }}
         />
       </head>

@@ -443,7 +443,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
             !submitted
               ? "border-zinc-200 bg-white focus:border-tealblue-400 dark:border-zinc-700 dark:bg-zinc-800"
               : isCorrect
-                ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
                 : "border-red-500 bg-red-50 dark:bg-red-900/20"
           }`}
         />
@@ -451,7 +451,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
         {submitted && (
           <div className="mt-4 flex flex-col items-center gap-2 text-center">
             {isCorrect ? (
-              <div className="font-bold text-green-600 dark:text-green-400">
+              <div className="font-bold text-emerald-600 dark:text-emerald-400">
                 正解！（{question.pinyin}）
               </div>
             ) : (

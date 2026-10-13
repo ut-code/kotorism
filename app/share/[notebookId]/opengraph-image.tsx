@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 import { prisma } from "@/lib/prisma";
 
-export const alt = "Vocabook の共有された単語帳";
+export const alt = "ことりずむの共有された単語帳";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -42,10 +42,10 @@ export default async function Image({ params }: { params: Promise<{ notebookId: 
     ? notebook.title.length > MAX_TITLE_LENGTH
       ? `${notebook.title.slice(0, MAX_TITLE_LENGTH)}…`
       : notebook.title
-    : "Vocabook";
+    : "ことりずむ";
   const subtitle = notebook ? `${notebook._count.cards}語の単語帳` : "多言語対応の暗記学習アプリ";
 
-  const fontData = await loadFont(`${title}${subtitle}Vocabook共有された単語帳`);
+  const fontData = await loadFont(`${title}${subtitle}ことりずむ共有された単語帳`);
 
   return new ImageResponse(
     <div
@@ -62,7 +62,7 @@ export default async function Image({ params }: { params: Promise<{ notebookId: 
       }}
     >
       <div style={{ display: "flex", fontSize: 36, color: "#FF7F50", fontWeight: 700 }}>
-        Vocabook ・ 共有された単語帳
+        ことりずむ ・ 共有された単語帳
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div

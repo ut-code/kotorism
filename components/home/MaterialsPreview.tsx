@@ -1,112 +1,38 @@
-"use client";
-
-import { useState, type ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 
-interface LanguagePreview {
+interface LanguageLink {
   key: string;
   label: string;
   href: string;
-  caption: string;
-  src: string;
-  width: number;
-  height: number;
-  alt: string;
 }
 
-const LANGUAGES: LanguagePreview[] = [
-  {
-    key: "chinese",
-    label: "中国語",
-    href: "/learn/chinese",
-    caption: "中国語 → 漢字からピンイン",
-    src: "/images/materials-preview-chinese-pinyin-card-v3.png",
-    width: 1152,
-    height: 874,
-    alt: "学習教材の例：中国語「漢字からピンイン」の練習画面",
-  },
-  {
-    key: "french",
-    label: "フランス語",
-    href: "/learn/french",
-    caption: "フランス語 → 動詞の活用",
-    src: "/images/materials-preview-french-lire-v2.png",
-    width: 1152,
-    height: 898,
-    alt: "学習教材の例：フランス語の動詞活用練習画面",
-  },
-  {
-    key: "german",
-    label: "ドイツ語",
-    href: "/learn/german",
-    caption: "ドイツ語 → 翻訳",
-    src: "/images/materials-preview-german-translation.png",
-    width: 1464,
-    height: 1057,
-    alt: "学習教材の例：ドイツ語の翻訳練習画面",
-  },
-  {
-    key: "spanish",
-    label: "スペイン語",
-    href: "/learn/spanish",
-    caption: "スペイン語 → 動詞の活用",
-    src: "/images/materials-preview-spanish-aprender-v2.png",
-    width: 1152,
-    height: 858,
-    alt: "学習教材の例：スペイン語の動詞活用練習画面",
-  },
+const LANGUAGES: LanguageLink[] = [
+  { key: "chinese", label: "中国語", href: "/learn/chinese" },
+  { key: "french", label: "フランス語", href: "/learn/french" },
+  { key: "german", label: "ドイツ語", href: "/learn/german" },
+  { key: "spanish", label: "スペイン語", href: "/learn/spanish" },
 ];
 
-// children: 言語ボタンの上に並べる見出しと説明文（カード左側の列）。
-// 言語ボタンとプレビュー画像はホバー中の言語を共有するため、左右の列をまとめてここで描画する
-export function MaterialsPreview({ children }: { children: ReactNode }) {
-  const [activeKey, setActiveKey] = useState<string>(LANGUAGES[0].key);
-  const activeLang = LANGUAGES.find((l) => l.key === activeKey) ?? LANGUAGES[0];
-
+// 学習教材カードの下段に、4言語のボタンを並べる（カードが横並びで狭くなるPC幅では2列×2段）。
+// ボタンを押すと、その言語の教材ページへ直接移動する（ボタン以外の余白はカード全体のリンクで/learnへ）
+export function MaterialsPreview() {
   return (
-    <>
-      <div className="flex flex-col gap-6 sm:flex-1">
-        {children}
-        <div className="relative z-10 flex flex-col gap-1.5">
-          <span className="pointer-events-none text-[11px] tracking-wide text-zinc-400">
-            言語を学ぶ
+    <div className="pointer-events-none relative z-10 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3 md:grid-cols-2 md:self-center">
+      {LANGUAGES.map((lang) => (
+        <Link
+          key={lang.key}
+          href={lang.href}
+          className="group/lang pointer-events-auto flex min-h-16 items-center justify-between gap-2 rounded-2xl border border-tealblue-200 bg-tealblue-50 px-[18px] py-3.5 text-base font-bold text-tealblue-900 transition-all hover:-translate-y-0.5 hover:border-tealblue-300 hover:bg-tealblue-100 dark:border-tealblue-700/70 dark:bg-tealblue-900/60 dark:text-tealblue-50 dark:hover:border-tealblue-500 dark:hover:bg-tealblue-800/80"
+        >
+          {lang.label}
+          <span
+            aria-hidden="true"
+            className="text-tealblue-600 transition-transform group-hover/lang:translate-x-1 dark:text-tealblue-300"
+          >
+            →
           </span>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {LANGUAGES.map((lang) => (
-              <Link
-                key={lang.key}
-                href={lang.href}
-                onMouseEnter={() => setActiveKey(lang.key)}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                  activeLang.key === lang.key
-                    ? "bg-tealblue-100 text-tealblue-800 dark:bg-tealblue-900/50 dark:text-tealblue-200"
-                    : "bg-tealblue-50 text-tealblue-700 hover:bg-tealblue-100 dark:bg-tealblue-950/30 dark:text-tealblue-300 dark:hover:bg-tealblue-950/50"
-                }`}
-              >
-                {lang.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="sm:w-[42%]">
-        <div className="pointer-events-none relative z-10 overflow-hidden rounded-2xl border border-tealblue-200/70 dark:border-tealblue-900/30">
-          <p className="border-b border-tealblue-200/70 bg-tealblue-50/60 px-5 py-2 text-xs font-medium text-tealblue-800 dark:border-tealblue-900/30 dark:bg-tealblue-950/20 dark:text-tealblue-300">
-            {activeLang.caption}
-          </p>
-          <div className="relative aspect-[4/3] w-full bg-white p-4 dark:bg-zinc-900">
-            <Image
-              key={activeLang.key}
-              src={activeLang.src}
-              alt={activeLang.alt}
-              fill
-              className="object-contain opacity-90 saturate-50 transition-all duration-300 group-hover:opacity-100 group-hover:saturate-100"
-            />
-          </div>
-        </div>
-      </div>
-    </>
+        </Link>
+      ))}
+    </div>
   );
 }

@@ -19,7 +19,9 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-noto-sans-jp);
+  --font-serif: var(--font-shippori-mincho), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono);
+  --font-brand: var(--font-hina-mincho), ui-serif, serif;
 }
 
 @theme {
@@ -69,7 +71,7 @@ body {
   margin-top: 2.5rem;
   margin-bottom: 0.75rem;
   padding-left: 0.75rem;
-  border-left: 4px solid var(--color-blue-500);
+  border-left: 4px solid var(--color-tealblue-500);
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-zinc-900);
@@ -86,13 +88,13 @@ body {
   display: inline-block;
   margin: 0.25rem 0 1.5rem;
   border-radius: 9999px;
-  background: var(--color-blue-50);
+  background: var(--color-tealblue-50);
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 500;
   font-style: normal;
   letter-spacing: 0.02em;
-  color: var(--color-blue-700);
+  color: var(--color-tealblue-700);
 }
 
 .french-content table {
@@ -165,8 +167,8 @@ body {
   color: var(--color-zinc-300);
 }
 .dark .french-content em {
-  background: color-mix(in oklab, var(--color-blue-500) 15%, transparent);
-  color: var(--color-blue-300);
+  background: color-mix(in oklab, var(--color-tealblue-500) 15%, transparent);
+  color: var(--color-tealblue-300);
 }
 .dark .french-content table {
   border-color: var(--color-zinc-800);
@@ -226,191 +228,76 @@ body {
   }
 }
 
-/* トップページのヒーロー（VOCABOOKの見出し）のレイアウト用の値。
---vb-title: 見出しのフォントサイズ。説明文の位置・背景の弧の中心など、
+/* トップページのヒーロー（ことりずむの見出し）のレイアウト用の値。
+--vb-title: 見出しのフォントサイズ。説明文の位置など、
   見出しに合わせて配置するものはこの値の倍数で指定している。
-  スマホでは画面幅いっぱい近くまで大きく（22vw）、sm以上ではボタンを置く分だけ小さくする。
+  「ことりずむ」（全角5文字 + 字間0.06em ≒ 5.3em幅）が画面からはみ出さないよう、
+  スマホでは画面幅の8割ほど（15vw）、sm以上では画面幅に合わせて伸ばしつつ、
+  大きな画面で大きくなりすぎないよう上限（8rem）を設ける。
 --vb-hero-pt: ヒーローの上padding。
   スマホではヒーローを1画面ぴったり（100svhからヘッダーの高さ73pxを引いた高さ）にして
-  下のカードがスクロールして初めて見えるようにし、中身（バッジ〜ボタン）はその中で上下中央に置く。
-  中身の高さは 固定分（バッジ16px + gap-6 24px + 説明文2行 + ボタン上の余白 + ボタン。実測で
-  236px）+ 1.222 * --vb-title（h1の行ボックス1.5倍 - 説明文の引き上げ0.278倍）。
-  中身の位置をCSSで決めておくことで、背景の弧の中心（--vb-h1-top）もCSSだけで計算できる。
---vb-h1-top: ヒーロー上端からh1の行ボックス上端までの距離（背景の弧の中心の計算に使う）。
-  上padding + バッジの行の高さ(16px) + gap-6(24px)。 */
+  下のカードがスクロールして初めて見えるようにし、中身（見出し〜ボタン）はその中で上下中央に置く。
+  中身の高さは 固定分（説明文2行 + ボタン上の余白 + ボタン。実測で
+  196px）+ 1.222 * --vb-title（h1の行ボックス1.5倍 - 説明文の引き上げ0.278倍）。 */
 .vb-hero {
-  --vb-title: 22vw;
-  --vb-hero-pt: max(40px, calc((100svh - 73px - 236px - 1.222 * var(--vb-title)) / 2));
-  --vb-h1-top: calc(var(--vb-hero-pt) + 40px);
+  --vb-title: 15vw;
+  --vb-hero-pt: max(40px, calc((100svh - 73px - 196px - 1.222 * var(--vb-title)) / 2));
   min-height: calc(100svh - 73px);
   padding-top: var(--vb-hero-pt);
 }
 
 @media (min-width: 640px) {
   .vb-hero {
-    --vb-title: 12vw;
+    --vb-title: min(11vw, 8rem);
     --vb-hero-pt: 96px;
     min-height: 0;
   }
 }
 
-/* 画面幅の中心を頂点とする二次曲線に沿って単語が流れる背景アニメーション。
-下に凸（vb-wave-dip）と上に凸（vb-wave-peak）の2本の弧は交差しない。
-各単語は移動しながら、その位置での弧の接線角度にrotateで合わせている。
-片側の振れ幅は13.464vw（見出しが18.7vwだった頃に、頂点どうしの縦方向の距離が
-VOCABOOKの実際の文字の高さの2倍になるよう決めた値: 0.72 * 18.7 ≈ 13.464vw）。
-見出しの大きさを変えた後も、弧の大きさ・回転は元のデザインのまま変えていない。
-弧の中心（基準位置）だけはbackground.tsxでVOCABOOKの縦中心に合わせている。
-（この値とbackground.tsxのVERTEX_OFFSET_VWは連動しているため、変える場合は両方を直すこと） */
-@keyframes vb-wave-dip {
-  0% {
-    transform: translate(-50%, -50%) translate(62vw, 0vw) rotate(-14.12deg);
-  }
-  5% {
-    transform: translate(-50%, -50%) translate(55.8vw, 2.56vw) rotate(-12.76deg);
-  }
-  10% {
-    transform: translate(-50%, -50%) translate(49.6vw, 4.85vw) rotate(-11.38deg);
-  }
-  15% {
-    transform: translate(-50%, -50%) translate(43.4vw, 6.87vw) rotate(-9.99deg);
-  }
-  20% {
-    transform: translate(-50%, -50%) translate(37.2vw, 8.62vw) rotate(-8.58deg);
-  }
-  25% {
-    transform: translate(-50%, -50%) translate(31vw, 10.1vw) rotate(-7.17deg);
-  }
-  30% {
-    transform: translate(-50%, -50%) translate(24.8vw, 11.31vw) rotate(-5.75deg);
-  }
-  35% {
-    transform: translate(-50%, -50%) translate(18.6vw, 12.25vw) rotate(-4.32deg);
-  }
-  40% {
-    transform: translate(-50%, -50%) translate(12.4vw, 12.93vw) rotate(-2.88deg);
-  }
-  45% {
-    transform: translate(-50%, -50%) translate(6.2vw, 13.33vw) rotate(-1.44deg);
-  }
-  50% {
-    transform: translate(-50%, -50%) translate(0vw, 13.46vw) rotate(0deg);
-  }
-  55% {
-    transform: translate(-50%, -50%) translate(-6.2vw, 13.33vw) rotate(1.44deg);
-  }
-  60% {
-    transform: translate(-50%, -50%) translate(-12.4vw, 12.93vw) rotate(2.88deg);
-  }
-  65% {
-    transform: translate(-50%, -50%) translate(-18.6vw, 12.25vw) rotate(4.32deg);
-  }
-  70% {
-    transform: translate(-50%, -50%) translate(-24.8vw, 11.31vw) rotate(5.75deg);
-  }
-  75% {
-    transform: translate(-50%, -50%) translate(-31vw, 10.1vw) rotate(7.17deg);
-  }
-  80% {
-    transform: translate(-50%, -50%) translate(-37.2vw, 8.62vw) rotate(8.58deg);
-  }
-  85% {
-    transform: translate(-50%, -50%) translate(-43.4vw, 6.87vw) rotate(9.99deg);
-  }
-  90% {
-    transform: translate(-50%, -50%) translate(-49.6vw, 4.85vw) rotate(11.38deg);
-  }
-  95% {
-    transform: translate(-50%, -50%) translate(-55.8vw, 2.56vw) rotate(12.76deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) translate(-62vw, 0vw) rotate(14.12deg);
+/* ロゴ文字「りずむ」の縁の虹色（components/brand-name.tsx）。プリズムで分かれた光を表す */
+.vb-brand-rainbow {
+  background-image: linear-gradient(
+    100deg,
+    #ff6b6b 0%,
+    #f7a440 20%,
+    #e2c63b 40%,
+    #4cc38a 60%,
+    #3fa7d6 80%,
+    #7c6cf0 100%
+  );
+}
+
+/* LP表示前のスプラッシュ画面（components/SplashScreen.tsx）。
+ロゴがふわっと現れ、約1.4秒表示したあと0.6秒でフェードアウトする */
+.vb-splash {
+  animation: vb-splash-out 0.6s ease 1.4s forwards;
+}
+
+.vb-splash-logo {
+  animation: vb-splash-logo-in 0.8s ease-out both;
+}
+
+/* 同じセッションで表示済みなら出さない（layout.tsxの<head>内スクリプトが付与） */
+.vb-splash-seen .vb-splash {
+  display: none;
+}
+
+@keyframes vb-splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
   }
 }
 
-@keyframes vb-wave-peak {
-  0% {
-    transform: translate(-50%, -50%) translate(62vw, 0vw) rotate(14.12deg);
+@keyframes vb-splash-logo-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  5% {
-    transform: translate(-50%, -50%) translate(55.8vw, -2.56vw) rotate(12.76deg);
-  }
-  10% {
-    transform: translate(-50%, -50%) translate(49.6vw, -4.85vw) rotate(11.38deg);
-  }
-  15% {
-    transform: translate(-50%, -50%) translate(43.4vw, -6.87vw) rotate(9.99deg);
-  }
-  20% {
-    transform: translate(-50%, -50%) translate(37.2vw, -8.62vw) rotate(8.58deg);
-  }
-  25% {
-    transform: translate(-50%, -50%) translate(31vw, -10.1vw) rotate(7.17deg);
-  }
-  30% {
-    transform: translate(-50%, -50%) translate(24.8vw, -11.31vw) rotate(5.75deg);
-  }
-  35% {
-    transform: translate(-50%, -50%) translate(18.6vw, -12.25vw) rotate(4.32deg);
-  }
-  40% {
-    transform: translate(-50%, -50%) translate(12.4vw, -12.93vw) rotate(2.88deg);
-  }
-  45% {
-    transform: translate(-50%, -50%) translate(6.2vw, -13.33vw) rotate(1.44deg);
-  }
-  50% {
-    transform: translate(-50%, -50%) translate(0vw, -13.46vw) rotate(0deg);
-  }
-  55% {
-    transform: translate(-50%, -50%) translate(-6.2vw, -13.33vw) rotate(-1.44deg);
-  }
-  60% {
-    transform: translate(-50%, -50%) translate(-12.4vw, -12.93vw) rotate(-2.88deg);
-  }
-  65% {
-    transform: translate(-50%, -50%) translate(-18.6vw, -12.25vw) rotate(-4.32deg);
-  }
-  70% {
-    transform: translate(-50%, -50%) translate(-24.8vw, -11.31vw) rotate(-5.75deg);
-  }
-  75% {
-    transform: translate(-50%, -50%) translate(-31vw, -10.1vw) rotate(-7.17deg);
-  }
-  80% {
-    transform: translate(-50%, -50%) translate(-37.2vw, -8.62vw) rotate(-8.58deg);
-  }
-  85% {
-    transform: translate(-50%, -50%) translate(-43.4vw, -6.87vw) rotate(-9.99deg);
-  }
-  90% {
-    transform: translate(-50%, -50%) translate(-49.6vw, -4.85vw) rotate(-11.38deg);
-  }
-  95% {
-    transform: translate(-50%, -50%) translate(-55.8vw, -2.56vw) rotate(-12.76deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) translate(-62vw, 0vw) rotate(-14.12deg);
-  }
-}
-
-.vb-wave-item {
-  position: absolute;
-  left: 50%;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.vb-wave-item--dip {
-  animation-name: vb-wave-dip;
-}
-
-.vb-wave-item--peak {
-  animation-name: vb-wave-peak;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vb-wave-item {
+  .vb-splash-logo {
     animation: none;
   }
 }

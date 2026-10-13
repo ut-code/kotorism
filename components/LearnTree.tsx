@@ -58,7 +58,7 @@ export default function LearnTree({ allSections = {} }: LearnTreeProps) {
                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   isLangActive && !currentSectionSlug
                     ? "bg-zinc-200/70 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 font-semibold"
-                    : "text-zinc-600 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
+                    : "text-zinc-600 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
                 }`}
               >
                 {lang.label}
@@ -98,8 +98,8 @@ export default function LearnTree({ allSections = {} }: LearnTreeProps) {
                       href={`/learn/${lang.languageSlug}/${section.sectionSlug}`}
                       className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
                         isSectionActive
-                          ? "bg-[#367588]/10 text-[#367588] font-semibold dark:bg-[#367588]/20 dark:text-[#367588]"
-                          : "text-zinc-500 hover:bg-zinc-100 hover:text-[#367588] dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-[#367588]"
+                          ? "bg-tealblue-600/10 text-tealblue-600 font-semibold dark:bg-tealblue-600/20 dark:text-tealblue-600"
+                          : "text-zinc-500 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
                       }`}
                     >
                       {section.title}
