@@ -158,7 +158,7 @@ export default function StudyDeck({
       { method: "post", action: actionUrl },
     );
     // viewFetcher は毎レンダリングで同一とは限らないため、依存にはカードidだけを持たせる
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCard.id]);
 
   // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
