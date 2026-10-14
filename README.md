@@ -11,6 +11,11 @@
 - AI: OpenRouter
 - ツール: oxlint / oxfmt
 
+## 前提条件
+
+- Node.js 24
+- npm
+
 ## 環境構築
 
 ```bash
@@ -30,12 +35,8 @@ npm run lint
 npm run typecheck
 ```
 
-スキーマを変えたら `npx prisma migrate dev` で生成した `prisma/migrations` もコミットする。
-
 ## ルーティング
 
 `app/routes.ts` がファイル配置からルートを生成する（Next.js 風）。`page` / `layout` / `route` / `opengraph-image`、`[param]` / `[...splat]` が使える。型は `./+types/<file>` から import する（`npm run typecheck` で生成）。
 
 データは `loader` / `action` 経由。更新は `useFetcher` / `IntentForm` から `action` に `intent` を送る。サーバー専用コードは `*.server.ts`。
-
-React Router 8 固有の仕様は `node_modules/react-router/docs/` を参照。
