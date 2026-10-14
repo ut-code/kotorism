@@ -1,7 +1,7 @@
 import { redirect } from "react-router";
 
 import { auth } from "@/lib/auth.server";
-import { getRequestStore } from "@/lib/request-context.server";
+import { getRequestPath, getRequestStore } from "@/lib/request-context.server";
 
 // 1リクエスト内で何度呼んでもDBアクセスは1回だけになるよう、リクエストのストアにメモ化する
 export function getCurrentUser() {
@@ -17,8 +17,7 @@ export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) {
     // 元のパスを /login?redirect= に渡し、ログイン後にそこへ戻れるようにする
-    const url = new URL(getRequestStore().request.url);
-    const path = url.pathname + url.search;
+    const path = getRequestPath(getRequestStore().request);
     throw redirect(`/login?redirect=${encodeURIComponent(path)}`);
   }
   return user;
