@@ -7,7 +7,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "start": "npx prisma migrate deploy && react-router-serve ./build/server/index.js",
-    "lint": "eslint",
+    "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "typecheck": "react-router typegen && tsc --noEmit",
@@ -38,13 +38,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
-    "eslint": "^9.39.5",
-    "eslint-plugin-react-hooks": "^7.1.1",
     "oxfmt": "^0.63.0",
+    "oxlint": "^1.88.0",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "typescript-eslint": "^8.71.2",
     "vite": "^8.3.4"
   }
 }

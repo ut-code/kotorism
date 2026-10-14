@@ -52,7 +52,7 @@ const SAMPLE_PROBLEMS: PracticeProblem[] = [
 ];
 
 function normalizeText(text: string): string {
-  return text.replace(/[。、！？\.!\?\s ]/g, "").toLowerCase();
+  return text.replace(/[。、！？.!?\s ]/g, "").toLowerCase();
 }
 
 function removeToneMarks(pinyinStr: string): string {

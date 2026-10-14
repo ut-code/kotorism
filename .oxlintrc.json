@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react"],
+  "rules": { "react/purity": "off" },
+  "categories": { "correctness": "error" },
+  "ignorePatterns": [
+    ".react-router/**",
+    "build/**",
+    "app/generated/**",
+    ".worktree/**",
+    ".worktrees/**"
+  ]
+}
