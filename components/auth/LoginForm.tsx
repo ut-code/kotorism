@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "react-router";
+import Link from "@/components/Link";
 
 import { authClient } from "@/lib/auth-client";
 import { safeRedirectPath } from "@/lib/auth-redirect";
 
 export default function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -30,8 +29,8 @@ export default function LoginForm() {
       return;
     }
 
-    router.push(safeRedirectPath(searchParams.get("redirect")));
-    router.refresh();
+    // ログイン状態が変わったので、ヘッダーのユーザー名なども含めて全体を読み込み直す
+    window.location.assign(safeRedirectPath(searchParams.get("redirect")));
   }
 
   return (

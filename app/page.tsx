@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import Link from "@/components/Link";
+import { redirect } from "react-router";
 import BookShape from "@/components/book-shape";
 import BrandName from "@/components/brand-name";
 import ShapeDivider from "@/components/shape-divider";
@@ -8,7 +8,7 @@ import SplashScreen from "@/components/SplashScreen";
 // import TitleBlob from "@/components/title-blob";
 import { MaterialsPreview } from "@/components/home/MaterialsPreview";
 import { StudyModePreview } from "@/components/home/StudyModePreview";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session.server";
 
 // ボタン内の、ホバー中に右へ流れ続ける矢印（アニメーションはglobals.cssのvb-arrow-*）
 function FlowArrow() {
@@ -58,12 +58,15 @@ function FlowArrow() {
 
 // ルートページ
 // ログイン中は閲覧履歴ページへ移し、未ログインのときだけこのトップページ（サービス紹介）を表示する。
-// 判定はCookieではなくDB上のセッションで行う（無効なCookieが残っていてもループしないように。proxy.tsと同じ理由）
-export default async function Home() {
+// 判定はCookieではなくDB上のセッションで行う（無効なCookieが残っていてもループしないように。root.tsx の middleware と同じ理由）
+export async function loader() {
   if (await getCurrentUser()) {
-    redirect("/history");
+    throw redirect("/history");
   }
+  return null;
+}
 
+export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center bg-zinc-50 dark:bg-black">
       <SplashScreen />

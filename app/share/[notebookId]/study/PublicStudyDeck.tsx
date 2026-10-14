@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useSwipe } from "@/components/UseSwipe";
-import Link from "next/link";
+import Link from "@/components/Link";
 
 import type { CardData } from "@/lib/card-data";
 import MultiElementCard from "@/components/my-notebooks/MultiElement";

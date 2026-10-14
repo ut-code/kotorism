@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 
 // ヘッダーの「ログイン」「新規登録」リンク。今いるページをredirectパラメータに載せておき、
 // ログイン・登録が終わったら（デフォルトのMy単語帳ではなく）元のページへ戻れるようにする
 export default function AuthNavLinks() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const redirectQuery = `redirect=${encodeURIComponent(pathname)}`;
 
   return (

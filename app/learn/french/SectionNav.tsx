@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 import type { SectionSummary } from "@/app/learn/content";
 
 export default function SectionNav({ sections }: { sections: SectionSummary[] }) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const currentSlug = pathname.split("/").pop();
 
   const currentIndex = sections.findIndex((section) => section.sectionSlug === currentSlug);

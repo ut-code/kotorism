@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useOptimistic, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
+import { useFetcher } from "react-router";
 
-import { deleteCard, toggleStar, updateCard, type FormState } from "../actions";
+import type { FormState } from "@/lib/form-state";
 import CardFieldsForm from "@/components/my-notebooks/CardFieldsForm";
 import EyeIcon from "@/components/EyeIcon";
 import StarCountEditor from "@/components/StarCountEditor";
@@ -13,8 +13,7 @@ import type { CardData } from "@/lib/card-data";
 
 const initialState: FormState = {};
 
-function SaveButton() {
-  const { pending } = useFormStatus();
+function SaveButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -51,13 +50,10 @@ export default function CardRow({
 }) {
   // このカードが「表示モード」か「インライン編集モード」かを切り替えるフラグ
   const [editing, setEditing] = useState(false);
-  // updateCard Server Action を、このカード専用（cardId・notebookId固定）にバインドしておく。
-  // useActionStateはフォームのaction属性に渡すための関数(formAction)と、
-  // 直近の実行結果(state = { error? })をセットで返す
-  const [state, formAction] = useActionState(
-    updateCard.bind(null, card.id, notebookId),
-    initialState,
-  );
+  // 単語帳ページの action(intent で振り分け)に送信する。fetcher.data が直近の実行結果(state = { error? })
+  const actionUrl = `/my-notebooks/${notebookId}`;
+  const updateFetcher = useFetcher<FormState>();
+  const state = updateFetcher.data ?? initialState;
   // stateが変化した（=action実行結果が返ってきた）タイミングだけ、成功時に編集モードを閉じる。
   // 初回マウント時はprevState === stateなので何もしない
   const [prevState, setPrevState] = useState(state);
@@ -72,20 +68,16 @@ export default function CardRow({
   const bodyColumns = columns.slice(1);
 
   // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるための
-  // 楽観的UI。これが無いと、往復の間だけ古い状態（トグル前の☆）が表示され続けてしまい、
-  // 「一瞬白い星に戻る」ように見えるバグになる
-  const [optimisticStar, setOptimisticStar] = useOptimistic(
-    { starred: card.starred, starCount: card.starCount },
-    (_state, next: { starred: boolean; starCount: number }) => next,
-  );
-  async function handleToggleStar() {
-    setOptimisticStar(
-      optimisticStar.starred
-        ? { starred: false, starCount: optimisticStar.starCount }
-        : { starred: true, starCount: optimisticStar.starCount + 1 },
-    );
-    await toggleStar(card.id, notebookId);
-  }
+  // 楽観的UI。送信中（idleでない間）は反転後の状態を見せる。これが無いと、往復の間だけ
+  // 古い状態（トグル前の☆）が表示され続けてしまい、「一瞬白い星に戻る」ように見えるバグになる
+  const starFetcher = useFetcher();
+  const togglingStar = starFetcher.state !== "idle";
+  const optimisticStar = togglingStar
+    ? card.starred
+      ? { starred: false, starCount: card.starCount }
+      : { starred: true, starCount: card.starCount + 1 }
+    : { starred: card.starred, starCount: card.starCount };
+  const deleteFetcher = useFetcher();
 
   // ★を付けた回数（optimisticStar.starCount）に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
   const { colors: starColors } = useStarColors();
@@ -127,13 +119,15 @@ export default function CardRow({
             })}
             {rowIndex === 0 && (
               <td rowSpan={rowCount} className="px-4 py-3 text-right align-top whitespace-nowrap">
-                {/* handleToggleStarは楽観的UIでoptimisticStarを即座に切り替えてからtoggleStarを呼ぶ。
+                {/* 送信中は楽観的UIでoptimisticStarを即座に切り替える。
                     表示はcard.starredではなくoptimisticStar.starredを見ることで、
                     サーバーの往復を待たずに★・色が切り替わる。
                     回数の表示・修正はStarCountEditorに分離し、誤クリック時に
                     手動での書き換え・0へのリセットができるようにしている */}
                 <span className="mr-3 inline-flex items-center gap-1">
-                  <form action={handleToggleStar} className="inline">
+                  <starFetcher.Form method="post" action={actionUrl} className="inline">
+                    <input type="hidden" name="intent" value="toggleStar" />
+                    <input type="hidden" name="cardId" value={card.id} />
                     <button
                       type="submit"
                       aria-label={optimisticStar.starred ? "★を外す" : "★をつける"}
@@ -146,7 +140,7 @@ export default function CardRow({
                     >
                       {optimisticStar.starred ? "★" : "☆"}
                     </button>
-                  </form>
+                  </starFetcher.Form>
                   <StarCountEditor
                     cardId={card.id}
                     notebookId={notebookId}
@@ -171,10 +165,10 @@ export default function CardRow({
                 >
                   編集
                 </button>
-                {/* deleteCardをこのカード専用にbindし、form actionとして直接渡す。
-                    確認ダイアログで「キャンセル」された場合はpreventDefaultで送信自体を止める */}
-                <form
-                  action={deleteCard.bind(null, card.id, notebookId)}
+                {/* 確認ダイアログで「キャンセル」された場合はpreventDefaultで送信自体を止める */}
+                <deleteFetcher.Form
+                  method="post"
+                  action={actionUrl}
                   className="inline"
                   onSubmit={(event) => {
                     if (!window.confirm("この単語を削除しますか？")) {
@@ -182,13 +176,15 @@ export default function CardRow({
                     }
                   }}
                 >
+                  <input type="hidden" name="intent" value="deleteCard" />
+                  <input type="hidden" name="cardId" value={card.id} />
                   <button
                     type="submit"
                     className="text-sm text-red-600 transition-colors hover:underline dark:text-red-400"
                   >
                     削除
                   </button>
-                </form>
+                </deleteFetcher.Form>
               </td>
             )}
           </tr>
@@ -202,8 +198,14 @@ export default function CardRow({
   return (
     <tr className="border-t border-black/[.06] dark:border-white/[.1]">
       <td colSpan={bodyColumns.length + 2} className="px-4 py-3">
-        {/* action={formAction} に渡すことで、Server Actionの結果がuseActionStateのstateに反映される */}
-        <form action={formAction} className="flex flex-col items-start gap-3">
+        {/* 実行結果は updateFetcher.data（= state）に反映される */}
+        <updateFetcher.Form
+          method="post"
+          action={actionUrl}
+          className="flex flex-col items-start gap-3"
+        >
+          <input type="hidden" name="intent" value="updateCard" />
+          <input type="hidden" name="cardId" value={card.id} />
           {/* defaultHead/defaultRowsで現在の値を初期表示し、そこから編集する */}
           <CardFieldsForm
             columns={columns}
@@ -211,7 +213,7 @@ export default function CardRow({
             defaultRows={card.data.rows}
           />
           <div className="flex items-center gap-3">
-            <SaveButton />
+            <SaveButton pending={updateFetcher.state !== "idle"} />
             <button
               type="button"
               onClick={() => setEditing(false)}
@@ -220,7 +222,7 @@ export default function CardRow({
               キャンセル
             </button>
           </div>
-        </form>
+        </updateFetcher.Form>
         {state?.error && (
           <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
             {state.error}

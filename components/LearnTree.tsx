@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 import { LANGUAGES } from "@/app/learn/languages";
-import { AllLanguageSections } from "@/app/learn/content";
+import type { AllLanguageSections } from "@/app/learn/content";
 
 type LearnTreeProps = {
   // 各言語のスラッグをキーとし、セクション情報の配列を値に持つオブジェクト
@@ -15,7 +15,7 @@ type LearnTreeProps = {
  * 学習教材の「言語 → 章」ツリー。PCのサイドバーとスマホのハンバーガーメニューで共用する
  */
 export default function LearnTree({ allSections = {} }: LearnTreeProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   // 現在のURLパスから言語スラッグとセクションスラッグを抽出 (例: /learn/chinese/01 -> ["learn", "chinese", "01"])
   const pathSegments = pathname.split("/").filter(Boolean);

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 import LearnTree from "@/components/LearnTree";
-import { AllLanguageSections } from "@/app/learn/content";
+import type { AllLanguageSections } from "@/app/learn/content";
 
 // Sidebarコンポーネントが受け取るプロップスの型定義
 type SidebarProps = {
@@ -23,7 +23,7 @@ type SidebarProps = {
  * - 「学習教材」横のシェブロンボタンでの開閉制御
  */
 export default function Sidebar({ allSections = {} }: SidebarProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   const isMyNotebooksActive = pathname.startsWith("/my-notebooks");
   const isLearnActive = pathname.startsWith("/learn");

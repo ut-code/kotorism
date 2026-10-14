@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { useLocation } from "react-router";
+import Link from "@/components/Link";
 
-import { toggleManualSectionTag } from "@/lib/learn/actions";
+import { apiPost } from "@/lib/api-client";
 import { BookmarkIcon } from "@/components/learn/BookmarkIcon";
 
 const SIZES = {
@@ -33,7 +33,7 @@ export function SectionBookmarkButton({
   initialActive,
   size = "sm",
 }: SectionBookmarkButtonProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const [active, setActive] = useState(initialActive);
   const [pending, setPending] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -51,7 +51,7 @@ export function SectionBookmarkButton({
 
     setPending(true);
     setActive((prev) => !prev);
-    await toggleManualSectionTag(language, sectionSlug);
+    await apiPost("/api/learn", { intent: "toggleManualTag", language, sectionSlug });
     setPending(false);
   }
 

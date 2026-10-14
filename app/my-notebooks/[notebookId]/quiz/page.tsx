@@ -1,19 +1,17 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from "@/components/Link";
+import { notFound } from "@/lib/http.server";
 
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
-import { getNotebookRole } from "@/lib/notebook-access";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
+import { getNotebookRole } from "@/lib/notebook-access.server";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
 import QuizDeck from "./QuizDeck";
+import type { Route } from "./+types/page";
 
-// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
-export const dynamic = "force-dynamic";
-
-export default async function QuizPage(props: PageProps<"/my-notebooks/[notebookId]/quiz">) {
+export async function loader({ params }: Route.LoaderArgs) {
   const user = await requireUser();
-  const { notebookId } = await props.params;
+  const { notebookId } = params;
 
   // 作成者・共同編集者のいずれでもなければ404にする
   const role = await getNotebookRole(notebookId, user.id);
@@ -31,6 +29,12 @@ export default async function QuizPage(props: PageProps<"/my-notebooks/[notebook
     const data = normalizeCardData(card.data);
     return { id: card.id, head: data.head, rows: data.rows };
   });
+
+  return { notebook: { id: notebook.id, title: notebook.title }, columns, cards };
+}
+
+export default function QuizPage({ loaderData }: Route.ComponentProps) {
+  const { notebook, columns, cards } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 text-center">

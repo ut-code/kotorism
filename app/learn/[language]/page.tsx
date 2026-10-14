@@ -1,26 +1,15 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from "@/components/Link";
+import { notFound } from "@/lib/http.server";
 
-import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { prisma } from "@/lib/prisma.server";
+import { requireUser } from "@/lib/session.server";
 import { SectionCard } from "@/components/learn/SectionCard";
-import { getLanguage, LANGUAGES } from "../languages";
+import { getLanguage } from "../languages";
 import { getSections } from "../content";
+import type { Route } from "./+types/page";
 
-// ルート生成の補助関数
-export function generateStaticParams() {
-  return LANGUAGES.map((language) => ({ language: language.languageSlug }));
-}
-
-export default async function LearnLanguagePage(
-  // pageファイルのデフォルトコンポーネントには、propsとしてparams及びsearchParamsが自動的に渡される
-  // paramsは、URLパスの [...] 部分（動的セグメントと呼ぶ）である
-  // searchParamsは、URLの?key=value の部分（クエリパラメータと呼び、まだ使用していない）である
-  // PagePropsは、params及びsearchParamsの型を定義するためのグローバルに用いることができる型である
-  // <"/learn/[language]">の部分は、PagePropsの型引数であり、params及びsearchParamsの型を自動的に推論するために使用される
-  props: PageProps<"/learn/[language]">,
-) {
-  const { language: languageSlug } = await props.params;
+export async function loader({ params }: Route.LoaderArgs) {
+  const { language: languageSlug } = params;
   const language = getLanguage(languageSlug);
 
   if (!language) {
@@ -34,6 +23,12 @@ export default async function LearnLanguagePage(
     where: { userId: user.id, language: language.languageSlug },
   });
   const progressBySlug = new Map(progressRows.map((row) => [row.sectionSlug, row]));
+
+  return { language, sections, progressBySlug };
+}
+
+export default function LearnLanguagePage({ loaderData }: Route.ComponentProps) {
+  const { language, sections, progressBySlug } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 sm:py-24">
@@ -75,7 +70,7 @@ export default async function LearnLanguagePage(
               title={section.title}
               language={language.languageSlug}
               sectionSlug={section.sectionSlug}
-              isLoggedIn={!!user}
+              isLoggedIn
               manuallyTagged={progress?.manuallyTagged ?? false}
             />
           );

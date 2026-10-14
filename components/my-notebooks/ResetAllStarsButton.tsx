@@ -1,13 +1,14 @@
 "use client";
 
-import { resetAllStars } from "@/app/my-notebooks/actions";
+import IntentForm from "@/components/IntentForm";
 
 // 単語帳内の★（回数・付け外し状態）を一括でリセットするボタン。
 // 単語帳まるごとに影響する操作なので、削除ボタンと同様に確認ダイアログを挟む
 export default function ResetAllStarsButton({ notebookId }: { notebookId: string }) {
   return (
-    <form
-      action={resetAllStars.bind(null, notebookId)}
+    <IntentForm
+      action={`/my-notebooks/${notebookId}`}
+      intent="resetAllStars"
       onSubmit={(event) => {
         if (!window.confirm("この単語帳の★の回数をすべてリセットします。よろしいですか？")) {
           event.preventDefault();
@@ -20,6 +21,6 @@ export default function ResetAllStarsButton({ notebookId }: { notebookId: string
       >
         ★を一括リセット
       </button>
-    </form>
+    </IntentForm>
   );
 }

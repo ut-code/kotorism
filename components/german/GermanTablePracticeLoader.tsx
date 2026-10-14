@@ -1,5 +1,4 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { readMdxSource } from "@/lib/mdx-source";
 import GermanTablePractice, {
   type GrammarTableCell,
   type GrammarTableData,
@@ -26,12 +25,11 @@ function mergeAdjacentCells(cells: string[]): GrammarTableCell[] {
  * 人称代名詞・所有冠詞・冠詞・指示詞の各文法表データを動的に抽出する関数。
  * データのベタ打ちを排除し、教材ファイルを唯一のデータソースとして使用する。
  */
-async function getGrammarTablesFromMdx(): Promise<GrammarTableData[]> {
-  const filePath = path.join(process.cwd(), "app", "learn", "german", "04", "page.mdx");
+function getGrammarTablesFromMdx(): GrammarTableData[] {
   const tables: GrammarTableData[] = [];
 
   try {
-    const content = await fs.readFile(filePath, "utf-8");
+    const content = readMdxSource("german", "04");
     const lines = content.split("\n");
 
     let currentCategory = "文法表";
@@ -98,7 +96,7 @@ async function getGrammarTablesFromMdx(): Promise<GrammarTableData[]> {
  * サーバー側でMDXから文法表データを読み込み、
  * 表完成演習コンポーネント（GermanTablePractice）へ受け渡すServer Component。
  */
-export default async function GermanTablePracticeLoader() {
-  const tables = await getGrammarTablesFromMdx();
+export default function GermanTablePracticeLoader() {
+  const tables = getGrammarTablesFromMdx();
   return <GermanTablePractice tables={tables} />;
 }

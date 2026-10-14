@@ -1,16 +1,27 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import CreateBlankNotebookForm from "@/components/my-notebooks/CreateBlankNotebookForm";
-import { requireUser } from "@/lib/session";
+import { requireUser } from "@/lib/session.server";
 import DeleteNotebookButton from "@/components/my-notebooks/DeleteNotebookButton";
 import StarColorSettings from "@/components/StarColorSettings";
 import NotebookGuideButton from "@/components/my-notebooks/NotebookGuideButton";
+import type { Route } from "./+types/page";
 
-// DBの最新状態を常に表示するため、ビルド時の静的プリレンダリングを避けてリクエスト時にレンダリングする
-export const dynamic = "force-dynamic";
+import { createBlankNotebook } from "./actions.server";
 
-export default async function MyNotebooksPage() {
+// 単語帳の新規作成フォーム(CreateBlankNotebookForm)からの送信を受ける。成功すると作成した単語帳へ redirect する
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  switch (formData.get("intent")) {
+    case "createBlankNotebook":
+      return createBlankNotebook(formData);
+    default:
+      throw new Response("Bad Request", { status: 400 });
+  }
+}
+
+export async function loader() {
   const user = await requireUser();
 
   // 作成日が新しい単語帳を先頭に表示する。ログイン中のユーザー自身の単語帳のみに絞り込む。
@@ -31,6 +42,12 @@ export default async function MyNotebooksPage() {
       },
     },
   });
+
+  return { notebooks, sharedNotebooks };
+}
+
+export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
+  const { notebooks, sharedNotebooks } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-24">

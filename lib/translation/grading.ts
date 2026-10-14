@@ -1,5 +1,3 @@
-import "server-only";
-
 import type { TranslationDirection, TranslationFeedback } from "./types";
 
 // OpenRouterの無料枠モデル。無料モデルは提供元の混雑で一時的に429（レート制限）になることがあるため、

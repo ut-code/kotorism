@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { resetStar, setStarCount } from "@/app/my-notebooks/actions";
+import IntentForm from "@/components/IntentForm";
 
 // ★の回数（card.starCount）の横に置く、数字をクリックすると開く修正用ポップオーバー。
 // 誤って★をクリックしてしまった場合に、回数を直接書き換えたり0にリセットしたりできる
@@ -44,10 +44,11 @@ export default function StarCountEditor({
           />
           <div className="absolute left-1/2 z-50 mt-1 w-44 -translate-x-1/2 rounded-lg border border-black/[.08] bg-white p-3 text-left shadow-lg dark:border-white/[.145] dark:bg-zinc-900">
             <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-500">★の回数を修正</p>
-            {/* setStarCountをこのカード専用にbindし、form actionとして直接渡す。
-                onSubmitはpreventDefaultせず、送信と同時にポップオーバーだけ閉じる */}
-            <form
-              action={setStarCount.bind(null, cardId, notebookId)}
+            {/* onSubmitはpreventDefaultせず、送信と同時にポップオーバーだけ閉じる */}
+            <IntentForm
+              action={`/my-notebooks/${notebookId}`}
+              intent="setStarCount"
+              fields={{ cardId }}
               onSubmit={() => setOpen(false)}
               className="flex items-center gap-2"
             >
@@ -64,9 +65,11 @@ export default function StarCountEditor({
               >
                 保存
               </button>
-            </form>
-            <form
-              action={resetStar.bind(null, cardId, notebookId)}
+            </IntentForm>
+            <IntentForm
+              action={`/my-notebooks/${notebookId}`}
+              intent="resetStar"
+              fields={{ cardId }}
               onSubmit={() => setOpen(false)}
               className="mt-2"
             >
@@ -76,7 +79,7 @@ export default function StarCountEditor({
               >
                 0にリセット
               </button>
-            </form>
+            </IntentForm>
           </div>
         </>
       )}

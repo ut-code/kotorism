@@ -1,11 +1,21 @@
 import RecentActivity from "@/components/home/RecentActivity";
-import { requireUser } from "@/lib/session";
+import { requireUser } from "@/lib/session.server";
+import { getRecentNotebooks, getRecentSections } from "@/lib/recent-activity.server";
+import type { Route } from "./+types/page";
 
 // ログイン後の入口。最近見た単語帳・学習ページを表示する（未ログインなら /login へ）
-export const dynamic = "force-dynamic";
-
-export default async function HistoryPage() {
+export async function loader() {
   const user = await requireUser();
+  const [notebooks, sections] = await Promise.all([
+    getRecentNotebooks(user.id),
+    getRecentSections(user.id),
+  ]);
+
+  return { notebooks, sections };
+}
+
+export default function HistoryPage({ loaderData }: Route.ComponentProps) {
+  const { notebooks, sections } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
@@ -13,7 +23,7 @@ export default async function HistoryPage() {
         <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
           最近の学習履歴
         </h1>
-        <RecentActivity userId={user.id} />
+        <RecentActivity notebooks={notebooks} sections={sections} />
       </div>
     </main>
   );

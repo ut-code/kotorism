@@ -1,8 +1,6 @@
-"use server";
-
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import type { Prisma } from "@/app/generated/prisma/client";
-import { getCurrentUser, requireUser } from "@/lib/session";
+import { getCurrentUser, requireUser } from "@/lib/session.server";
 import { getLanguage } from "@/app/learn/languages";
 import { getTranslationLevels, getTranslationProblem } from "./problems";
 import { gradeTranslation, TranslationGradingError } from "./grading";

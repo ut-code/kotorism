@@ -1,9 +1,7 @@
-import { Suspense } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import Image from "@/components/Image";
+import Link from "@/components/Link";
 
-import HeaderNav from "@/components/HeaderNav";
-import type { HeaderNavLink } from "@/components/HeaderNavClient";
+import HeaderNavClient, { type HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
 import BrandName from "@/components/brand-name";
 import type { AllLanguageSections } from "@/app/learn/content";
@@ -21,7 +19,14 @@ const NAV_LINKS: HeaderNavLink[] = [
   },
 ];
 
-export default function Header({ allSections }: { allSections: AllLanguageSections }) {
+export default function Header({
+  allSections,
+  userName,
+}: {
+  allSections: AllLanguageSections;
+  // ログイン中のユーザー名。未ログインならnull
+  userName: string | null;
+}) {
   return (
     <header className="sticky top-0 z-50 bg-white/5 dark:bg-zinc-600/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.145]">
       <div className="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
@@ -49,16 +54,7 @@ export default function Header({ allSections }: { allSections: AllLanguageSectio
               </Link>
             ))}
           </nav>
-          <Suspense
-            fallback={
-              <>
-                <div className="hidden h-9 w-24 md:block" />
-                <div className="h-9 w-9 md:hidden" />
-              </>
-            }
-          >
-            <HeaderNav links={NAV_LINKS} allSections={allSections} />
-          </Suspense>
+          <HeaderNavClient links={NAV_LINKS} allSections={allSections} userName={userName} />
           <ThemeToggle />
         </div>
       </div>

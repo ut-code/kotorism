@@ -1,19 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
 export default function LogoutButton() {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
 
   async function handleLogout() {
     setPending(true);
     await authClient.signOut();
-    router.push("/");
-    router.refresh();
+    // ログイン状態が変わったので、全体を読み込み直す
+    window.location.assign("/");
   }
 
   return (

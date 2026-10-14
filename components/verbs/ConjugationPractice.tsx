@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { tenseKey, type SixForms, type TenseOption, type VerbLike } from "@/lib/conjugation/shared";
-import { recordSectionQuizAnswer } from "@/lib/learn/actions";
+import { apiPost } from "@/lib/api-client";
 import { AccentInput } from "@/components/verbs/AccentInput";
 
 // 言語ごとに異なる部分（人称・時制・活用エンジン・発音・アクセント入力）をまとめた設定。
@@ -188,7 +188,12 @@ export function ConjugationPractice<V extends VerbLike, T>({
 
       // セクション単位の苦手管理: 1問答えるたびに反映する（未ログインならサーバー側で何もしない）
       if (sectionSlug && language.languageSlug) {
-        recordSectionQuizAnswer(language.languageSlug, sectionSlug, correct).catch(() => {});
+        apiPost("/api/learn", {
+          intent: "quizAnswer",
+          language: language.languageSlug,
+          sectionSlug,
+          correct,
+        }).catch(() => {});
       }
     } else {
       generateQuestion();

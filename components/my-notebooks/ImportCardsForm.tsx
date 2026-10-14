@@ -1,18 +1,16 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
+import { useFetcher } from "react-router";
 
-import { importCardsFromExcel, type FormState } from "@/app/my-notebooks/actions";
+import type { FormState } from "@/lib/form-state";
 
 const initialState: FormState = {};
 
 const languageOptions = ["フランス語", "ドイツ語", "スペイン語", "中国語", "英語"];
 
 // フォーム送信中はボタンを disabled にし、ラベルを差し替える
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -123,10 +121,8 @@ function ImportTemplate() {
 // 列名が既存の単語帳の列と一致すればそこに値が追加され、一致しない列名は
 // 単語帳の末尾に新しい列として自動で追加される
 export default function ImportCardsForm({ notebookId }: { notebookId: string }) {
-  const [state, formAction] = useActionState(
-    importCardsFromExcel.bind(null, notebookId),
-    initialState,
-  );
+  const fetcher = useFetcher<FormState>();
+  const state = fetcher.data ?? initialState;
   const [expanded, setExpanded] = useState(false);
   // 取り込み成功のたびにkeyを変えてフォームを作り直し、ファイル選択欄を空に戻す
   const [formKey, setFormKey] = useState(0);
@@ -165,7 +161,14 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
         </button>
       </div>
       <ImportTemplate />
-      <form key={formKey} action={formAction} className="flex flex-col gap-3">
+      <fetcher.Form
+        key={formKey}
+        method="post"
+        action={`/my-notebooks/${notebookId}`}
+        encType="multipart/form-data"
+        className="flex flex-col gap-3"
+      >
+        <input type="hidden" name="intent" value="importCards" />
         <input
           name="file"
           type="file"
@@ -182,9 +185,9 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
           </p>
         )}
         <div>
-          <SubmitButton />
+          <SubmitButton pending={fetcher.state !== "idle"} />
         </div>
-      </form>
+      </fetcher.Form>
     </div>
   );
 }

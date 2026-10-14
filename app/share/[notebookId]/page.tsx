@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from "@/components/Link";
+import { notFound } from "@/lib/http.server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma.server";
 import { normalizeCardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
-
-// 公開中の単語帳をログイン無しで閲覧できるページ。公開状態はDBの最新値を都度見る必要があるため静的化しない
-export const dynamic = "force-dynamic";
+import type { Route } from "./+types/page";
 
 // Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
 // 1つのセルにする。先頭行以外は0を返し、呼び出し側でそのセルの描画をスキップする。
@@ -23,27 +20,8 @@ function computeRowSpans(values: string[]): number[] {
   return spans;
 }
 
-// 共有リンクをDiscordなどに貼ったときに、単語帳の名前・語数が表示されるようにする。
-// 画像は同じ階層の opengraph-image.tsx が生成する。非公開・存在しないIDでは何も設定しない
-export async function generateMetadata(props: PageProps<"/share/[notebookId]">): Promise<Metadata> {
-  const { notebookId } = await props.params;
-  const notebook = await prisma.notebook.findUnique({
-    where: { id: notebookId, isPublic: true },
-    select: { title: true, _count: { select: { cards: true } } },
-  });
-  if (!notebook) return {};
-
-  const description = `${notebook._count.cards}語の単語帳 | ことりずむ`;
-  return {
-    title: `${notebook.title} | ことりずむ`,
-    description,
-    openGraph: { title: notebook.title, description, type: "website", siteName: "ことりずむ" },
-    twitter: { card: "summary_large_image", title: notebook.title, description },
-  };
-}
-
-export default async function SharedNotebookPage(props: PageProps<"/share/[notebookId]">) {
-  const { notebookId } = await props.params;
+export async function loader({ params }: Route.LoaderArgs) {
+  const { notebookId } = params;
 
   // isPublicな単語帳のみ取得する。非公開・存在しないIDの場合は404にする
   const notebook = await prisma.notebook.findUnique({
@@ -58,6 +36,47 @@ export default async function SharedNotebookPage(props: PageProps<"/share/[noteb
   const columns = normalizeColumns(notebook.columns);
   const bodyColumns = columns.slice(1);
   const cards = notebook.cards.map((card) => ({ id: card.id, data: normalizeCardData(card.data) }));
+
+  return {
+    notebook: { id: notebook.id, title: notebook.title },
+    meta: {
+      title: notebook.title,
+      cardCount: cards.length,
+      // OGP画像などの相対URLを絶対URLにするための基準。アプリのオリジンは認証と同じ環境変数を使う
+      ogImageUrl: new URL(
+        `/share/${notebook.id}/opengraph-image`,
+        process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+      ).toString(),
+    },
+    columns,
+    bodyColumns,
+    cards,
+  };
+}
+
+// 共有リンクをDiscordなどに貼ったときに、単語帳の名前・語数が表示されるようにする。
+// 画像は同じ階層の opengraph-image.tsx が生成する。非公開・存在しないIDでは何も設定しない
+export const meta: Route.MetaFunction = ({ loaderData }) => {
+  if (!loaderData) return [];
+  const { title, cardCount, ogImageUrl } = loaderData.meta;
+  const description = `${cardCount}語の単語帳 | ことりずむ`;
+  return [
+    { title: `${title} | ことりずむ` },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "ことりずむ" },
+    { property: "og:image", content: ogImageUrl },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:image", content: ogImageUrl },
+  ];
+};
+
+export default function SharedNotebookPage({ loaderData }: Route.ComponentProps) {
+  const { notebook, columns, bodyColumns, cards } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">

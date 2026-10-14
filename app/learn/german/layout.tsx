@@ -1,3 +1,5 @@
+import { Outlet } from "react-router";
+
 import { getLanguage } from "@/app/learn/languages";
 import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
 import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
@@ -5,7 +7,7 @@ import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
 const language = getLanguage("german");
 
 // ドイツ語セクション専用レイアウト（各言語ディレクトリの layout.tsx はファイル自体が必須）
-export default function GermanSectionLayout({ children }: { children: React.ReactNode }) {
+export default function GermanSectionLayout() {
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16">
       <div className="flex w-full max-w-3xl items-center justify-between">
@@ -13,7 +15,9 @@ export default function GermanSectionLayout({ children }: { children: React.Reac
         <SectionReviewControls />
         <SectionViewTracker />
       </div>
-      <div className="german-content mt-8 w-full max-w-3xl text-left">{children}</div>
+      <div className="german-content mt-8 w-full max-w-3xl text-left">
+        <Outlet />
+      </div>
     </main>
   );
 }

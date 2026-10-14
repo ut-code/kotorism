@@ -1,22 +1,25 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
+import { useFetcher } from "react-router";
 
-import {
-  addNotebookColumn,
-  deleteNotebookColumn,
-  renameNotebookColumn,
-  type FormState,
-} from "@/app/my-notebooks/actions";
+import IntentForm from "@/components/IntentForm";
+import type { FormState } from "@/lib/form-state";
 
 const initialState: FormState = {};
 
 const inputClassName =
   "rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]";
 
-function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
-  const { pending } = useFormStatus();
+function SubmitButton({
+  label,
+  pendingLabel,
+  pending,
+}: {
+  label: string;
+  pendingLabel: string;
+  pending: boolean;
+}) {
   return (
     <button
       type="submit"
@@ -40,10 +43,9 @@ function ColumnRow({
   name: string;
   isHeadColumn: boolean;
 }) {
-  const [state, formAction] = useActionState(
-    renameNotebookColumn.bind(null, notebookId, index),
-    initialState,
-  );
+  const actionUrl = `/my-notebooks/${notebookId}`;
+  const fetcher = useFetcher<FormState>();
+  const state = fetcher.data ?? initialState;
 
   return (
     <li className="flex flex-col gap-1 rounded-lg border border-black/[.06] p-2 dark:border-white/[.1]">
@@ -51,13 +53,17 @@ function ColumnRow({
         <span className="w-14 shrink-0 text-xs text-zinc-400 dark:text-zinc-600">
           {isHeadColumn ? "見出し語" : `列${index + 1}`}
         </span>
-        <form action={formAction} className="flex items-center gap-2">
+        <fetcher.Form method="post" action={actionUrl} className="flex items-center gap-2">
+          <input type="hidden" name="intent" value="renameColumn" />
+          <input type="hidden" name="columnIndex" value={index} />
           <input name="name" defaultValue={name} className={inputClassName} />
-          <SubmitButton label="変更" pendingLabel="変更中…" />
-        </form>
+          <SubmitButton label="変更" pendingLabel="変更中…" pending={fetcher.state !== "idle"} />
+        </fetcher.Form>
         {!isHeadColumn && (
-          <form
-            action={deleteNotebookColumn.bind(null, notebookId, index)}
+          <IntentForm
+            action={actionUrl}
+            intent="deleteColumn"
+            fields={{ columnIndex: String(index) }}
             onSubmit={(event) => {
               if (
                 !window.confirm(
@@ -74,7 +80,7 @@ function ColumnRow({
             >
               この列を削除
             </button>
-          </form>
+          </IntentForm>
         )}
       </div>
       {state?.error && (
@@ -90,10 +96,8 @@ function ColumnRow({
 // 見出し語につき何件の値を持てるかは列単位で決めず、追加後にCardFieldsFormの
 // 「＋ 値を追加」でセルごとに自由に増やせる
 function AddColumnForm({ notebookId }: { notebookId: string }) {
-  const [state, formAction] = useActionState(
-    addNotebookColumn.bind(null, notebookId),
-    initialState,
-  );
+  const fetcher = useFetcher<FormState>();
+  const state = fetcher.data ?? initialState;
   // 追加成功のたびにkeyを変えてフォームを作り直し、入力欄を空に戻す（CreateCardFormと同じ手法）
   const [formKey, setFormKey] = useState(0);
   const [prevState, setPrevState] = useState(state);
@@ -106,10 +110,16 @@ function AddColumnForm({ notebookId }: { notebookId: string }) {
 
   return (
     <div>
-      <form key={formKey} action={formAction} className="flex flex-wrap items-center gap-2">
+      <fetcher.Form
+        key={formKey}
+        method="post"
+        action={`/my-notebooks/${notebookId}`}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <input type="hidden" name="intent" value="addColumn" />
         <input name="name" placeholder="新しい列名（例: 例文 / 発音）" className={inputClassName} />
-        <SubmitButton label="列を追加" pendingLabel="追加中…" />
-      </form>
+        <SubmitButton label="列を追加" pendingLabel="追加中…" pending={fetcher.state !== "idle"} />
+      </fetcher.Form>
       {state?.error && (
         <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">
           {state.error}

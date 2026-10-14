@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 
-import { getTranslationHistory, submitTranslation } from "@/lib/translation/actions";
+import { apiGet, apiPost } from "@/lib/api-client";
+import type { SubmitTranslationResult } from "@/lib/translation/actions.server";
 import { getTranslationLevels, getTranslationProblems } from "@/lib/translation/problems";
 import {
   CUSTOM_SOURCE_MAX_LENGTH,
@@ -66,7 +67,9 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
 
   useEffect(() => {
     let cancelled = false;
-    getTranslationHistory(languageSlug).then((result) => {
+    apiGet<{ isLoggedIn: boolean; submissions: TranslationSubmissionDTO[] }>("/api/translation", {
+      language: languageSlug,
+    }).then((result) => {
       if (cancelled) return;
       setHistory(result.submissions);
       setStatus(result.isLoggedIn ? "ready" : "guest");
@@ -133,7 +136,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
     setError(null);
 
     startTransition(async () => {
-      const result = await submitTranslation({
+      const result = await apiPost<SubmitTranslationResult>("/api/translation", {
         language: languageSlug,
         problemSource: activeProblem.source,
         problemId: activeProblem.source === "preset" ? activeProblem.problemId : undefined,
@@ -501,7 +504,7 @@ function TranslationHistory({
 }
 
 function TranslationLoginPrompt() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const redirectQuery = `redirect=${encodeURIComponent(pathname)}`;
   return (
     <div className="mx-auto max-w-sm py-6 text-center">

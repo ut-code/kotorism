@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/components/Link";
+import { useLocation } from "react-router";
 
-import { getEssayHistory, submitEssay } from "@/lib/essay/actions";
+import { apiGet, apiPost } from "@/lib/api-client";
+import type { SubmitEssayResult } from "@/lib/essay/actions.server";
 import { getEssayTopics } from "@/lib/essay/topics";
 import {
   countEssayLength,
@@ -82,7 +83,9 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
 
   useEffect(() => {
     let cancelled = false;
-    getEssayHistory(languageSlug).then((result) => {
+    apiGet<{ isLoggedIn: boolean; submissions: EssaySubmissionDTO[] }>("/api/essay", {
+      language: languageSlug,
+    }).then((result) => {
       if (cancelled) return;
       setHistory(result.submissions);
       setStatus(result.isLoggedIn ? "ready" : "guest");
@@ -134,7 +137,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
     setError(null);
 
     startTransition(async () => {
-      const result = await submitEssay({
+      const result = await apiPost<SubmitEssayResult>("/api/essay", {
         language: languageSlug,
         topicSource: activeTopic.source,
         topicId: activeTopic.topicId,
@@ -486,7 +489,7 @@ function EssayHistory({
 }
 
 function EssayLoginPrompt() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const redirectQuery = `redirect=${encodeURIComponent(pathname)}`;
   return (
     <div className="mx-auto max-w-sm py-6 text-center">

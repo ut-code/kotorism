@@ -1,8 +1,7 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
-
-import { toggleNotebookPublic } from "@/app/my-notebooks/actions";
+import { useState } from "react";
+import { useFetcher } from "react-router";
 
 // 単語帳の公開/非公開を切り替え、公開中は共有リンクをコピーできるボタン
 export default function ShareNotebookButton({
@@ -12,18 +11,20 @@ export default function ShareNotebookButton({
   notebookId: string;
   isPublic: boolean;
 }) {
-  const [optimisticPublic, setOptimisticPublic] = useOptimistic(isPublic);
-  const [isPending, startTransition] = useTransition();
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== "idle";
+  // 送信中は切り替え後の状態を先に見せる(楽観的UI)
+  const optimisticPublic = isPending ? !isPublic : isPublic;
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}/share/${notebookId}` : "";
 
   function handleToggle() {
-    startTransition(async () => {
-      setOptimisticPublic(!optimisticPublic);
-      await toggleNotebookPublic(notebookId);
-    });
+    fetcher.submit(
+      { intent: "togglePublic" },
+      { method: "post", action: `/my-notebooks/${notebookId}` },
+    );
   }
 
   async function handleCopy() {

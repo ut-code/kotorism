@@ -4,6 +4,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  /* Google Fonts(app/root.tsx の links)で読み込むフォント */
+  --font-noto-sans-jp: "Noto Sans JP";
+  --font-shippori-mincho: "Shippori Mincho";
+  --font-hina-mincho: "Hina Mincho";
+  --font-geist-mono: "Geist Mono";
   --background: #ffffff;
   --foreground: #171717;
   color-scheme: light;

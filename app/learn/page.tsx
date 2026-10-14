@@ -1,11 +1,18 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 
 import { LANGUAGES } from "./languages";
 import { getAllLanguageSections } from "./content";
+import type { Route } from "./+types/page";
 
-export default async function LearnPage() {
+export async function loader() {
   const languageSlugs = LANGUAGES.map((lang) => lang.languageSlug);
   const allSections = await getAllLanguageSections(languageSlugs);
+
+  return { allSections };
+}
+
+export default function LearnPage({ loaderData }: Route.ComponentProps) {
+  const { allSections } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 sm:py-24">
