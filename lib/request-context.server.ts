@@ -21,3 +21,12 @@ export function getRequestStore(): RequestStore {
     throw new Error("リクエストの外から呼ばれました(root の middleware を確認してください)");
   return store;
 }
+
+// ログイン後の戻り先などに使う、リクエストのパス+クエリ。クライアント遷移では
+// "/learn.data?_routes=..." のようなデータリクエストのURLになるので、通常のURLに戻す
+export function getRequestPath(request: Request): string {
+  const url = new URL(request.url);
+  const pathname = url.pathname.replace(/\/_\.data$/, "/").replace(/\.data$/, "");
+  url.searchParams.delete("_routes");
+  return pathname + url.search;
+}

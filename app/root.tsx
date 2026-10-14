@@ -14,7 +14,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { getAllLanguageSections } from "@/app/learn/content";
 import { LANGUAGES } from "@/app/learn/languages";
-import { runWithRequest } from "@/lib/request-context.server";
+import { getRequestPath, runWithRequest } from "@/lib/request-context.server";
 import { getCurrentUser } from "@/lib/session.server";
 import type { Route } from "./+types/root";
 import "./globals.css";
@@ -34,7 +34,7 @@ export const middleware: Route.MiddlewareFunction[] = [
     const isProtected = PROTECTED_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
     if (isProtected && !getSessionCookie(request)) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", url.pathname);
+      loginUrl.searchParams.set("redirect", getRequestPath(request));
       throw redirect(loginUrl.pathname + loginUrl.search);
     }
     return runWithRequest(request, next);
