@@ -4,7 +4,7 @@ import Link from "@/components/Link";
 import HeaderNavClient, { type HeaderNavLink } from "@/components/HeaderNavClient";
 import ThemeToggle from "@/components/ThemeToggle";
 import BrandName from "@/components/BrandName";
-import type { AllLanguageSections } from "@/learn/content";
+import type { AllLanguageSections } from "@/lib/shared/learn/content";
 
 const NAV_LINKS: HeaderNavLink[] = [
   {

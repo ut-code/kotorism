@@ -4,8 +4,8 @@ import { notFound } from "@/lib/server/http.server";
 import { prisma } from "@/lib/server/prisma.server";
 import { requireUser } from "@/lib/server/session.server";
 import { SectionCard } from "@/components/learn/SectionCard";
-import { getLanguage } from "@/learn/languages";
-import { getSections } from "@/learn/content";
+import { getLanguage } from "@/lib/shared/learn/languages";
+import { getSections } from "@/lib/shared/learn/content";
 import type { Route } from "./+types/route";
 
 export async function loader({ params }: Route.LoaderArgs) {

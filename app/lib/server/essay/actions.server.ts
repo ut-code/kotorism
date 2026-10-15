@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/server/prisma.server";
 import type { Prisma } from "@/generated/prisma/client";
 import { getCurrentUser, requireUser } from "@/lib/server/session.server";
-import { getLanguage } from "@/learn/languages";
+import { getLanguage } from "@/lib/shared/learn/languages";
 import { getEssayTopic } from "../../shared/essay/topics";
 import { EssayGradingError, gradeEssay } from "../../shared/essay/grading";
 import { toEssaySubmissionDTO } from "../../shared/essay/dto";
