@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma.server";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { getCurrentUser, requireUser } from "@/lib/session.server";
 import { getLanguage } from "@/app/learn/languages";
+import { recordStudyEvent } from "@/lib/study-events.server";
 import { getEssayTopic } from "./topics";
 import { EssayGradingError, gradeEssay } from "./grading";
 import { toEssaySubmissionDTO } from "./dto";
@@ -153,6 +154,12 @@ export async function submitEssay(input: SubmitEssayInput): Promise<SubmitEssayR
       feedback: graded.feedback as unknown as Prisma.InputJsonValue,
       model: graded.model,
     },
+  });
+
+  await recordStudyEvent(user.id, {
+    eventType: "essay",
+    itemId: row.id,
+    language: language.languageSlug,
   });
 
   return { submission: toEssaySubmissionDTO(row) };

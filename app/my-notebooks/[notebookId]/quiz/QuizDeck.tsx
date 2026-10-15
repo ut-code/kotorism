@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useFetcher } from "react-router";
+
+import { useStudyTimer } from "@/components/study/useStudyTimer";
 
 type QuizCard = {
   id: string;
@@ -10,6 +13,8 @@ type QuizCard = {
 };
 
 type Question = {
+  // 出題元の単語（Card.id）。回答を学習カレンダーに記録するのに使う
+  cardId: string;
   // 出題する見出し語
   head: string;
   // 正解（選んだ列の値）
@@ -32,25 +37,35 @@ function shuffle<T>(items: T[]): T[] {
 
 // 見出し語1件につき、選んだ列に値のある組を1問ずつ出題の元にする（同じ見出し語・同じ正解は1問にまとめる）
 function buildQuestions(cards: QuizCard[], column: string, roundSize: number): Question[] {
-  const pairs: { head: string; answer: string }[] = [];
+  const pairs: { cardId: string; head: string; answer: string }[] = [];
   for (const card of cards) {
     const answers = new Set(card.rows.map((row) => row[column]).filter(Boolean));
-    for (const answer of answers) pairs.push({ head: card.head, answer });
+    for (const answer of answers) pairs.push({ cardId: card.id, head: card.head, answer });
   }
   const allAnswers = [...new Set(pairs.map((pair) => pair.answer))];
 
   const picked = shuffle(pairs).slice(0, roundSize > 0 ? roundSize : pairs.length);
-  return picked.map(({ head, answer }) => {
+  return picked.map(({ cardId, head, answer }) => {
     // 誤答の選択肢は、正解とは別の値の中からランダムに選ぶ
     const wrong = shuffle(allAnswers.filter((value) => value !== answer)).slice(
       0,
       CHOICE_COUNT - 1,
     );
-    return { head, answer, choices: shuffle([answer, ...wrong]) };
+    return { cardId, head, answer, choices: shuffle([answer, ...wrong]) };
   });
 }
 
-export default function QuizDeck({ columns, cards }: { columns: string[]; cards: QuizCard[] }) {
+export default function QuizDeck({
+  notebookId,
+  columns,
+  cards,
+}: {
+  notebookId: string;
+  columns: string[];
+  cards: QuizCard[];
+}) {
+  // 回答の記録（学習カレンダー用）。結果を画面に反映する必要は無いので、送りっぱなしにする
+  const answerFetcher = useFetcher();
   const headColumn = columns[0] ?? "";
   const bodyColumns = columns.slice(1);
 
@@ -70,6 +85,9 @@ export default function QuizDeck({ columns, cards }: { columns: string[]; cards:
   const [selected, setSelected] = useState<string | null>(null);
   const [mistakes, setMistakes] = useState<Question[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
+
+  // 問題に答えている間（設定画面・結果画面以外）の学習時間を記録する
+  useStudyTimer(phase === "quiz" ? { kind: "deck", deckId: notebookId, mode: "quiz" } : null);
 
   const start = (list: Question[]) => {
     setQuestions(list);
@@ -207,6 +225,10 @@ export default function QuizDeck({ columns, cards }: { columns: string[]; cards:
   const choose = (choice: string) => {
     if (answered) return;
     setSelected(choice);
+    answerFetcher.submit(
+      { intent: "recordQuizAnswer", cardId: question.cardId },
+      { method: "post", action: `/my-notebooks/${notebookId}` },
+    );
     if (choice === question.answer) setCorrectCount((count) => count + 1);
     else setMistakes((prev) => [...prev, question]);
   };

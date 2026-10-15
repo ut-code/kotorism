@@ -3,6 +3,7 @@ import { redirect } from "react-router";
 import { prisma } from "@/lib/prisma.server";
 import { requireUser } from "@/lib/session.server";
 import { requireNotebookRole } from "@/lib/notebook-access.server";
+import { recordStudyEvent } from "@/lib/study-events.server";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/excel";
 import { normalizeCardData, type CardData } from "@/lib/card-data";
 import { normalizeColumns } from "@/lib/notebook-columns";
@@ -401,7 +402,12 @@ export async function resetAllStars(notebookId: string) {
 
 // 暗記学習モード（/study, /review）でカードが1枚表示されるたびに呼び、表示回数を+1する
 // ★の付け外しとは異なりカードの抽出条件（starred）を変えないため、復習モード（/review）を再検証しても表示中のカード構成はズレない
-export async function incrementViewCount(cardId: string, notebookId: string) {
+// mode は学習カレンダーで「暗記学習」と「★の復習」を分けて数えるためのもの
+export async function incrementViewCount(
+  cardId: string,
+  notebookId: string,
+  mode: "study" | "review",
+) {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "member");
   await prisma.card.findUniqueOrThrow({ where: { id: cardId, notebookId }, select: { id: true } });
@@ -411,4 +417,18 @@ export async function incrementViewCount(cardId: string, notebookId: string) {
     update: { viewCount: { increment: 1 } },
     create: { cardId, userId: user.id, viewCount: 1 },
   });
+  await recordStudyEvent(user.id, {
+    eventType: mode === "review" ? "card_review" : "card_study",
+    itemId: cardId,
+    deckId: notebookId,
+  });
+}
+
+// 単語帳クイズで1問答えるたびに呼び、学習カレンダー用に記録する
+export async function recordCardQuizAnswer(cardId: string, notebookId: string) {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "member");
+  await prisma.card.findUniqueOrThrow({ where: { id: cardId, notebookId }, select: { id: true } });
+
+  await recordStudyEvent(user.id, { eventType: "card_quiz", itemId: cardId, deckId: notebookId });
 }

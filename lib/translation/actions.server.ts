@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma.server";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { getCurrentUser, requireUser } from "@/lib/session.server";
 import { getLanguage } from "@/app/learn/languages";
+import { recordStudyEvent } from "@/lib/study-events.server";
 import { getTranslationLevels, getTranslationProblem } from "./problems";
 import { gradeTranslation, TranslationGradingError } from "./grading";
 import { toTranslationSubmissionDTO } from "./dto";
@@ -151,6 +152,12 @@ export async function submitTranslation(
       feedback: graded.feedback as unknown as Prisma.InputJsonValue,
       model: graded.model,
     },
+  });
+
+  await recordStudyEvent(user.id, {
+    eventType: "translation",
+    itemId: row.id,
+    language: language.languageSlug,
   });
 
   return { submission: toTranslationSubmissionDTO(row) };

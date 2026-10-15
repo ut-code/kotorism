@@ -69,7 +69,7 @@ export default function StudyPage({ loaderData }: Route.ComponentProps) {
       <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">暗記学習モード</p>
 
       <div className="mt-8 w-full">
-        <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} />
+        <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} mode="study" />
       </div>
     </main>
   );
