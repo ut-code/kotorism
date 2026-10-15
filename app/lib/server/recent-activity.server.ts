@@ -1,5 +1,5 @@
-import { getSections } from "@/learn/content";
-import { getLanguage } from "@/learn/languages";
+import { getSections } from "@/lib/shared/learn/content";
+import { getLanguage } from "@/lib/shared/learn/languages";
 import { prisma } from "@/lib/server/prisma.server";
 
 const RECENT_NOTEBOOK_LIMIT = 3;

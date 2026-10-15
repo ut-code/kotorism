@@ -1,7 +1,7 @@
 import Link from "@/components/Link";
 
-import { LANGUAGES } from "@/learn/languages";
-import { getAllLanguageSections } from "@/learn/content";
+import { LANGUAGES } from "@/lib/shared/learn/languages";
+import { getAllLanguageSections } from "@/lib/shared/learn/content";
 import type { Route } from "./+types/route";
 
 export async function loader() {

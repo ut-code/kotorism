@@ -5,7 +5,7 @@ export type SectionSummary = {
 
 // 各セクションのルート(app/routes/learn._<言語>.<言語>.<番号>/route.tsx)が export している title を、
 // ビルド時にまとめて取り込む。静的な教材は route.tsx が content.mdx の title を再 export する
-const titles = import.meta.glob<string>("../routes/learn._*.*.*/route.tsx", {
+const titles = import.meta.glob<string>("../../../routes/learn._*.*.*/route.tsx", {
   eager: true,
   import: "title",
 });

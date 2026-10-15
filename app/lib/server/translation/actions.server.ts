@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/server/prisma.server";
 import type { Prisma } from "@/generated/prisma/client";
 import { getCurrentUser, requireUser } from "@/lib/server/session.server";
-import { getLanguage } from "@/learn/languages";
+import { getLanguage } from "@/lib/shared/learn/languages";
 import { getTranslationLevels, getTranslationProblem } from "../../shared/translation/problems";
 import { gradeTranslation, TranslationGradingError } from "../../shared/translation/grading";
 import { toTranslationSubmissionDTO } from "../../shared/translation/dto";

@@ -1,6 +1,6 @@
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
-import type { SectionSummary } from "@/learn/content";
+import type { SectionSummary } from "@/lib/shared/learn/content";
 
 export default function SectionNav({ sections }: { sections: SectionSummary[] }) {
   const { pathname } = useLocation();

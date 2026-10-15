@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-import { getLanguage } from "@/learn/languages";
+import { getLanguage } from "@/lib/shared/learn/languages";
 import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
 import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
 

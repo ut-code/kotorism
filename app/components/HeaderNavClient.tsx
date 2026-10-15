@@ -2,7 +2,7 @@ import { useState } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
-import type { AllLanguageSections } from "@/learn/content";
+import type { AllLanguageSections } from "@/lib/shared/learn/content";
 import LearnTree from "@/components/LearnTree";
 
 import AuthNavLinks from "@/components/auth/AuthNavLinks";

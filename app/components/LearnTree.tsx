@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
-import { LANGUAGES } from "@/learn/languages";
-import type { AllLanguageSections } from "@/learn/content";
+import { LANGUAGES } from "@/lib/shared/learn/languages";
+import type { AllLanguageSections } from "@/lib/shared/learn/content";
 
 type LearnTreeProps = {
   // 各言語のスラッグをキーとし、セクション情報の配列を値に持つオブジェクト

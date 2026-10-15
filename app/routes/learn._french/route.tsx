@@ -1,9 +1,9 @@
 import { Outlet } from "react-router";
 
-import { getLanguage } from "@/learn/languages";
+import { getLanguage } from "@/lib/shared/learn/languages";
 import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
 import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
-import { getSections } from "@/learn/content";
+import { getSections } from "@/lib/shared/learn/content";
 
 import SectionNav from "./SectionNav";
 import type { Route } from "./+types/route";

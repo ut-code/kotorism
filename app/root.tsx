@@ -12,8 +12,8 @@ import {
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { getAllLanguageSections } from "@/learn/content";
-import { LANGUAGES } from "@/learn/languages";
+import { getAllLanguageSections } from "@/lib/shared/learn/content";
+import { LANGUAGES } from "@/lib/shared/learn/languages";
 import { getRequestPath, runWithRequest } from "@/lib/server/request-context.server";
 import { getCurrentUser } from "@/lib/server/session.server";
 import type { Route } from "./+types/root";

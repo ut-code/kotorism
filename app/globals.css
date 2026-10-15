@@ -61,7 +61,7 @@ body {
   font-family: var(--font-noto-sans-jp), Arial, Helvetica, sans-serif;
 }
 
-/* フランス語教材セクション（app/learn/french）専用の MDX タイポグラフィ */
+/* フランス語教材セクション（app/routes/learn._french.*）専用の MDX タイポグラフィ */
 .french-content h1 {
   border-bottom: 1px solid var(--color-zinc-200);
   margin-bottom: 0.25rem;
