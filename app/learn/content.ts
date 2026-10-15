@@ -3,22 +3,24 @@ export type SectionSummary = {
   title: string;
 };
 
-// 各セクション(page.mdx / page.tsx)が export している title を、ビルド時にまとめて取り込む。
-// 練習教材のようなインタラクティブなセクションは page.tsx、静的な教材は page.mdx で実装される
-const titles = import.meta.glob<string>("./*/*/page.{mdx,tsx}", {
+// 各セクションのルート(app/routes/learn._<言語>.<言語>.<番号>/route.tsx)が export している title を、
+// ビルド時にまとめて取り込む。静的な教材は route.tsx が content.mdx の title を再 export する
+const titles = import.meta.glob<string>("../routes/learn._*.*.*/route.tsx", {
   eager: true,
   import: "title",
 });
 
+const SECTION_ROUTE = /\/learn\._([a-z]+)\.\1\.(\d+)\/route\.tsx$/;
+
 // 任意の言語について、セクションの番号とタイトルの配列を返す関数
 export async function getSections(languageSlug: string): Promise<SectionSummary[]> {
-  const prefix = `./${languageSlug}/`;
   return (
     Object.entries(titles)
-      .filter(([file]) => file.startsWith(prefix))
-      .map(([file, title]) => ({ sectionSlug: file.slice(prefix.length).split("/")[0], title }))
-      // 数字のみのディレクトリ名(01, 02, ...)を番号順に並べる
-      .filter(({ sectionSlug }) => /^\d+$/.test(sectionSlug))
+      .flatMap(([file, title]) => {
+        const match = SECTION_ROUTE.exec(file);
+        return match && match[1] === languageSlug ? [{ sectionSlug: match[2], title }] : [];
+      })
+      // 番号順に並べる
       .sort((a, b) => a.sectionSlug.localeCompare(b.sectionSlug))
   );
 }

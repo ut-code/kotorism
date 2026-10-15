@@ -259,7 +259,7 @@ body {
   }
 }
 
-/* ロゴ文字「りずむ」の縁の虹色（components/brand-name.tsx）。プリズムで分かれた光を表す */
+/* ロゴ文字「りずむ」の縁の虹色（components/BrandName.tsx）。プリズムで分かれた光を表す */
 .vb-brand-rainbow {
   background-image: linear-gradient(
     100deg,
@@ -282,7 +282,7 @@ body {
   animation: vb-splash-logo-in 0.8s ease-out both;
 }
 
-/* 同じセッションで表示済みなら出さない（layout.tsxの<head>内スクリプトが付与） */
+/* 同じセッションで表示済みなら出さない（root.tsxの<head>内スクリプトが付与） */
 .vb-splash-seen .vb-splash {
   display: none;
 }
