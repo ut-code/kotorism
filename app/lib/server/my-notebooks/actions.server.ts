@@ -6,10 +6,22 @@ import { requireNotebookRole } from "@/lib/server/notebook-access.server";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/shared/excel";
 import { normalizeCardData, type CardData } from "@/lib/shared/card-data";
 import { normalizeColumns } from "@/lib/shared/notebook-columns";
+import {
+  parseCardHead,
+  parseCardValue,
+  parseColumnName,
+  parseNotebookTitle,
+  parseStarCount,
+} from "@/lib/shared/notebook-schema";
 import type { FormState } from "@/lib/shared/form-state";
 
-function readCardData(columns: string[], formData: FormData): CardData {
-  const head = String(formData.get("head") ?? "").trim();
+// フォームの入力を検証してカードのデータにする。不正な入力(空の見出し語・長すぎる値)はエラーメッセージを返す
+function readCardData(
+  columns: string[],
+  formData: FormData,
+): { data: CardData } | { error: string } {
+  const head = parseCardHead(formData.get("head") ?? "");
+  if (!head.success) return { error: head.error };
   const bodyColumns = columns.slice(1);
 
   // `row:0:列名`, `row:1:列名`, ... という連番の入力欄を、存在する分だけ読み取る
@@ -20,14 +32,15 @@ function readCardData(columns: string[], formData: FormData): CardData {
   while (bodyColumns.some((column) => formData.has(`row:${i}:${column}`))) {
     const row: Record<string, string> = {};
     for (const column of bodyColumns) {
-      const value = String(formData.get(`row:${i}:${column}`) ?? "").trim();
-      if (value !== "") row[column] = value;
+      const value = parseCardValue(formData.get(`row:${i}:${column}`) ?? "");
+      if (!value.success) return { error: value.error };
+      if (value.data !== "") row[column] = value.data;
     }
     rows.push(row);
     i += 1;
   }
 
-  return { head, rows: rows.length > 0 ? rows : [{}] };
+  return { data: { head: head.data, rows: rows.length > 0 ? rows : [{}] } };
 }
 
 // 既存の単語帳へ、Excelファイルから単語をまとめて追加する。
@@ -94,14 +107,14 @@ export async function importCardsFromExcel(
 export async function createBlankNotebook(formData: FormData): Promise<FormState> {
   const user = await requireUser();
 
-  const title = String(formData.get("title") ?? "").trim();
-  if (!title) {
-    return { error: "単語帳のタイトルを入力してください。" };
+  const title = parseNotebookTitle(formData.get("title") ?? "");
+  if (!title.success) {
+    return { error: title.error };
   }
 
   const notebook = await prisma.notebook.create({
     data: {
-      title,
+      title: title.data,
       userId: user.id,
       columns: ["見出し語", "意味"],
     },
@@ -129,11 +142,11 @@ export async function createCard(notebookId: string, formData: FormData): Promis
     select: { columns: true },
   });
   const columns = normalizeColumns(notebook.columns);
-  const data = readCardData(columns, formData);
-
-  if (!data.head) {
-    return { error: "見出し語を入力してください。" };
+  const parsed = readCardData(columns, formData);
+  if ("error" in parsed) {
+    return { error: parsed.error };
   }
+  const data = parsed.data;
 
   // 新規カードは常に末尾に追加する。既存カードの最大positionを調べ、+1した値を採番する。
   // カードが1件も無ければ _max.position は null になるので -1 を基点として扱う（結果0番になる）
@@ -163,11 +176,11 @@ export async function updateCard(
     select: { columns: true },
   });
   const columns = normalizeColumns(notebook.columns);
-  const data = readCardData(columns, formData);
-
-  if (!data.head) {
-    return { error: "見出し語を入力してください。" };
+  const parsed = readCardData(columns, formData);
+  if ("error" in parsed) {
+    return { error: parsed.error };
   }
+  const data = parsed.data;
 
   await prisma.card.update({
     where: { id: cardId, notebookId },
@@ -207,11 +220,12 @@ export async function addNotebookColumn(
 ): Promise<FormState> {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "member");
-  const name = String(formData.get("name") ?? "").trim();
+  const parsedName = parseColumnName(formData.get("name") ?? "");
 
-  if (!name) {
-    return { error: "列名を入力してください。" };
+  if (!parsedName.success) {
+    return { error: parsedName.error };
   }
+  const name = parsedName.data;
 
   const notebook = await prisma.notebook.findUniqueOrThrow({
     where: { id: notebookId },
@@ -241,11 +255,12 @@ export async function renameNotebookColumn(
 ): Promise<FormState> {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "member");
-  const newName = String(formData.get("name") ?? "").trim();
+  const parsedName = parseColumnName(formData.get("name") ?? "");
 
-  if (!newName) {
-    return { error: "列名を入力してください。" };
+  if (!parsedName.success) {
+    return { error: parsedName.error };
   }
+  const newName = parsedName.data;
 
   const notebook = await prisma.notebook.findUniqueOrThrow({
     where: { id: notebookId },
@@ -365,8 +380,7 @@ export async function setStarCount(cardId: string, notebookId: string, formData:
   await requireNotebookRole(notebookId, user.id, "member");
   await prisma.card.findUniqueOrThrow({ where: { id: cardId, notebookId }, select: { id: true } });
 
-  const raw = Number(formData.get("count"));
-  const count = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+  const count = parseStarCount(formData.get("count"));
 
   await prisma.cardProgress.upsert({
     where: { cardId_userId: { cardId, userId: user.id } },

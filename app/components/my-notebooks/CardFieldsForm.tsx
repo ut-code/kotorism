@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 
 const inputClassName =
   "rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]";
@@ -188,6 +189,7 @@ export default function CardFieldsForm({
         <label className="text-xs text-zinc-500 dark:text-zinc-500">{headColumn}</label>
         <input
           name="head"
+          maxLength={CARD_HEAD_MAX_LENGTH}
           defaultValue={defaultHead}
           autoFocus={autoFocusHead}
           className={inputClassName}
@@ -261,6 +263,7 @@ export default function CardFieldsForm({
                           >
                             <input
                               name={`row:${index}:${column}`}
+                              maxLength={CARD_VALUE_MAX_LENGTH}
                               value={row.values[column] ?? ""}
                               onChange={(e) => updateValue(row.key, column, e.target.value)}
                               className={isMerged ? mergedInputClassName : inputClassName}
@@ -272,6 +275,7 @@ export default function CardFieldsForm({
                                   key={absorbedIndex}
                                   type="hidden"
                                   name={`row:${absorbedIndex}:${column}`}
+                                  maxLength={CARD_VALUE_MAX_LENGTH}
                                   value={row.values[column] ?? ""}
                                 />
                               ),

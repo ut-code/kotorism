@@ -13,6 +13,7 @@ Everything lives under `app/`; the `@/` alias points at `app/`.
 - `app/routes/` — route modules only (plus their co-located files).
 - `app/components/` — shared components, PascalCase file names. `app/hooks/` — shared hooks (`useX.ts`).
 - `app/lib/server/` — code that touches the DB, session or auth (`*.server.ts`). `app/lib/shared/` — code that never touches the DB: pure functions, types, constants. `shared` must not import from `server`.
+- Validate every external input (form data, JSON bodies, query params) on the server with a Zod schema before using it. Schemas live in `lib/shared` (`*-schema.ts`, parse helpers return `{ success, data | error }`), so the form's `maxLength` and the server share the same limits.
 - Keep logic that can be pure in `lib/shared` and call it from `lib/server`, so it can be unit-tested without a DB.
 
 # Development: TDD
