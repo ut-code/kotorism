@@ -5,42 +5,41 @@ import {
   recordSectionView,
   toggleManualSectionTag,
 } from "@/lib/server/learn/actions.server";
+import { parseLearnAction, parseSectionKey } from "@/lib/shared/learn/schema";
 import type { Route } from "./+types/route";
 
 // 学習セクションの進捗(苦手タグ・クイズ正答・閲覧履歴)の読み書き API
 
 export async function loader({ request }: Route.LoaderArgs) {
   const params = new URL(request.url).searchParams;
-  const result = await getSectionProgress(
-    params.get("language") ?? "",
-    params.get("sectionSlug") ?? "",
-  );
-  return Response.json(result);
+  const key = parseSectionKey({
+    language: params.get("language"),
+    sectionSlug: params.get("sectionSlug"),
+  });
+  if (!key.success) return new Response("Bad Request", { status: 400 });
+
+  return Response.json(await getSectionProgress(key.data.language, key.data.sectionSlug));
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const body = (await request.json()) as {
-    intent: string;
-    language: string;
-    sectionSlug: string;
-    correct?: boolean;
-  };
+  const body = await request.json().catch(() => null);
+  const parsed = parseLearnAction(body);
+  if (!parsed.success) return new Response("Bad Request", { status: 400 });
 
-  switch (body.intent) {
+  const { language, sectionSlug } = parsed.data;
+  switch (parsed.data.intent) {
     case "quizAnswer":
-      await recordSectionQuizAnswer(body.language, body.sectionSlug, body.correct === true);
+      await recordSectionQuizAnswer(language, sectionSlug, parsed.data.correct);
       break;
     case "markReviewed":
-      await markSectionReviewed(body.language, body.sectionSlug);
+      await markSectionReviewed(language, sectionSlug);
       break;
     case "toggleManualTag":
-      await toggleManualSectionTag(body.language, body.sectionSlug);
+      await toggleManualSectionTag(language, sectionSlug);
       break;
     case "recordView":
-      await recordSectionView(body.language, body.sectionSlug);
+      await recordSectionView(language, sectionSlug);
       break;
-    default:
-      return new Response("Bad Request", { status: 400 });
   }
   return Response.json({});
 }

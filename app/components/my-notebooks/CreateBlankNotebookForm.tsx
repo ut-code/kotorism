@@ -1,6 +1,7 @@
 import { useFetcher } from "react-router";
 
 import type { FormState } from "@/lib/shared/form-state";
+import { NOTEBOOK_TITLE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 
 const initialState: FormState = {};
 
@@ -41,6 +42,7 @@ export default function CreateBlankNotebookForm() {
         <input
           id="blankTitle"
           name="title"
+          maxLength={NOTEBOOK_TITLE_MAX_LENGTH}
           type="text"
           required
           placeholder="例: 今日覚えた単語"

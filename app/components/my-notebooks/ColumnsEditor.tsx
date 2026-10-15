@@ -3,6 +3,7 @@ import { useFetcher } from "react-router";
 
 import IntentForm from "@/components/IntentForm";
 import type { FormState } from "@/lib/shared/form-state";
+import { COLUMN_NAME_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 
 const initialState: FormState = {};
 
@@ -54,7 +55,12 @@ function ColumnRow({
         <fetcher.Form method="post" action={actionUrl} className="flex items-center gap-2">
           <input type="hidden" name="intent" value="renameColumn" />
           <input type="hidden" name="columnIndex" value={index} />
-          <input name="name" defaultValue={name} className={inputClassName} />
+          <input
+            name="name"
+            defaultValue={name}
+            maxLength={COLUMN_NAME_MAX_LENGTH}
+            className={inputClassName}
+          />
           <SubmitButton label="変更" pendingLabel="変更中…" pending={fetcher.state !== "idle"} />
         </fetcher.Form>
         {!isHeadColumn && (
@@ -115,7 +121,12 @@ function AddColumnForm({ notebookId }: { notebookId: string }) {
         className="flex flex-wrap items-center gap-2"
       >
         <input type="hidden" name="intent" value="addColumn" />
-        <input name="name" placeholder="新しい列名（例: 例文 / 発音）" className={inputClassName} />
+        <input
+          name="name"
+          maxLength={COLUMN_NAME_MAX_LENGTH}
+          placeholder="新しい列名（例: 例文 / 発音）"
+          className={inputClassName}
+        />
         <SubmitButton label="列を追加" pendingLabel="追加中…" pending={fetcher.state !== "idle"} />
       </fetcher.Form>
       {state?.error && (

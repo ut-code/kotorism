@@ -12,6 +12,15 @@ import {
 } from "@/lib/server/test/db";
 
 import {
+  CARD_HEAD_MAX_LENGTH,
+  CARD_VALUE_MAX_LENGTH,
+  COLUMN_NAME_MAX_LENGTH,
+  MAX_STAR_COUNT,
+  NOTEBOOK_TITLE_MAX_LENGTH,
+} from "@/lib/shared/notebook-schema";
+
+import {
+  addNotebookColumn,
   createBlankNotebook,
   createCard as createCardAction,
   deleteCard,
@@ -224,5 +233,69 @@ describe("★(toggleStar / setStarCount)", () => {
     loginAs(owner);
     await expect(toggleStar(othersCard.id, notebook.id)).rejects.toThrow();
     expect(await prisma.cardProgress.count({ where: { cardId: othersCard.id } })).toBe(0);
+  });
+});
+
+describe("入力の検証", () => {
+  it("長すぎるタイトルの単語帳は作成しない", async () => {
+    loginAs(owner);
+    const before = await prisma.notebook.count({ where: { userId: owner.id } });
+    const state = await createBlankNotebook(
+      form({ title: "あ".repeat(NOTEBOOK_TITLE_MAX_LENGTH + 1) }),
+    );
+    expect(state.error).toBeTruthy();
+    expect(await prisma.notebook.count({ where: { userId: owner.id } })).toBe(before);
+  });
+
+  it("長すぎる見出し語・値のカードは追加・更新しない", async () => {
+    loginAs(owner);
+    const longHead = await createCardAction(
+      notebook.id,
+      form({ head: "a".repeat(CARD_HEAD_MAX_LENGTH + 1) }),
+    );
+    const longValue = await createCardAction(
+      notebook.id,
+      form({ head: "chat", "row:0:意味": "あ".repeat(CARD_VALUE_MAX_LENGTH + 1) }),
+    );
+    expect(longHead.error).toBeTruthy();
+    expect(longValue.error).toBeTruthy();
+    expect(await prisma.card.count({ where: { notebookId: notebook.id } })).toBe(0);
+
+    const card = await createCard(notebook.id, "chat");
+    const updated = await updateCard(
+      card.id,
+      notebook.id,
+      form({ head: "chat", "row:0:意味": "あ".repeat(CARD_VALUE_MAX_LENGTH + 1) }),
+    );
+    expect(updated.error).toBeTruthy();
+    expect((await prisma.card.findUniqueOrThrow({ where: { id: card.id } })).data).toEqual({
+      head: "chat",
+      rows: [{ 意味: "chatの意味" }],
+    });
+  });
+
+  it("長すぎる列名は追加しない", async () => {
+    loginAs(owner);
+    const state = await addNotebookColumn(
+      notebook.id,
+      form({ name: "a".repeat(COLUMN_NAME_MAX_LENGTH + 1) }),
+    );
+    expect(state.error).toBeTruthy();
+    expect(
+      (await prisma.notebook.findUniqueOrThrow({ where: { id: notebook.id } })).columns,
+    ).toEqual(["見出し語", "意味"]);
+  });
+
+  it("★の回数は上限に丸められる", async () => {
+    const card = await createCard(notebook.id, "chat");
+    loginAs(owner);
+    await setStarCount(card.id, notebook.id, form({ count: "999999999" }));
+    expect(
+      (
+        await prisma.cardProgress.findUniqueOrThrow({
+          where: { cardId_userId: { cardId: card.id, userId: owner.id } },
+        })
+      ).starCount,
+    ).toBe(MAX_STAR_COUNT);
   });
 });
