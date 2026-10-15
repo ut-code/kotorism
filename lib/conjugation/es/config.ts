@@ -1,16 +1,8 @@
 import type { ConjugationLanguageConfig } from "@/components/verbs/ConjugationPractice";
+import { PRACTICE_LANGUAGES } from "@/lib/practice-languages";
 import { speak } from "@/lib/speech";
 import { buildConjugation } from "./engine";
 import { PERSONS, TENSE_OPTIONS, formsFor, type ConjugationTable, type VerbEntry } from "./types";
-
-const ACCENT_CYCLES: string[][] = [
-  ["a", "á"],
-  ["e", "é"],
-  ["i", "í"],
-  ["o", "ó"],
-  ["u", "ú", "ü"],
-  ["n", "ñ"],
-];
 
 const TOOLBAR_CHARS = ["á", "é", "í", "ó", "ú", "ü", "ñ"];
 
@@ -26,7 +18,7 @@ export const spanishConjugationConfig: ConjugationLanguageConfig<VerbEntry, Conj
   buildConjugation,
   formsFor,
   speak: (text, handlers) => speak(text, "es-ES", handlers),
-  accentCycles: ACCENT_CYCLES,
+  accentCycles: PRACTICE_LANGUAGES.spanish.accentCycles,
   toolbarChars: TOOLBAR_CHARS,
   inputPlaceholder: "活用形を入力...",
 };

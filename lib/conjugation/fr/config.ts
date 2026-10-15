@@ -1,17 +1,8 @@
 import type { ConjugationLanguageConfig } from "@/components/verbs/ConjugationPractice";
+import { PRACTICE_LANGUAGES } from "@/lib/practice-languages";
 import { speak } from "@/lib/speech";
 import { buildConjugation } from "./engine";
 import { PERSONS, TENSE_OPTIONS, formsFor, type ConjugationTable, type VerbEntry } from "./types";
-
-const ACCENT_CYCLES: string[][] = [
-  ["e", "é", "è", "ê", "ë"],
-  ["a", "à", "â"],
-  ["i", "î", "ï"],
-  ["o", "ô"],
-  ["u", "ù", "û", "ü"],
-  ["c", "ç"],
-  ["y", "ÿ"],
-];
 
 const TOOLBAR_CHARS = ["é", "è", "ê", "ë", "à", "â", "î", "ï", "ô", "ù", "û", "ç"];
 
@@ -28,7 +19,7 @@ export const frenchConjugationConfig: ConjugationLanguageConfig<VerbEntry, Conju
   buildConjugation,
   formsFor,
   speak: (text, handlers) => speak(text, "fr-FR", handlers),
-  accentCycles: ACCENT_CYCLES,
+  accentCycles: PRACTICE_LANGUAGES.french.accentCycles,
   toolbarChars: TOOLBAR_CHARS,
   inputPlaceholder: "活用形を入力...",
 };

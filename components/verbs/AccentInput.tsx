@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
+import { buildAccentIndex, cycleAccent } from "@/lib/accent";
 
 interface AccentInputProps {
   value: string;
@@ -11,6 +12,8 @@ interface AccentInputProps {
   placeholder?: string;
   autoFocus?: boolean;
   className?: string;
+  // 入力する言語（HTML の lang 属性）
+  lang?: string;
   // 例: フランス語なら [["e","é","è","ê","ë"], ...]、スペイン語なら [["a","á"], ...]
   accentCycles: string[][];
   // 入力欄の下に並べる、クリックで直接入力できるボタンの文字一覧
@@ -30,6 +33,7 @@ export function AccentInput({
   placeholder,
   autoFocus,
   className,
+  lang,
   accentCycles,
   toolbarChars,
   hintText,
@@ -38,33 +42,9 @@ export function AccentInput({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 大文字・小文字を問わず、どの文字がどのサイクルの何番目かを引けるように索引化する
-  const charIndex = useMemo(() => {
-    const index = new Map<string, { cycle: string[]; index: number }>();
-    for (const cycle of accentCycles) {
-      const upperCycle = cycle.map((c) => c.toUpperCase());
-      cycle.forEach((ch, i) => {
-        index.set(ch, { cycle, index: i });
-        index.set(upperCycle[i], { cycle: upperCycle, index: i });
-      });
-    }
-    return index;
-  }, [accentCycles]);
-
-  const nextAccentChar = (ch: string | undefined): string | null => {
-    if (!ch) return null;
-    const entry = charIndex.get(ch);
-    if (!entry) return null;
-    const { cycle, index } = entry;
-    return cycle[(index + 1) % cycle.length];
-  };
-
-  const prevAccentChar = (ch: string | undefined): string | null => {
-    if (!ch) return null;
-    const entry = charIndex.get(ch);
-    if (!entry) return null;
-    const { cycle, index } = entry;
-    return cycle[(index - 1 + cycle.length) % cycle.length];
-  };
+  const accentIndex = useMemo(() => buildAccentIndex(accentCycles), [accentCycles]);
+  const nextAccentChar = (ch: string | undefined) => cycleAccent(accentIndex, ch, 1);
+  const prevAccentChar = (ch: string | undefined) => cycleAccent(accentIndex, ch, -1);
 
   // カーソル直前の文字をサイクルさせる。切り替えられた場合はtrueを返す（呼び出し側でpreventDefaultするかどうかの判断に使う）
   const applyCycledChar = (getChar: (ch: string | undefined) => string | null): boolean => {
@@ -142,6 +122,7 @@ export function AccentInput({
       <input
         ref={inputRef}
         type="text"
+        lang={lang}
         inputMode="text"
         autoComplete="off"
         autoCorrect="off"

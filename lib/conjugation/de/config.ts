@@ -1,14 +1,8 @@
 import type { ConjugationLanguageConfig } from "@/components/verbs/ConjugationPractice";
+import { PRACTICE_LANGUAGES } from "@/lib/practice-languages";
 import { speak } from "@/lib/speech";
 import { buildConjugation } from "./engine";
 import { PERSONS, TENSE_OPTIONS, formsFor, type ConjugationTable, type VerbEntry } from "./types";
-
-const ACCENT_CYCLES: string[][] = [
-  ["a", "ä"],
-  ["o", "ö"],
-  ["u", "ü"],
-  ["s", "ß"],
-];
 
 const TOOLBAR_CHARS = ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"];
 
@@ -23,7 +17,7 @@ export const germanConjugationConfig: ConjugationLanguageConfig<VerbEntry, Conju
   buildConjugation,
   formsFor,
   speak: (text, handlers) => speak(text, "de-DE", handlers),
-  accentCycles: ACCENT_CYCLES,
+  accentCycles: PRACTICE_LANGUAGES.german.accentCycles,
   toolbarChars: TOOLBAR_CHARS,
   inputPlaceholder: "活用形を入力...",
 };
