@@ -1,4 +1,4 @@
-import { readMdxSource } from "@/lib/mdx-source";
+import { readMdxSource, unescapeMarkdown } from "@/lib/mdx-source";
 import SpanishFillInPractice, { type FillInQuestionItem } from "./SpanishFillInPractice";
 
 /**
@@ -26,7 +26,7 @@ function getFillInQuestionsFromMdx(): FillInQuestionItem[] {
         const cells = trimmed
           .split("|")
           .slice(1, -1)
-          .map((c) => c.trim());
+          .map((c) => unescapeMarkdown(c.trim()));
 
         if (cells.length >= 3) {
           // 区切り行（| --- | --- | --- |）やヘッダー行は除外

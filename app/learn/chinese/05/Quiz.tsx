@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+
+import { useIsClient } from "@/components/UseIsClient";
 import { auxiliaryVerbQuiz, type QuizQuestion } from "./quiz-data";
 
 function pickRandomQuestion(list: QuizQuestion[]): QuizQuestion {
@@ -8,7 +10,20 @@ function pickRandomQuestion(list: QuizQuestion[]): QuizQuestion {
   return list[randomIndex];
 }
 
+// 最初の問題はランダムに選ぶため、サーバーとブラウザで違う問題にならないよう、表示が確定してから出題する
 export default function Quiz() {
+  const isClient = useIsClient();
+  if (!isClient) {
+    return (
+      <div className="mx-auto mt-8 flex min-h-96 w-full max-w-xl items-center justify-center text-sm text-zinc-400 dark:text-zinc-500">
+        読み込み中…
+      </div>
+    );
+  }
+  return <QuizBody />;
+}
+
+function QuizBody() {
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion>(() =>
     pickRandomQuestion(auxiliaryVerbQuiz),
   );
@@ -63,7 +78,7 @@ export default function Quiz() {
         正解: {score.correct} / {score.total}
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900/50">
+      <div>
         <div className="mb-2 text-center text-xs font-medium text-zinc-400 dark:text-zinc-500">
           この文の意味は？
         </div>
@@ -111,7 +126,7 @@ export default function Quiz() {
       </div>
 
       {wrongList.length > 0 && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900/50">
+        <div>
           <h2 className="text-base font-bold text-zinc-800 dark:text-zinc-100">
             間違えたものリスト
           </h2>

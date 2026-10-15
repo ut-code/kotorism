@@ -328,7 +328,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
     const percent = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
     return (
       <div className="mx-auto max-w-xl space-y-6">
-        <div className="rounded-2xl bg-white p-6 text-center shadow-sm dark:bg-zinc-900/50">
+        <div className="text-center">
           <div className="text-sm font-medium text-zinc-400 dark:text-zinc-500">ラウンド完了！</div>
           <div className="mt-2 text-5xl font-bold text-zinc-800 dark:text-zinc-100">
             {score.correct} / {score.total}
@@ -408,7 +408,7 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
         </span>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-zinc-900/50">
+      <div>
         <div className="mb-2 text-center text-xs font-medium text-zinc-400 dark:text-zinc-500">
           この漢字のピンインは？
         </div>

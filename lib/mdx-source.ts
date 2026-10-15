@@ -19,3 +19,9 @@ export function listMdxSources(languageSlug: string): { name: string; content: s
     .map(([file, content]) => ({ name: file.slice(prefix.length).split("/")[0], content }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+// Markdown のバックスラッシュエスケープ（表の中で "_" を書くための "\_" など）を外した文字列にする。
+// 生テキストから表のセルを読み取るときに使う（MDX として表示されるときは自動で外れるが、生テキストには残るため）
+export function unescapeMarkdown(text: string): string {
+  return text.replace(/\\([\\`*_{}[\]()#+\-.!|<>~])/g, "$1");
+}

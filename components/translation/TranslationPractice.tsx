@@ -280,7 +280,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                 )}
               </div>
             ) : (
-              <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
+              <div className="space-y-2">
                 <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
                   原文（
                   {direction === "fromJapanese"
@@ -354,7 +354,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             ← 設定に戻る
           </button>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+          <div>
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
               {activeProblem.level} ／ {directionLabel(activeProblem.direction, languageLabel)}
             </div>
@@ -419,7 +419,7 @@ function TranslationFeedbackCard({
 }) {
   const { feedback } = submission;
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+    <div className="border-t border-zinc-200 pt-6 dark:border-zinc-700">
       <div className="mb-4 flex items-center justify-between">
         <div className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
           {submission.level} ／ {directionLabel(submission.direction, languageLabel)}
@@ -431,7 +431,7 @@ function TranslationFeedbackCard({
 
       <p className="text-sm text-zinc-500 dark:text-zinc-400">原文: {submission.sourceText}</p>
 
-      <p className="mt-2 whitespace-pre-wrap rounded-xl bg-zinc-50 p-3 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+      <p className="mt-2 whitespace-pre-wrap border-l-4 border-zinc-200 pl-3 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-200">
         {submission.content}
       </p>
 

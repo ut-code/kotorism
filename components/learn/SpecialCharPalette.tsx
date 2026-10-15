@@ -28,7 +28,8 @@ export function SpecialCharPalette({ chars, onInsert, hint }: SpecialCharPalette
   return (
     <div
       style={{ top }}
-      className="sticky z-40 mb-8 rounded-xl border border-zinc-200/80 bg-zinc-50/95 p-2 text-center shadow-sm backdrop-blur sm:p-4 dark:border-zinc-800/80 dark:bg-zinc-900/95"
+      // 画面上部に貼り付いたときに下の内容と重ならないよう、ページと同じ色の背景だけを敷く（枠・影は付けない）
+      className="sticky z-40 mb-8 border-b border-zinc-200 bg-[var(--background)]/95 py-2 text-center backdrop-blur sm:py-4 dark:border-zinc-800"
     >
       <span className="text-xs font-bold text-zinc-700 sm:text-sm dark:text-zinc-300">
         特殊文字入力パレット (選択中セルへ挿入)

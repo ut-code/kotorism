@@ -1,23 +1,27 @@
-import { Outlet } from "react-router";
+import { getSections } from "@/app/learn/content";
+import SectionLayout from "@/components/learn/SectionLayout";
+import type { Route } from "./+types/layout";
 
-import { getLanguage } from "@/app/learn/languages";
-import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
-import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
+// 中国語セクションのレイアウト（各言語ディレクトリの layout.tsx はファイル自体が必須）。
+// 見た目は全言語共通の SectionLayout に任せる
+export async function loader() {
+  return { sections: await getSections("chinese") };
+}
 
-const language = getLanguage("chinese");
+// 日本語フォントに無い簡体字を表示するため、中国語（簡体字）のフォントも読み込む
+export const links: Route.LinksFunction = () => [
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap",
+  },
+];
 
-// 中国語セクション専用レイアウト（各言語ディレクトリの layout.tsx はファイル自体が必須）
-export default function ChineseSectionLayout() {
+export default function ChineseSectionLayout({ loaderData }: Route.ComponentProps) {
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-16">
-      <div className="flex w-full max-w-3xl items-center justify-between">
-        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{language?.label}</p>
-        <SectionReviewControls />
-        <SectionViewTracker />
-      </div>
-      <div className="chinese-content mt-8 w-full max-w-3xl text-left">
-        <Outlet />
-      </div>
-    </main>
+    <SectionLayout
+      languageSlug="chinese"
+      sections={loaderData.sections}
+      className="chinese-font-fallback"
+    />
   );
 }

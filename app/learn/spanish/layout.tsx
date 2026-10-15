@@ -1,23 +1,13 @@
-import { Outlet } from "react-router";
+import { getSections } from "@/app/learn/content";
+import SectionLayout from "@/components/learn/SectionLayout";
+import type { Route } from "./+types/layout";
 
-import { getLanguage } from "@/app/learn/languages";
-import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
-import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
+// スペイン語セクションのレイアウト（各言語ディレクトリの layout.tsx はファイル自体が必須）。
+// 見た目は全言語共通の SectionLayout に任せる
+export async function loader() {
+  return { sections: await getSections("spanish") };
+}
 
-const language = getLanguage("spanish");
-
-// スペイン語セクション専用レイアウト（各言語ディレクトリの layout.tsx はファイル自体が必須）
-export default function SpanishSectionLayout() {
-  return (
-    <main className="flex flex-1 flex-col items-center px-6 py-16">
-      <div className="flex w-full max-w-3xl items-center justify-between">
-        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{language?.label}</p>
-        <SectionReviewControls />
-        <SectionViewTracker />
-      </div>
-      <div className="spanish-content mt-8 w-full max-w-3xl text-left">
-        <Outlet />
-      </div>
-    </main>
-  );
+export default function SpanishSectionLayout({ loaderData }: Route.ComponentProps) {
+  return <SectionLayout languageSlug="spanish" sections={loaderData.sections} />;
 }

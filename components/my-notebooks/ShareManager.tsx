@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import IntentForm from "@/components/IntentForm";
+import { useIsClient } from "@/components/UseIsClient";
 
 type Invite = { id: string; token: string };
 type Share = { id: string; userName: string };
@@ -22,7 +23,9 @@ export default function ShareManager({
   const [expanded, setExpanded] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // origin はブラウザで表示が確定してから使う（サーバーでは分からず、ハイドレーションが不一致になるため）
+  const isClient = useIsClient();
+  const origin = isClient ? window.location.origin : "";
 
   async function handleCopy(token: string) {
     await navigator.clipboard.writeText(`${origin}/invite/${token}`);

@@ -370,9 +370,9 @@ export default function FrenchNumberPractice({ items }: { items: FrenchNumberIte
       : 100;
 
   return (
-    <div className="my-8 rounded-2xl border border-zinc-200 bg-white p-6 md:p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div>
       {/* 設定パネル（出題範囲・問題数・制限時間のカスタマイズ） */}
-      <div className="mb-8 rounded-xl border border-zinc-100 bg-zinc-50/90 p-5 dark:border-zinc-800/80 dark:bg-zinc-900/60">
+      <div className="mb-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           {/* 出題範囲選択 */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
