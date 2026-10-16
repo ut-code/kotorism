@@ -11,7 +11,6 @@ export interface TranslationSubmissionRow {
   problemSource: string;
   direction: string;
   problemId: string | null;
-  level: string;
   sourceText: string;
   referenceTranslation: string | null;
   content: string;
@@ -29,7 +28,6 @@ export function toTranslationSubmissionDTO(
     problemSource: row.problemSource as TranslationProblemSource,
     direction: row.direction as TranslationDirection,
     problemId: row.problemId,
-    level: row.level,
     sourceText: row.sourceText,
     referenceTranslation: row.referenceTranslation,
     content: row.content,

@@ -6,7 +6,12 @@ import { useLocation } from "react-router";
 
 import { apiGet, apiPost } from "@/lib/api-client";
 import type { SubmitTranslationResult } from "@/lib/translation/actions.server";
-import { getTranslationLevels, getTranslationProblems } from "@/lib/translation/problems";
+import { ChoiceChips, PracticeButton, SettingRow } from "@/components/practice/PracticeControls";
+import {
+  getTranslationProblem,
+  getTranslationProblems,
+  getTranslationTopics,
+} from "@/lib/translation/problems";
 import {
   CUSTOM_SOURCE_MAX_LENGTH,
   TRANSLATION_SCORE_DEFAULT,
@@ -19,7 +24,8 @@ import {
 interface ResolvedProblem {
   source: TranslationProblemSource;
   problemId?: string;
-  level: string;
+  // プリセット問題の文法項目
+  topic?: string;
   direction: TranslationDirection;
   sourceText: string;
   referenceTranslation: string | null;
@@ -34,6 +40,9 @@ function directionLabel(direction: TranslationDirection, languageLabel: string):
   return direction === "fromJapanese" ? `日本語 → ${languageLabel}` : `${languageLabel} → 日本語`;
 }
 
+// 文法項目を絞り込まないときの選択肢の値
+const ALL_TOPICS = "all";
+
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   dateStyle: "medium",
   timeStyle: "short",
@@ -41,18 +50,21 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
 
 export function TranslationPractice({ languageSlug, languageLabel }: TranslationPracticeProps) {
   const problems = getTranslationProblems(languageSlug);
-  const levels = useMemo(() => getTranslationLevels(languageSlug), [languageSlug]);
+  const topics = useMemo(() => getTranslationTopics(languageSlug), [languageSlug]);
 
   const [status, setStatus] = useState<"loading" | "guest" | "ready">("loading");
   const [phase, setPhase] = useState<"settings" | "writing" | "result">("settings");
-  const [level, setLevel] = useState(levels[0] ?? "");
+  const [topic, setTopic] = useState(ALL_TOPICS);
   const [direction, setDirection] = useState<TranslationDirection>("fromJapanese");
   const [problemSource, setProblemSource] = useState<TranslationProblemSource>("preset");
   const [scoreMax, setScoreMax] = useState<number>(TRANSLATION_SCORE_DEFAULT);
 
   const problemsForSelection = useMemo(
-    () => problems.filter((p) => p.level === level && p.direction === direction),
-    [problems, level, direction],
+    () =>
+      problems.filter(
+        (p) => p.direction === direction && (topic === ALL_TOPICS || p.topic === topic),
+      ),
+    [problems, topic, direction],
   );
   const [selectedProblemId, setSelectedProblemId] = useState(problemsForSelection[0]?.id ?? "");
   const [customSourceText, setCustomSourceText] = useState("");
@@ -79,16 +91,22 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
     };
   }, [languageSlug]);
 
-  const selectLevel = (nextLevel: string) => {
-    setLevel(nextLevel);
-    const nextProblems = problems.filter((p) => p.level === nextLevel && p.direction === direction);
-    setSelectedProblemId(nextProblems[0]?.id ?? "");
+  // 文法項目・訳す方向を変えたら、絞り込んだ問題の先頭を選び直す
+  const selectFirstProblem = (nextTopic: string, nextDirection: TranslationDirection) => {
+    const first = problems.find(
+      (p) => p.direction === nextDirection && (nextTopic === ALL_TOPICS || p.topic === nextTopic),
+    );
+    setSelectedProblemId(first?.id ?? "");
+  };
+
+  const selectTopic = (nextTopic: string) => {
+    setTopic(nextTopic);
+    selectFirstProblem(nextTopic, direction);
   };
 
   const selectDirection = (nextDirection: TranslationDirection) => {
     setDirection(nextDirection);
-    const nextProblems = problems.filter((p) => p.level === level && p.direction === nextDirection);
-    setSelectedProblemId(nextProblems[0]?.id ?? "");
+    selectFirstProblem(topic, nextDirection);
   };
 
   const canStart =
@@ -101,7 +119,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
       setActiveProblem({
         source: "preset",
         problemId: problem.id,
-        level: problem.level,
+        topic: problem.topic,
         direction: problem.direction,
         sourceText: problem.sourceText,
         referenceTranslation: problem.referenceTranslation,
@@ -111,7 +129,6 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
       if (!sourceText) return;
       setActiveProblem({
         source: "custom",
-        level,
         direction,
         sourceText,
         referenceTranslation: null,
@@ -141,7 +158,6 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
         problemSource: activeProblem.source,
         problemId: activeProblem.source === "preset" ? activeProblem.problemId : undefined,
         direction: activeProblem.source === "custom" ? activeProblem.direction : undefined,
-        level: activeProblem.source === "custom" ? activeProblem.level : undefined,
         customSourceText: activeProblem.source === "custom" ? activeProblem.sourceText : undefined,
         content,
         scoreMax,
@@ -170,86 +186,58 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
     <div className="mx-auto max-w-2xl space-y-8">
       {phase === "settings" && (
         <>
-          <section className="space-y-3">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">級</div>
-            <div className="flex flex-wrap gap-2">
-              {levels.map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => selectLevel(l)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    level === l
-                      ? "border-tealblue-500 bg-tealblue-600 text-white"
-                      : "border-zinc-200 text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:text-zinc-300"
-                  }`}
-                >
-                  {l}
-                </button>
-              ))}
-              {levels.length === 0 && (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  この言語にはまだ級が用意されていません。
-                </p>
-              )}
-            </div>
-          </section>
+          <div className="space-y-5">
+            <SettingRow label="訳す方向">
+              <ChoiceChips
+                label="訳す方向"
+                options={[
+                  { value: "fromJapanese", label: directionLabel("fromJapanese", languageLabel) },
+                  { value: "toJapanese", label: directionLabel("toJapanese", languageLabel) },
+                ]}
+                value={direction}
+                onChange={selectDirection}
+              />
+            </SettingRow>
+            <SettingRow label="題材">
+              <ChoiceChips
+                label="題材"
+                options={[
+                  { value: "preset", label: "問題から選ぶ" },
+                  { value: "custom", label: "自分で用意する" },
+                ]}
+                value={problemSource}
+                onChange={setProblemSource}
+              />
+            </SettingRow>
+            {problemSource === "preset" && (
+              <SettingRow label="文法項目">
+                <ChoiceChips
+                  label="文法項目"
+                  options={[
+                    { value: ALL_TOPICS, label: "すべて" },
+                    ...topics.map((t) => ({ value: t, label: t })),
+                  ]}
+                  value={topic}
+                  onChange={selectTopic}
+                />
+              </SettingRow>
+            )}
+            <SettingRow label="採点の満点">
+              <select
+                value={scoreMax}
+                onChange={(event) => setScoreMax(Number(event.target.value))}
+                className="w-40 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              >
+                {TRANSLATION_SCORE_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {value}点満点
+                  </option>
+                ))}
+              </select>
+            </SettingRow>
+          </div>
 
-          <section className="space-y-3">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">訳す方向</div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => selectDirection("fromJapanese")}
-                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
-                  direction === "fromJapanese"
-                    ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300"
-                }`}
-              >
-                {directionLabel("fromJapanese", languageLabel)}
-              </button>
-              <button
-                type="button"
-                onClick={() => selectDirection("toJapanese")}
-                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
-                  direction === "toJapanese"
-                    ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300"
-                }`}
-              >
-                {directionLabel("toJapanese", languageLabel)}
-              </button>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">題材</div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setProblemSource("preset")}
-                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
-                  problemSource === "preset"
-                    ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300"
-                }`}
-              >
-                問題から選ぶ
-              </button>
-              <button
-                type="button"
-                onClick={() => setProblemSource("custom")}
-                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
-                  problemSource === "custom"
-                    ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300"
-                }`}
-              >
-                自分で題材を用意する
-              </button>
-            </div>
-
+          <section>
             {problemSource === "preset" ? (
               <div className="space-y-2">
                 {problemsForSelection.map((problem) => (
@@ -268,14 +256,21 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                       checked={selectedProblemId === problem.id}
                       onChange={() => setSelectedProblemId(problem.id)}
                     />
-                    <span className="block text-zinc-800 dark:text-zinc-100">
-                      {problem.sourceText}
+                    <span className="block">
+                      {topic === ALL_TOPICS && (
+                        <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                          {problem.topic}
+                        </span>
+                      )}
+                      <span className="block text-zinc-800 dark:text-zinc-100">
+                        {problem.sourceText}
+                      </span>
                     </span>
                   </label>
                 ))}
                 {problemsForSelection.length === 0 && (
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    この級・方向の問題はまだ用意されていません。「自分で題材を用意する」から始めてください。
+                    この文法項目・方向の問題はまだ用意されていません。「自分で用意する」から始めてください。
                   </p>
                 )}
               </div>
@@ -307,30 +302,10 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             )}
           </section>
 
-          <section className="space-y-3">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">採点の満点</div>
-            <select
-              value={scoreMax}
-              onChange={(event) => setScoreMax(Number(event.target.value))}
-              className="w-40 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-            >
-              {TRANSLATION_SCORE_OPTIONS.map((value) => (
-                <option key={value} value={value}>
-                  {value}点満点
-                </option>
-              ))}
-            </select>
-          </section>
-
           <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={startWriting}
-              disabled={!canStart}
-              className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
-            >
+            <PracticeButton onClick={startWriting} disabled={!canStart}>
               訳し始める
-            </button>
+            </PracticeButton>
           </div>
 
           {history.length > 0 && (
@@ -356,7 +331,8 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
 
           <div>
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
-              {activeProblem.level} ／ {directionLabel(activeProblem.direction, languageLabel)}
+              {activeProblem.topic && `${activeProblem.topic} ／ `}
+              {directionLabel(activeProblem.direction, languageLabel)}
             </div>
             <p className="text-zinc-800 dark:text-zinc-100">{activeProblem.sourceText}</p>
 
@@ -418,11 +394,16 @@ function TranslationFeedbackCard({
   submission: TranslationSubmissionDTO;
 }) {
   const { feedback } = submission;
+  // 文法項目は提出に保存していないので、プリセット問題の id から引く（問題が差し替えられていれば出さない）
+  const topic = submission.problemId
+    ? getTranslationProblem(submission.language, submission.problemId)?.topic
+    : undefined;
   return (
     <div className="border-t border-zinc-200 pt-6 dark:border-zinc-700">
       <div className="mb-4 flex items-center justify-between">
         <div className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
-          {submission.level} ／ {directionLabel(submission.direction, languageLabel)}
+          {topic && `${topic} ／ `}
+          {directionLabel(submission.direction, languageLabel)}
         </div>
         <div className="rounded-full bg-tealblue-50 px-3 py-1 text-sm font-bold text-tealblue-700 dark:bg-tealblue-900/30 dark:text-tealblue-300">
           {feedback.score} / {feedback.max}点

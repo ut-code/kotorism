@@ -11,7 +11,6 @@ export class TranslationGradingError extends Error {}
 interface GradeTranslationInput {
   languageLabel: string;
   direction: TranslationDirection;
-  level: string;
   sourceText: string;
   // カスタム題材のときはnull（模範解答が存在しないため）
   referenceTranslation: string | null;
@@ -39,7 +38,7 @@ function buildUserPrompt(input: GradeTranslationInput): string {
     : "";
 
   return `【言語】${input.languageLabel}
-【出題級】${input.level}
+【学習者のレベル】初修の第二外国語として学ぶ大学1年生
 【訳す方向】${directionLabel}
 【原文】${input.sourceText}
 ${referenceLine}【学習者の訳文】
