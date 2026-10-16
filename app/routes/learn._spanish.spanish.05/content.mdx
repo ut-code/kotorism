@@ -1,13 +1,12 @@
-import SpanishFillInPracticeLoader from "@/components/spanish/SpanishFillInPracticeLoader";
+import FillInPractice from "@/components/practice/FillInPractice";
 
-{/* セクションタイトルの定義（サイドバーや一覧ページで自動取得・表示される） */}
 export const title = "紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習";
-
-# 紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習
+export const description =
+  "ser と estar、点過去と線過去など、迷いやすい文法の空欄に入る語形を入力しましょう。答えると解説が表示されます。";
 
 {/* 穴埋め演習用コンポーネントの読み込み */}
 
-<SpanishFillInPracticeLoader />
+<FillInPractice language="spanish" section="05" />
 
 <div className="hidden" style={{ display: "none" }} aria-hidden="true">
 

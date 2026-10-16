@@ -2,7 +2,7 @@ import { prisma } from "@/lib/server/prisma.server";
 import type { Prisma } from "@/generated/prisma/client";
 import { getCurrentUser, requireUser } from "@/lib/server/session.server";
 import { getLanguage } from "@/lib/shared/learn/languages";
-import { getTranslationLevels, getTranslationProblem } from "../../shared/translation/problems";
+import { getTranslationProblem } from "../../shared/translation/problems";
 import { gradeTranslation, TranslationGradingError } from "../../shared/translation/grading";
 import { toTranslationSubmissionDTO } from "../../shared/translation/dto";
 import {
@@ -40,9 +40,8 @@ export interface SubmitTranslationInput {
   problemSource: TranslationProblemSource;
   // problemSource: "preset" のとき使う（app/lib/shared/translation/problems.tsのid）
   problemId?: string;
-  // problemSource: "custom" のとき使う（設定画面で先に選ばせた級・訳す方向）
+  // problemSource: "custom" のとき使う（設定画面で先に選ばせた訳す方向）
   direction?: TranslationDirection;
-  level?: string;
   // problemSource: "custom" のとき使う（ユーザーが自由に入力した原文）
   customSourceText?: string;
   content: string;
@@ -69,7 +68,6 @@ export async function submitTranslation(
 
   let problemId: string | null = null;
   let direction: TranslationDirection;
-  let level: string;
   let sourceText: string;
   let referenceTranslation: string | null;
 
@@ -82,16 +80,11 @@ export async function submitTranslation(
     }
     problemId = problem.id;
     direction = problem.direction;
-    level = problem.level;
     sourceText = problem.sourceText;
     referenceTranslation = problem.referenceTranslation;
   } else if (input.problemSource === "custom") {
     if (input.direction !== "fromJapanese" && input.direction !== "toJapanese") {
       return { error: "訳す方向が正しくありません。" };
-    }
-    const levels = getTranslationLevels(language.languageSlug);
-    if (!input.level || !levels.includes(input.level)) {
-      return { error: "級が正しくありません。" };
     }
     const customSourceText = (input.customSourceText ?? "").trim();
     if (!customSourceText) {
@@ -101,7 +94,6 @@ export async function submitTranslation(
       return { error: `原文は${CUSTOM_SOURCE_MAX_LENGTH}字以内で入力してください。` };
     }
     direction = input.direction;
-    level = input.level;
     sourceText = customSourceText;
     referenceTranslation = null;
   } else {
@@ -121,7 +113,6 @@ export async function submitTranslation(
     graded = await gradeTranslation({
       languageLabel: language.label,
       direction,
-      level,
       sourceText,
       referenceTranslation,
       content,
@@ -144,7 +135,6 @@ export async function submitTranslation(
       problemSource: input.problemSource,
       direction,
       problemId,
-      level,
       sourceText,
       referenceTranslation,
       content,

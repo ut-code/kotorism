@@ -211,9 +211,8 @@ model TranslationSubmission {
   direction            String
   // プリセット問題を選んだ場合の、app/lib/shared/translation/problems.ts内での識別子。カスタム題材ではnull
   problemId            String?
-  // 出題時点の検定級（例: "仏検5級"）。プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する
-  level                String
-  // 出題時点の原文（同上の理由で複製して保持する）。カスタム題材ではユーザーが入力した原文
+  // 出題時点の原文。プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する。
+  // カスタム題材ではユーザーが入力した原文
   sourceText           String
   // プリセット問題の模範解答（同上の理由で複製して保持する）。カスタム題材には模範解答が無いためnull
   referenceTranslation String?

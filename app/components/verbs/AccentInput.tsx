@@ -1,5 +1,6 @@
 import { useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
+import { buildAccentIndex, cycleAccent } from "@/lib/shared/accent";
 
 interface AccentInputProps {
   value: string;
@@ -9,6 +10,8 @@ interface AccentInputProps {
   placeholder?: string;
   autoFocus?: boolean;
   className?: string;
+  // 入力する言語（HTML の lang 属性）
+  lang?: string;
   // 例: フランス語なら [["e","é","è","ê","ë"], ...]、スペイン語なら [["a","á"], ...]
   accentCycles: string[][];
   // 入力欄の下に並べる、クリックで直接入力できるボタンの文字一覧
@@ -28,6 +31,7 @@ export function AccentInput({
   placeholder,
   autoFocus,
   className,
+  lang,
   accentCycles,
   toolbarChars,
   hintText,
@@ -36,33 +40,9 @@ export function AccentInput({
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 大文字・小文字を問わず、どの文字がどのサイクルの何番目かを引けるように索引化する
-  const charIndex = useMemo(() => {
-    const index = new Map<string, { cycle: string[]; index: number }>();
-    for (const cycle of accentCycles) {
-      const upperCycle = cycle.map((c) => c.toUpperCase());
-      cycle.forEach((ch, i) => {
-        index.set(ch, { cycle, index: i });
-        index.set(upperCycle[i], { cycle: upperCycle, index: i });
-      });
-    }
-    return index;
-  }, [accentCycles]);
-
-  const nextAccentChar = (ch: string | undefined): string | null => {
-    if (!ch) return null;
-    const entry = charIndex.get(ch);
-    if (!entry) return null;
-    const { cycle, index } = entry;
-    return cycle[(index + 1) % cycle.length];
-  };
-
-  const prevAccentChar = (ch: string | undefined): string | null => {
-    if (!ch) return null;
-    const entry = charIndex.get(ch);
-    if (!entry) return null;
-    const { cycle, index } = entry;
-    return cycle[(index - 1 + cycle.length) % cycle.length];
-  };
+  const accentIndex = useMemo(() => buildAccentIndex(accentCycles), [accentCycles]);
+  const nextAccentChar = (ch: string | undefined) => cycleAccent(accentIndex, ch, 1);
+  const prevAccentChar = (ch: string | undefined) => cycleAccent(accentIndex, ch, -1);
 
   // カーソル直前の文字をサイクルさせる。切り替えられた場合はtrueを返す（呼び出し側でpreventDefaultするかどうかの判断に使う）
   const applyCycledChar = (getChar: (ch: string | undefined) => string | null): boolean => {
@@ -140,6 +120,7 @@ export function AccentInput({
       <input
         ref={inputRef}
         type="text"
+        lang={lang}
         inputMode="text"
         autoComplete="off"
         autoCorrect="off"
@@ -153,21 +134,25 @@ export function AccentInput({
         autoFocus={autoFocus}
         className={className}
       />
-      <div className="mt-2 flex flex-wrap gap-1">
+      {/* 入力欄の下に中央揃えで並べる。押しても入力欄のフォーカス（=ソフトウェアキーボード）が外れないよう
+          mousedown の既定動作を止める */}
+      <div className="mt-3 flex flex-wrap justify-center gap-1.5">
         {toolbarChars.map((ch) => (
           <button
             key={ch}
             type="button"
             tabIndex={-1}
+            lang={lang}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => insertChar(ch)}
             disabled={disabled}
-            className="h-8 w-8 rounded-lg border border-zinc-200 bg-white text-sm font-medium text-zinc-600 transition-colors hover:border-tealblue-400 hover:text-tealblue-700 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-tealblue-500 dark:hover:text-tealblue-400"
+            className="h-10 w-10 rounded-xl border border-zinc-300 bg-white text-base font-semibold text-zinc-700 transition-colors hover:border-tealblue-400 hover:text-tealblue-700 active:scale-95 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-tealblue-500 dark:hover:text-tealblue-300"
           >
             {ch}
           </button>
         ))}
       </div>
-      <div className="mt-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+      <div className="mt-2 text-center text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
         {hintText ?? (
           <>
             ヒント: アルファベットを入力した直後に ↑キーを押すと、{accentCycles[0]?.join(" → ")}

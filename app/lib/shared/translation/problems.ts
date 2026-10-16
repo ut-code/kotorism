@@ -1,5 +1,6 @@
-// 翻訳セクションの事前用意問題（言語ごと・級ごとに10問＝方向ごとに5問）。
-// levelは、その言語の検定試験（中検・仏検・独検・西検）の級に語彙・文法レベルを合わせている。
+// 翻訳セクションの事前用意問題。
+// 初修の第二外国語（大学1年生）で学ぶ範囲の文法項目を網羅するよう、文法項目ごとに
+// 外国語→日本語・日本語→外国語をそれぞれ2問ずつ用意している。
 // ここに項目を追加していけば、そのまま各言語の翻訳ページの選択肢に反映される。
 
 import type { TranslationDirection } from "./types";
@@ -7,19 +8,18 @@ import type { TranslationDirection } from "./types";
 export interface TranslationProblem {
   id: string;
   direction: TranslationDirection;
-  // 対応する検定試験の名称・級（例: "仏検5級"）
-  level: string;
+  // 主に練習する文法項目（例: "複合過去"）
+  topic: string;
   // 訳す対象の原文（fromJapaneseなら日本語、toJapaneseならその言語）
   sourceText: string;
   // 模範解答（AIによる採点の参考として使う）
   referenceTranslation: string;
 }
 
-// 1つの級につき、外国語→日本語・日本語→外国語をそれぞれ5問ずつ持つ「種データ」。
-// [原文, 模範解答] のタプル配列で持つことで、大量の級×問題を見通しよく管理する。
-interface LevelSeed {
-  levelSlug: string;
-  level: string;
+// 1つの文法項目の「種データ」。[原文, 模範解答] のタプル配列で持ち、見通しよく管理する
+interface TopicSeed {
+  topicSlug: string;
+  topic: string;
   toJapanese: [string, string][];
   fromJapanese: [string, string][];
 }
@@ -27,24 +27,24 @@ interface LevelSeed {
 function buildProblems(
   toJapanesePrefix: string,
   fromJapanesePrefix: string,
-  seeds: LevelSeed[],
+  seeds: TopicSeed[],
 ): TranslationProblem[] {
   const problems: TranslationProblem[] = [];
   for (const seed of seeds) {
     seed.toJapanese.forEach(([sourceText, referenceTranslation], i) => {
       problems.push({
-        id: `${toJapanesePrefix}-${seed.levelSlug}-${String(i + 1).padStart(2, "0")}`,
+        id: `${toJapanesePrefix}-${seed.topicSlug}-${String(i + 1).padStart(2, "0")}`,
         direction: "toJapanese",
-        level: seed.level,
+        topic: seed.topic,
         sourceText,
         referenceTranslation,
       });
     });
     seed.fromJapanese.forEach(([sourceText, referenceTranslation], i) => {
       problems.push({
-        id: `${fromJapanesePrefix}-${seed.levelSlug}-${String(i + 1).padStart(2, "0")}`,
+        id: `${fromJapanesePrefix}-${seed.topicSlug}-${String(i + 1).padStart(2, "0")}`,
         direction: "fromJapanese",
-        level: seed.level,
+        topic: seed.topic,
         sourceText,
         referenceTranslation,
       });
@@ -54,1118 +54,1004 @@ function buildProblems(
 }
 
 // ------------------------------------------------------------------
-// 中国語（中検: 準4級・4級・3級・2級・準1級・1級）
+// 中国語
 // ------------------------------------------------------------------
 
-const CHINESE_SEEDS: LevelSeed[] = [
+const CHINESE_SEEDS: TopicSeed[] = [
   {
-    levelSlug: "jun4kyu",
-    level: "中検準4級",
+    topicSlug: "shi",
+    topic: "「是」の文",
     toJapanese: [
-      [
-        "你好，我姓田中，是日本人，今年二十岁。",
-        "こんにちは、私は田中といいます。日本人で、今年20歳です。",
-      ],
-      ["我有一个哥哥和一个姐姐。", "私には兄が一人と姉が一人います。"],
-      ["今天天气很好，我很喜欢春天。", "今日はいい天気です。私は春が好きです。"],
-      ["星期天，我和朋友们一起运动。", "日曜日に、私は友達とスポーツをします。"],
-      ["我妈妈是老师，我爸爸是医生。", "私の母は教師で、父は医者です。"],
+      ["我是大学一年级的学生。", "私は大学1年生です。"],
+      ["今天星期三，明天星期四。", "今日は水曜日で、明日は木曜日です。"],
     ],
     fromJapanese: [
-      ["私は学生です。毎日学校で中国語を勉強しています。", "我是学生。我每天在学校学习汉语。"],
-      ["これは私の犬です。名前はミロです。", "这是我的狗。它叫米洛。"],
-      ["私はコーヒーが好きですが、紅茶は好きではありません。", "我喜欢咖啡，但是不喜欢红茶。"],
-      ["今日は月曜日です。明日は火曜日です。", "今天是星期一。明天是星期二。"],
-      ["この本はとても面白いです。", "这本书很有意思。"],
+      ["彼は私の中国語の先生です。", "他是我的汉语老师。"],
+      ["私は日本人で、中国人ではありません。", "我是日本人，不是中国人。"],
     ],
   },
   {
-    levelSlug: "4kyu",
-    level: "中検4級",
+    topicSlug: "adjective",
+    topic: "形容詞述語文",
     toJapanese: [
-      [
-        "昨天，我跟妈妈一起去市场买了很多蔬菜。",
-        "昨日、私は母と一緒に市場へ行き、たくさんの野菜を買いました。",
-      ],
-      ["这个周末，我们打算去美术馆参观。", "今週末、私たちは美術館を訪れる予定です。"],
-      ["外面下着大雨，所以我带了雨伞。", "外は大雨が降っているので、傘を持っていきました。"],
-      ["这件毛衣多少钱？我想买。", "このセーターはいくらですか？買いたいです。"],
-      ["我每天坐公共汽车去学校。", "私は毎日バスで学校に行きます。"],
+      ["这个菜很好吃。", "この料理はとてもおいしいです。"],
+      ["北京的冬天非常冷。", "北京の冬はとても寒いです。"],
     ],
     fromJapanese: [
-      ["先週、私は家族と一緒に海へ旅行しました。", "上个星期，我跟家人一起去海边旅行了。"],
-      ["明日は友達の誕生日パーティーに行くつもりです。", "明天我打算去朋友的生日聚会。"],
-      ["このレストランの料理はとてもおいしいです。", "这家餐厅的菜很好吃。"],
-      ["駅までどうやって行けばいいですか？", "去车站怎么走？"],
-      ["昨日は忙しかったので、あまり眠れませんでした。", "昨天很忙，所以没怎么睡觉。"],
+      ["今日はあまり忙しくありません。", "今天不太忙。"],
+      ["彼女の部屋は大きくてきれいです。", "她的房间又大又干净。"],
     ],
   },
   {
-    levelSlug: "3kyu",
-    level: "中検3級",
+    topicSlug: "question",
+    topic: "動詞述語文と疑問文",
     toJapanese: [
-      [
-        "小时候，我跟爷爷奶奶一起住在乡下。",
-        "私が小さかった頃、祖父母と一緒に田舎に住んでいました。",
-      ],
-      [
-        "这家餐厅比那家贵，但是菜做得更好吃。",
-        "このレストランはもう一方より高いですが、料理はよりおいしいです。",
-      ],
-      ["我认为旅行是学习语言最好的方法。", "旅行することは言語を学ぶ最良の方法だと私は思います。"],
-      ["我们在中国留学期间参观了好几个城市。", "私たちは中国留学中にいくつもの都市を訪れました。"],
-      ["会议开得很长，不过内容很有意义。", "会議は長かったですが、とても有意義でした。"],
+      ["你喝咖啡吗？", "コーヒーを飲みますか？"],
+      ["你们明天来不来？", "君たちは明日来るの？来ないの？"],
     ],
     fromJapanese: [
-      ["子供の頃、私はよくこの公園で遊んでいました。", "小时候，我常常在这个公园里玩儿。"],
-      ["このかばんはあのかばんよりも軽いです。", "这个包比那个包轻。"],
-      [
-        "彼女は毎日中国語を練習しているので、とても上手に話します。",
-        "她每天练习汉语，所以说得很好。",
-      ],
-      [
-        "私たちは去年、北京で開催された展覧会に行きました。",
-        "去年，我们去参观了在北京举办的展览。",
-      ],
-      ["健康のために、毎日野菜を食べるべきです。", "为了健康，应该每天吃蔬菜。"],
+      ["私は毎朝パンを食べます。", "我每天早上吃面包。"],
+      ["あなたは中国語を勉強していますか？", "你学习汉语吗？"],
     ],
   },
   {
-    levelSlug: "2kyu",
-    level: "中検2級",
+    topicSlug: "interrogative",
+    topic: "疑問詞",
     toJapanese: [
-      [
-        "为了保护环境，每个人都做出努力是很重要的。",
-        "環境を守るために、一人一人が努力することが重要です。",
-      ],
-      [
-        "多亏了新技术，人与人之间的交流变得比以前更方便了。",
-        "新しい技術のおかげで、人々の間のコミュニケーションは以前より便利になりました。",
-      ],
-      [
-        "年轻一代对社会问题越来越关心。",
-        "若い世代は社会問題にますます関心を持つようになっています。",
-      ],
-      [
-        "虽然改变习惯很难，但是只要有意志就是可能的。",
-        "習慣を変えるのは難しいですが、意志さえあれば可能です。",
-      ],
-      [
-        "不但物价上涨了，而且工资也没有增加，这让很多人感到不安。",
-        "物価が上がっただけでなく、給料も増えていないので、多くの人が不安を感じています。",
-      ],
+      ["你叫什么名字？", "お名前は何といいますか？"],
+      ["图书馆在哪儿？", "図書館はどこにありますか？"],
     ],
     fromJapanese: [
-      [
-        "地球温暖化を止めるためには、皆が協力する必要があります。",
-        "为了阻止全球变暖，大家都需要合作。",
-      ],
-      [
-        "インターネットの普及によって、情報を得ることがとても簡単になりました。",
-        "由于互联网的普及，获取信息变得非常容易。",
-      ],
-      [
-        "この問題については、様々な意見があることを理解する必要があります。",
-        "关于这个问题，需要理解存在各种各样的意见。",
-      ],
-      ["彼が試験に合格したことは、努力の結果だと思います。", "我认为他考试通过是努力的结果。"],
-      [
-        "経済が発展するにつれて、人々の生活水準も向上しました。",
-        "随着经济的发展，人们的生活水平也提高了。",
-      ],
+      ["これはいくらですか？", "这个多少钱？"],
+      ["あなたはいつ中国へ行きますか？", "你什么时候去中国？"],
     ],
   },
   {
-    levelSlug: "jun1kyu",
-    level: "中検準1級",
+    topicSlug: "measure-word",
+    topic: "量詞と指示詞",
     toJapanese: [
-      [
-        "她并没有被失败打倒，反而从中汲取了重新开始的力量。",
-        "彼女は失敗に打ちのめされるどころか、そこから再出発する力を得ました。",
-      ],
-      [
-        "这家公司成功地把危机转化为了自我革新的契机。",
-        "この企業は危機をうまく転機に変え、自らを作り変えることに成功しました。",
-      ],
-      [
-        "认为技术进步本身就能保证幸福，未免过于天真。",
-        "技術の進歩さえあれば幸福が保証されると考えるのは、あまりにも単純すぎるでしょう。",
-      ],
-      [
-        "这位作家以细腻的笔触描绘了人性中的挣扎。",
-        "その作家は繊細な筆致で、人間性の中の葛藤を描いています。",
-      ],
-      [
-        "表面上看似简单的谈判，实际上比预想的要复杂得多。",
-        "見かけ上は単純に見える交渉も、実際は予想以上に複雑でした。",
-      ],
+      ["我有三本汉语书。", "私は中国語の本を3冊持っています。"],
+      ["那件衣服很漂亮。", "あの服はとてもきれいです。"],
     ],
     fromJapanese: [
-      [
-        "彼は逆境をものともせず、むしろそれをばねにして成功を収めました。",
-        "他没有被逆境击倒，反而把它当作跳板取得了成功。",
-      ],
-      [
-        "この小説は、一見単純に見えて、実は非常に奥深いテーマを扱っています。",
-        "这部小说乍看简单，实际上探讨的是非常深刻的主题。",
-      ],
-      [
-        "経済成長だけを追い求めることの弊害が、今日ますます明らかになっています。",
-        "只追求经济增长所带来的弊端，如今变得越来越明显。",
-      ],
-      [
-        "彼女の発言は一見矛盾しているようだが、よく考えれば筋が通っている。",
-        "她的话乍听矛盾，但仔细想想却很有道理。",
-      ],
-      [
-        "交渉が難航したのは、双方が譲歩を拒んだからにほかならない。",
-        "谈判之所以陷入僵局，无非是因为双方都拒绝让步。",
-      ],
+      ["この傘は私のです。", "这把伞是我的。"],
+      ["うちには猫が2匹います。", "我家有两只猫。"],
     ],
   },
   {
-    levelSlug: "1kyu",
-    level: "中検1級",
+    topicSlug: "you-zai",
+    topic: "「有」と「在」",
     toJapanese: [
-      [
-        "认为全球化能让所有国家平等受益，未免太天真了。",
-        "グローバル化があらゆる国に等しく恩恵をもたらすと考えるのは、あまりにも素朴でしょう。",
-      ],
-      [
-        "面对这样的两难境地，能够保持冷静的人少之又少。",
-        "そのようなジレンマに直面して冷静さを保てる人はごくわずかです。",
-      ],
-      [
-        "只有经过时间的沉淀，人们才能真正衡量这一事件的深远影响。",
-        "時間の沈殿を経て初めて、人々はこの出来事の深遠な影響を本当に測ることができるのです。",
-      ],
-      [
-        "这位作者不满足于揭露不公，还深入挖掘了其根源。",
-        "この著者は不正を暴くだけでは満足せず、その根源までも深く掘り下げています。",
-      ],
-      [
-        "只要根本原因得不到解决，问题的表象就会反复出现。",
-        "根本的な原因が解決されない限り、問題の表れは繰り返し現れるでしょう。",
-      ],
+      ["我家有四口人。", "私の家は4人家族です。"],
+      ["邮局在银行旁边。", "郵便局は銀行の隣にあります。"],
     ],
     fromJapanese: [
-      [
-        "この危機が浮き彫りにしたのは、既存の制度がいかに脆弱であったかという事実にほかならない。",
-        "这场危机所暴露出来的，正是现有制度是多么脆弱这一事实。",
-      ],
-      [
-        "議論を尽くしたところで、双方の溝が埋まる見込みは薄いように思われる。",
-        "即使把争论进行到底，双方的分歧似乎也很难弥合。",
-      ],
-      [
-        "彼の作品が今なお読み継がれているのは、人間性への深い洞察ゆえである。",
-        "他的作品之所以至今仍被人阅读，是因为其中蕴含着对人性的深刻洞察。",
-      ],
-      [
-        "表面上は些細に見える決定が、後になって重大な結果を招くことは少なくない。",
-        "表面上看似微不足道的决定，日后招致重大后果的情况并不少见。",
-      ],
-      [
-        "危機に際して真価を問われるのは、平時にはめったに試されない資質である。",
-        "在危机中受到考验的，是那些在平时很少被检验的品质。",
-      ],
+      ["机の上にパソコンが1台あります。", "桌子上有一台电脑。"],
+      ["お母さんは家にいますか？", "你妈妈在家吗？"],
+    ],
+  },
+  {
+    topicSlug: "preposition",
+    topic: "介詞（在・跟・给・从）",
+    toJapanese: [
+      ["我在食堂吃午饭。", "私は食堂で昼ご飯を食べます。"],
+      ["我跟朋友一起去看电影。", "私は友達と一緒に映画を見に行きます。"],
+    ],
+    fromJapanese: [
+      ["私は母に電話をかけます。", "我给妈妈打电话。"],
+      ["駅から大学まで歩いて10分かかります。", "从车站到大学走路要十分钟。"],
+    ],
+  },
+  {
+    topicSlug: "auxiliary",
+    topic: "助動詞（想・会・能・可以）",
+    toJapanese: [
+      ["我想去上海旅游。", "私は上海へ旅行に行きたいです。"],
+      ["这儿可以抽烟吗？", "ここでタバコを吸ってもいいですか？"],
+    ],
+    fromJapanese: [
+      ["私は車の運転ができます。", "我会开车。"],
+      ["明日は雨なので、私は行けません。", "明天下雨，我不能去。"],
+    ],
+  },
+  {
+    topicSlug: "time",
+    topic: "時刻と時間の長さ",
+    toJapanese: [
+      ["我每天七点起床。", "私は毎日7時に起きます。"],
+      ["我每天学习两个小时汉语。", "私は毎日2時間中国語を勉強します。"],
+    ],
+    fromJapanese: [
+      ["授業は9時に始まります。", "九点开始上课。"],
+      ["彼は毎晩1時間テレビを見ます。", "他每天晚上看一个小时电视。"],
+    ],
+  },
+  {
+    topicSlug: "le",
+    topic: "「了」（完了・変化）",
+    toJapanese: [
+      ["我昨天买了一件毛衣。", "私は昨日セーターを1枚買いました。"],
+      ["天气冷了。", "寒くなりました。"],
+    ],
+    fromJapanese: [
+      ["彼女はもう家に帰りました。", "她已经回家了。"],
+      ["私は本を2冊読みました。", "我看了两本书。"],
+    ],
+  },
+  {
+    topicSlug: "guo",
+    topic: "「过」（経験）",
+    toJapanese: [
+      ["我去过两次北京。", "私は北京に2回行ったことがあります。"],
+      ["你吃过北京烤鸭吗？", "北京ダックを食べたことがありますか？"],
+    ],
+    fromJapanese: [
+      ["私は中国の映画を見たことがありません。", "我没看过中国电影。"],
+      ["彼はアメリカに住んだことがあります。", "他在美国住过。"],
+    ],
+  },
+  {
+    topicSlug: "progressive",
+    topic: "進行と持続（正在・着）",
+    toJapanese: [
+      ["他正在打电话呢。", "彼はちょうど電話をしているところです。"],
+      ["门开着。", "ドアが開いています。"],
+    ],
+    fromJapanese: [
+      ["私たちは授業を受けているところです。", "我们正在上课呢。"],
+      ["壁に地図が1枚掛かっています。", "墙上挂着一张地图。"],
+    ],
+  },
+  {
+    topicSlug: "result-complement",
+    topic: "結果補語",
+    toJapanese: [
+      ["作业我已经做完了。", "宿題はもう終わりました。"],
+      ["我没听懂老师的话。", "先生の話が聞き取れませんでした。"],
+    ],
+    fromJapanese: [
+      ["私は財布を見つけました。", "我找到钱包了。"],
+      ["この本を読み終えましたか？", "这本书你看完了吗？"],
+    ],
+  },
+  {
+    topicSlug: "direction-complement",
+    topic: "方向補語",
+    toJapanese: [
+      ["老师走进教室来了。", "先生が教室に入ってきました。"],
+      ["他从书包里拿出来一本书。", "彼はかばんから本を1冊取り出しました。"],
+    ],
+    fromJapanese: [
+      ["早く上がってきて！", "快上来吧！"],
+      ["彼女は図書館から本を1冊借りて帰ってきました。", "她从图书馆借回来一本书。"],
+    ],
+  },
+  {
+    topicSlug: "potential-complement",
+    topic: "可能補語",
+    toJapanese: [
+      ["这么多菜，我一个人吃不完。", "こんなにたくさんの料理は、私一人では食べきれません。"],
+      ["黑板上的字你看得见吗？", "黒板の字が見えますか？"],
+    ],
+    fromJapanese: [
+      ["先生の中国語が聞き取れますか？", "老师说的汉语你听得懂吗？"],
+      ["私は今日は帰って来られません。", "我今天回不来。"],
+    ],
+  },
+  {
+    topicSlug: "degree-complement",
+    topic: "様態補語",
+    toJapanese: [
+      ["她汉语说得很流利。", "彼女は中国語をとても流暢に話します。"],
+      ["他每天起得很早。", "彼は毎日とても早く起きます。"],
+    ],
+    fromJapanese: [
+      ["彼は走るのがとても速い。", "他跑得很快。"],
+      ["昨晩はよく眠れましたか？", "你昨天晚上睡得好吗？"],
+    ],
+  },
+  {
+    topicSlug: "comparison",
+    topic: "比較",
+    toJapanese: [
+      ["今天比昨天热。", "今日は昨日より暑いです。"],
+      ["我哥哥比我大三岁。", "兄は私より3歳年上です。"],
+    ],
+    fromJapanese: [
+      ["東京は北京ほど寒くありません。", "东京没有北京冷。"],
+      ["この服はあの服より少し高いです。", "这件衣服比那件贵一点儿。"],
+    ],
+  },
+  {
+    topicSlug: "ba-bei",
+    topic: "「把」と「被」",
+    toJapanese: [
+      ["请把窗户打开。", "窓を開けてください。"],
+      ["我的自行车被人偷走了。", "私の自転車が盗まれてしまいました。"],
+    ],
+    fromJapanese: [
+      ["私は辞書をかばんの中に入れました。", "我把词典放在书包里了。"],
+      ["ケーキは弟に食べられてしまいました。", "蛋糕被弟弟吃了。"],
+    ],
+  },
+  {
+    topicSlug: "shi-de",
+    topic: "「是…的」",
+    toJapanese: [
+      ["你是什么时候来日本的？", "あなたはいつ日本に来たのですか？"],
+      ["我是坐飞机来的。", "私は飛行機で来たのです。"],
+    ],
+    fromJapanese: [
+      ["このセーターはどこで買ったのですか？", "这件毛衣是在哪儿买的？"],
+      ["私は友達と一緒に来たのです。", "我是跟朋友一起来的。"],
     ],
   },
 ];
 
 // ------------------------------------------------------------------
-// フランス語（仏検: 5級・4級・3級・準2級・2級・準1級・1級）
+// フランス語
 // ------------------------------------------------------------------
 
-const FRENCH_SEEDS: LevelSeed[] = [
+const FRENCH_SEEDS: TopicSeed[] = [
   {
-    levelSlug: "5kyu",
-    level: "仏検5級",
+    topicSlug: "etre-avoir",
+    topic: "être と avoir",
     toJapanese: [
+      ["Je suis étudiant et j'ai dix-neuf ans.", "私は学生で、19歳です。"],
       [
-        "Bonjour, je m'appelle Paul. Je suis étudiant et j'habite à Lyon.",
-        "こんにちは、私はポールといいます。学生で、リヨンに住んでいます。",
+        "Nous avons un chat. Il est très mignon.",
+        "私たちは猫を1匹飼っています。とてもかわいいです。",
       ],
-      [
-        "J'ai vingt ans. J'ai un frère et une sœur.",
-        "私は20歳です。兄弟が一人と姉妹が一人います。",
-      ],
-      ["Il fait beau aujourd'hui. J'aime le printemps.", "今日はいい天気です。私は春が好きです。"],
-      ["Le dimanche, je fais du sport avec mes amis.", "日曜日に、私は友達とスポーツをします。"],
-      ["Ma mère est professeure et mon père est médecin.", "私の母は教師で、父は医者です。"],
     ],
     fromJapanese: [
-      [
-        "私は毎朝7時に起きます。それから朝食を食べます。",
-        "Je me lève à sept heures tous les matins. Ensuite, je prends le petit-déjeuner.",
-      ],
-      ["これは私の犬です。名前はミロです。", "C'est mon chien. Il s'appelle Milo."],
-      [
-        "私はコーヒーが好きですが、紅茶は好きではありません。",
-        "J'aime le café, mais je n'aime pas le thé.",
-      ],
-      ["今日は月曜日です。明日は火曜日です。", "Aujourd'hui, c'est lundi. Demain, c'est mardi."],
-      ["この本はとても面白いです。", "Ce livre est très intéressant."],
+      ["彼女はフランス人で、とても親切です。", "Elle est française et elle est très gentille."],
+      ["あなたには兄弟姉妹がいますか？", "Vous avez des frères et sœurs ?"],
     ],
   },
   {
-    levelSlug: "4kyu",
-    level: "仏検4級",
+    topicSlug: "articles",
+    topic: "冠詞",
     toJapanese: [
       [
-        "Hier, je suis allé au marché avec ma mère pour acheter des légumes.",
-        "昨日、私は母と一緒に野菜を買いに市場へ行きました。",
+        "Il y a un livre sur la table. C'est le livre de Paul.",
+        "テーブルの上に本が1冊あります。それはポールの本です。",
       ],
       [
-        "Ce week-end, nous allons visiter le musée du Louvre.",
-        "今週末、私たちはルーヴル美術館を訪れる予定です。",
+        "Le matin, je mange du pain et je bois du café.",
+        "朝、私はパンを食べ、コーヒーを飲みます。",
       ],
-      [
-        "Il pleut beaucoup, alors je prends un parapluie.",
-        "雨がたくさん降っているので、傘を持っていきます。",
-      ],
-      [
-        "Combien coûte ce pull ? Je voudrais l'acheter.",
-        "このセーターはいくらですか？買いたいです。",
-      ],
-      ["Je prends le bus pour aller à l'école tous les jours.", "私は毎日バスで学校に行きます。"],
     ],
     fromJapanese: [
-      [
-        "先週、私は家族と一緒に海へ旅行しました。",
-        "La semaine dernière, je suis parti(e) en voyage à la mer avec ma famille.",
-      ],
-      [
-        "明日は友達の誕生日パーティーに行くつもりです。",
-        "Demain, je vais aller à la fête d'anniversaire de mon ami(e).",
-      ],
-      ["このレストランの料理はとてもおいしいです。", "La cuisine de ce restaurant est très bonne."],
-      ["駅までどうやって行けばいいですか？", "Comment est-ce que je peux aller à la gare ?"],
-      [
-        "昨日は忙しかったので、あまり眠れませんでした。",
-        "Hier, j'étais occupé(e), donc je n'ai pas beaucoup dormi.",
-      ],
+      ["私は音楽が好きです。", "J'aime la musique."],
+      ["冷蔵庫にはもう牛乳がありません。", "Il n'y a plus de lait dans le frigo."],
     ],
   },
   {
-    levelSlug: "3kyu",
-    level: "仏検3級",
+    topicSlug: "adjectifs",
+    topic: "形容詞の性数一致",
     toJapanese: [
+      ["C'est une petite maison blanche.", "それは小さな白い家です。"],
       [
-        "Quand j'étais petit, j'habitais à la campagne avec mes grands-parents.",
-        "私が小さかった頃、祖父母と一緒に田舎に住んでいました。",
-      ],
-      [
-        "Ce restaurant est plus cher que l'autre, mais la nourriture est meilleure.",
-        "このレストランはもう一方より高いですが、料理はよりおいしいです。",
-      ],
-      [
-        "Je pense que voyager est le meilleur moyen d'apprendre une langue.",
-        "旅行することは言語を学ぶ最良の方法だと私は思います。",
-      ],
-      [
-        "Nous avons visité plusieurs villes pendant notre séjour en France.",
-        "私たちはフランス滞在中にいくつもの都市を訪れました。",
-      ],
-      [
-        "La réunion a été longue, mais elle était très utile.",
-        "会議は長かったですが、とても有意義でした。",
+        "Mes amies sont grandes et sportives.",
+        "私の友人（女性）たちは背が高く、スポーツが得意です。",
       ],
     ],
     fromJapanese: [
-      [
-        "子供の頃、私はよくこの公園で遊んでいました。",
-        "Quand j'étais enfant, je jouais souvent dans ce parc.",
-      ],
-      ["このかばんはあのかばんよりも軽いです。", "Ce sac est plus léger que celui-là."],
-      [
-        "彼女は毎日フランス語を練習しているので、とても上手に話します。",
-        "Elle pratique le français tous les jours, donc elle parle très bien.",
-      ],
-      [
-        "私たちは去年、パリで開催された展覧会に行きました。",
-        "L'année dernière, nous sommes allé(e)s à l'exposition qui a eu lieu à Paris.",
-      ],
-      [
-        "健康のために、毎日野菜を食べるべきです。",
-        "Pour la santé, il faut manger des légumes tous les jours.",
-      ],
+      ["これは新しい車です。", "C'est une nouvelle voiture."],
+      ["彼女は青い目をしています。", "Elle a les yeux bleus."],
     ],
   },
   {
-    levelSlug: "jun2kyu",
-    level: "仏検準2級",
+    topicSlug: "verbes-er",
+    topic: "-er動詞の現在形と否定文",
     toJapanese: [
-      [
-        "Il est important que chacun fasse des efforts pour protéger l'environnement.",
-        "一人一人が環境を守るために努力することが重要です。",
-      ],
-      [
-        "Si j'avais plus de temps, je voyagerais dans le monde entier.",
-        "もし私にもっと時間があれば、世界中を旅行するのですが。",
-      ],
-      [
-        "Grâce aux nouvelles technologies, la communication est devenue plus facile qu'avant.",
-        "新しい技術のおかげで、コミュニケーションは以前より簡単になりました。",
-      ],
-      [
-        "Les jeunes générations s'intéressent de plus en plus aux questions sociales.",
-        "若い世代は社会問題にますます関心を持っています。",
-      ],
-      [
-        "Bien qu'il soit difficile de changer ses habitudes, c'est possible avec de la volonté.",
-        "習慣を変えるのは難しいけれども、意志があれば可能です。",
-      ],
+      ["Nous parlons français en classe.", "私たちは授業ではフランス語を話します。"],
+      ["Il ne regarde pas la télévision le soir.", "彼は夜テレビを見ません。"],
     ],
     fromJapanese: [
-      [
-        "地球温暖化を止めるためには、皆が協力する必要があります。",
-        "Pour arrêter le réchauffement climatique, il faut que tout le monde coopère.",
-      ],
-      [
-        "もし私が首相だったら、教育により多くの予算を使うでしょう。",
-        "Si j'étais le premier ministre, je consacrerais plus de budget à l'éducation.",
-      ],
-      [
-        "インターネットの普及によって、情報を得ることがとても簡単になりました。",
-        "Grâce à la diffusion d'Internet, il est devenu très facile d'obtenir des informations.",
-      ],
-      [
-        "この問題については、様々な意見があることを理解する必要があります。",
-        "Il faut comprendre qu'il existe diverses opinions sur cette question.",
-      ],
-      [
-        "彼が試験に合格したことは、努力の結果だと思います。",
-        "Je pense que le fait qu'il ait réussi l'examen est le résultat de ses efforts.",
-      ],
+      ["私はパリに住んでいます。", "J'habite à Paris."],
+      ["私たちは日曜日には働きません。", "Nous ne travaillons pas le dimanche."],
     ],
   },
   {
-    levelSlug: "2kyu",
-    level: "仏検2級",
+    topicSlug: "interrogation",
+    topic: "疑問文と疑問詞",
     toJapanese: [
-      [
-        "Si nous avions pris cette décision plus tôt, la situation aurait pu être différente.",
-        "もし私たちがもっと早くこの決断をしていたら、状況は違っていたかもしれません。",
-      ],
-      [
-        "Le livre dont je vous ai parlé hier traite des inégalités sociales contemporaines.",
-        "昨日お話しした本は、現代の社会的不平等について扱っています。",
-      ],
-      [
-        "Il n'est pas rare que les entreprises modifient leur stratégie face à la concurrence internationale.",
-        "企業が国際競争に直面して戦略を変更することは珍しくありません。",
-      ],
-      [
-        "Quoi qu'on en dise, cette réforme aura des conséquences importantes sur l'économie.",
-        "何と言われようとも、この改革は経済に重大な影響を及ぼすでしょう。",
-      ],
-      [
-        "C'est un sujet sur lequel les experts eux-mêmes ne s'accordent pas toujours.",
-        "これは専門家自身も必ずしも意見が一致しない話題です。",
-      ],
+      ["Où est-ce que tu habites ?", "君はどこに住んでいるの？"],
+      ["Qu'est-ce que vous faites ce week-end ?", "今週末は何をしますか？"],
+    ],
+    fromJapanese: [
+      ["あなたはフランス語を話しますか？", "Est-ce que vous parlez français ?"],
+      ["今何時ですか？", "Quelle heure est-il ?"],
+    ],
+  },
+  {
+    topicSlug: "irreguliers",
+    topic: "不規則動詞（aller・venir・faire・prendre）",
+    toJapanese: [
+      ["Je vais à l'université en bus.", "私はバスで大学に行きます。"],
+      ["Ils viennent du Canada.", "彼らはカナダ出身です。"],
+    ],
+    fromJapanese: [
+      ["私たちは公園を散歩します。", "Nous faisons une promenade dans le parc."],
+      ["彼女は毎朝電車に乗ります。", "Elle prend le train tous les matins."],
+    ],
+  },
+  {
+    topicSlug: "futur-proche",
+    topic: "近接未来と近接過去",
+    toJapanese: [
+      ["Le film va commencer dans cinq minutes.", "映画はあと5分で始まります。"],
+      ["Je viens de finir mes devoirs.", "私はちょうど宿題を終えたところです。"],
     ],
     fromJapanese: [
       [
-        "政府がもっと早く対策を取っていれば、被害はもっと少なかったでしょう。",
-        "Si le gouvernement avait pris des mesures plus tôt, les dégâts auraient été moindres.",
+        "明日、私たちは祖父母に会いに行くつもりです。",
+        "Demain, nous allons rendre visite à nos grands-parents.",
       ],
+      ["彼はちょうど駅に着いたところです。", "Il vient d'arriver à la gare."],
+    ],
+  },
+  {
+    topicSlug: "possessifs",
+    topic: "所有形容詞と指示形容詞",
+    toJapanese: [
       [
-        "彼女が昨夜話していた映画は、実話に基づいているそうです。",
-        "Il paraît que le film dont elle parlait hier soir est basé sur une histoire vraie.",
+        "Ce sac est à moi, mais cette valise est à ma sœur.",
+        "このかばんは私のものですが、このスーツケースは姉（妹）のものです。",
       ],
+      ["Notre professeur est très sympathique.", "私たちの先生はとても感じがいいです。"],
+    ],
+    fromJapanese: [
+      ["これは私の父の車です。", "C'est la voiture de mon père."],
+      ["彼女の両親はリヨンに住んでいます。", "Ses parents habitent à Lyon."],
+    ],
+  },
+  {
+    topicSlug: "pronominaux",
+    topic: "代名動詞",
+    toJapanese: [
+      ["Je me lève à sept heures tous les jours.", "私は毎日7時に起きます。"],
+      ["Comment vous appelez-vous ?", "お名前は何とおっしゃいますか？"],
+    ],
+    fromJapanese: [
+      ["子どもたちは9時に寝ます。", "Les enfants se couchent à neuf heures."],
+      ["私たちは駅の前で落ち合います。", "Nous nous retrouvons devant la gare."],
+    ],
+  },
+  {
+    topicSlug: "pronoms-objets",
+    topic: "目的語の人称代名詞",
+    toJapanese: [
+      ["Ce livre ? Je le lis maintenant.", "この本？今読んでいるところです。"],
+      ["Je lui téléphone ce soir.", "今晩、彼（彼女）に電話します。"],
+    ],
+    fromJapanese: [
+      ["私は彼女をよく知っています。", "Je la connais bien."],
+      ["彼らは私たちに道を教えてくれます。", "Ils nous montrent le chemin."],
+    ],
+  },
+  {
+    topicSlug: "passe-compose",
+    topic: "複合過去",
+    toJapanese: [
       [
-        "少子化は多くの先進国が直面している共通の課題です。",
-        "La baisse de la natalité est un défi commun auquel de nombreux pays développés sont confrontés.",
+        "Hier, j'ai visité le musée du Louvre avec mes amis.",
+        "昨日、私は友人たちとルーヴル美術館を訪れました。",
       ],
+      ["Elle est partie en France l'année dernière.", "彼女は去年フランスへ旅立ちました。"],
+    ],
+    fromJapanese: [
+      ["私たちは昨晩レストランで夕食をとりました。", "Nous avons dîné au restaurant hier soir."],
+      ["彼らは何時に家に帰りましたか？", "À quelle heure est-ce qu'ils sont rentrés à la maison ?"],
+    ],
+  },
+  {
+    topicSlug: "imparfait",
+    topic: "半過去",
+    toJapanese: [
       [
-        "この決定がどんな結果を招くにせよ、私たちはそれを受け入れなければなりません。",
-        "Quel que soit le résultat que cette décision entraîne, nous devons l'accepter.",
+        "Quand j'étais petit, j'habitais à la campagne.",
+        "子どものころ、私は田舎に住んでいました。",
       ],
+      ["Il pleuvait quand je suis sorti.", "私が出かけたとき、雨が降っていました。"],
+    ],
+    fromJapanese: [
+      ["以前、私は毎週末テニスをしていました。", "Avant, je jouais au tennis tous les week-ends."],
       [
-        "専門家の間でさえ意見が分かれているのは、この問題が複雑だからです。",
-        "Si les avis divergent même parmi les experts, c'est parce que ce problème est complexe.",
+        "彼女が電話をかけてきたとき、私はテレビを見ていました。",
+        "Je regardais la télévision quand elle m'a téléphoné.",
       ],
     ],
   },
   {
-    levelSlug: "jun1kyu",
-    level: "仏検準1級",
+    topicSlug: "futur-simple",
+    topic: "単純未来",
     toJapanese: [
-      [
-        "Loin de se laisser abattre par l'échec, elle y a puisé la force de recommencer.",
-        "彼女は失敗に打ちのめされるどころか、そこから再挑戦する力を得ました。",
-      ],
-      [
-        "Cette entreprise a su tirer parti de la crise pour se réinventer entièrement.",
-        "この企業は危機をうまく利用して、自らを完全に作り変えることに成功しました。",
-      ],
-      [
-        "On aurait tort de croire que le progrès technique suffit à garantir le bonheur.",
-        "技術の進歩さえあれば幸福が保証されると考えるのは間違いでしょう。",
-      ],
-      [
-        "L'écrivain dépeint avec une finesse remarquable les tourments de l'âme humaine.",
-        "その作家は人間の魂の苦悩を、見事な繊細さで描いています。",
-      ],
-      [
-        "Malgré les apparences, cette négociation s'est révélée plus délicate que prévu.",
-        "見かけによらず、この交渉は予想以上に繊細なものであることが明らかになりました。",
-      ],
+      ["L'été prochain, nous irons en Espagne.", "来年の夏、私たちはスペインに行きます。"],
+      ["Je te téléphonerai quand j'arriverai à Paris.", "パリに着いたら君に電話するね。"],
     ],
     fromJapanese: [
-      [
-        "彼は逆境をものともせず、むしろそれをばねにして成功を収めました。",
-        "Loin de se laisser décourager par l'adversité, il s'en est plutôt servi comme tremplin vers la réussite.",
-      ],
-      [
-        "この小説は、一見単純に見えて、実は非常に奥深いテーマを扱っています。",
-        "Ce roman, qui semble simple à première vue, traite en réalité d'un thème d'une grande profondeur.",
-      ],
-      [
-        "経済成長だけを追い求めることの弊害が、今日ますます明らかになっています。",
-        "Les méfaits de la course exclusive à la croissance économique deviennent aujourd'hui de plus en plus évidents.",
-      ],
-      [
-        "彼女の発言は一見矛盾しているようだが、よく考えれば筋が通っている。",
-        "Ses propos semblent contradictoires à première vue, mais ils sont cohérents si l'on y réfléchit bien.",
-      ],
-      [
-        "交渉が難航したのは、双方が譲歩を拒んだからにほかならない。",
-        "Si les négociations ont été laborieuses, c'est uniquement parce que les deux parties ont refusé de faire des concessions.",
-      ],
+      ["明日は雨が降るでしょう。", "Il pleuvra demain."],
+      ["来年、私は20歳になります。", "L'année prochaine, j'aurai vingt ans."],
     ],
   },
   {
-    levelSlug: "1kyu",
-    level: "仏検1級",
+    topicSlug: "comparaison",
+    topic: "比較級と最上級",
     toJapanese: [
+      ["Paul est plus grand que son frère.", "ポールは兄（弟）より背が高いです。"],
+      ["C'est le plus beau jour de ma vie.", "今日は人生で最高の日です。"],
+    ],
+    fromJapanese: [
+      ["電車は車より速い。", "Le train est plus rapide que la voiture."],
+      ["彼女は私よりフランス語を上手に話します。", "Elle parle français mieux que moi."],
+    ],
+  },
+  {
+    topicSlug: "relatifs",
+    topic: "関係代名詞",
+    toJapanese: [
+      ["J'ai un ami qui habite à Marseille.", "私にはマルセイユに住んでいる友人がいます。"],
+      ["Voilà la ville où je suis né.", "あれが私の生まれた町です。"],
+    ],
+    fromJapanese: [
+      ["これは私が昨日買った本です。", "C'est le livre que j'ai acheté hier."],
+      ["あなたが話していた映画を見ました。", "J'ai vu le film dont vous parliez."],
+    ],
+  },
+  {
+    topicSlug: "imperatif",
+    topic: "命令法",
+    toJapanese: [
+      ["Ferme la fenêtre, s'il te plaît.", "窓を閉めてね。"],
+      ["Allons au cinéma ce soir !", "今晩、映画に行こう！"],
+    ],
+    fromJapanese: [
+      ["ここでタバコを吸わないでください。", "Ne fumez pas ici, s'il vous plaît."],
+      ["早く起きなさい！", "Lève-toi vite !"],
+    ],
+  },
+  {
+    topicSlug: "conditionnel",
+    topic: "条件法現在",
+    toJapanese: [
+      ["Je voudrais un café, s'il vous plaît.", "コーヒーを1杯お願いします。"],
       [
-        "Il serait naïf de penser que la mondialisation profite uniformément à tous les pays.",
-        "グローバル化があらゆる国に一様に恩恵をもたらすと考えるのは、あまりにも素朴でしょう。",
-      ],
-      [
-        "Rares sont ceux qui, confrontés à un tel dilemme, parviennent à garder la tête froide.",
-        "そのようなジレンマに直面して冷静さを保てる人はほとんどいません。",
-      ],
-      [
-        "Ce n'est qu'avec le recul que l'on mesure véritablement la portée de cet événement.",
-        "この出来事の本当の意味は、時が経ってから初めて測れるものです。",
-      ],
-      [
-        "L'auteur ne se contente pas de dénoncer l'injustice ; il en explore les racines les plus profondes.",
-        "著者は不正を告発するだけでなく、その最も深い根源を掘り下げています。",
-      ],
-      [
-        "Tant que les causes profondes ne seront pas traitées, les symptômes continueront de resurgir.",
-        "根本的な原因が対処されない限り、その症状は繰り返し現れ続けるでしょう。",
+        "Si j'avais de l'argent, je voyagerais autour du monde.",
+        "もしお金があれば、世界中を旅行するのに。",
       ],
     ],
     fromJapanese: [
+      ["窓を開けていただけますか？", "Pourriez-vous ouvrir la fenêtre ?"],
+      ["もし時間があれば、君を手伝うのに。", "Si j'avais le temps, je t'aiderais."],
+    ],
+  },
+  {
+    topicSlug: "subjonctif",
+    topic: "接続法現在",
+    toJapanese: [
       [
-        "この危機が浮き彫りにしたのは、既存の制度がいかに脆弱であったかという事実にほかならない。",
-        "Ce que cette crise a mis en lumière, c'est précisément à quel point les institutions existantes étaient fragiles.",
+        "Il faut que tu finisses ce travail avant midi.",
+        "君は正午までにこの仕事を終えなければなりません。",
       ],
-      [
-        "議論を尽くしたところで、双方の溝が埋まる見込みは薄いように思われる。",
-        "Même à force d'épuiser le débat, il semble peu probable que le fossé entre les deux parties se comble.",
-      ],
-      [
-        "彼の作品が今なお読み継がれているのは、人間性への深い洞察ゆえである。",
-        "Si son œuvre continue d'être lue aujourd'hui, c'est en raison de sa profonde perspicacité sur la nature humaine.",
-      ],
-      [
-        "表面上は些細に見える決定が、後になって重大な結果を招くことは少なくない。",
-        "Il n'est pas rare qu'une décision qui paraît anodine en surface entraîne, par la suite, des conséquences considérables.",
-      ],
-      [
-        "危機に際して真価を問われるのは、平時にはめったに試されない資質である。",
-        "Ce sont des qualités rarement mises à l'épreuve en temps normal qui sont testées en période de crise.",
-      ],
+      ["Je suis content que vous soyez là.", "あなたが来てくれてうれしいです。"],
+    ],
+    fromJapanese: [
+      ["私は彼に来てほしい。", "Je veux qu'il vienne."],
+      ["私たちは明日出発しなければなりません。", "Il faut que nous partions demain."],
     ],
   },
 ];
 
 // ------------------------------------------------------------------
-// ドイツ語（独検: 5級・4級・3級・準2級・2級・準1級・1級）
+// ドイツ語
 // ------------------------------------------------------------------
 
-const GERMAN_SEEDS: LevelSeed[] = [
+const GERMAN_SEEDS: TopicSeed[] = [
   {
-    levelSlug: "5kyu",
-    level: "独検5級",
+    topicSlug: "sein-haben",
+    topic: "sein と haben",
     toJapanese: [
-      [
-        "Guten Tag, ich heiße Anna. Ich komme aus Berlin und bin Studentin.",
-        "こんにちは、私はアンナといいます。ベルリン出身で、学生です。",
-      ],
-      [
-        "Ich bin zwanzig Jahre alt. Ich habe einen Bruder und eine Schwester.",
-        "私は20歳です。兄弟が一人と姉妹が一人います。",
-      ],
-      [
-        "Heute ist das Wetter schön. Ich mag den Frühling.",
-        "今日はいい天気です。私は春が好きです。",
-      ],
-      ["Am Sonntag mache ich Sport mit meinen Freunden.", "日曜日に、私は友達とスポーツをします。"],
-      ["Meine Mutter ist Lehrerin und mein Vater ist Arzt.", "私の母は教師で、父は医者です。"],
+      ["Ich bin Studentin. Ich bin zwanzig Jahre alt.", "私は大学生です。20歳です。"],
+      ["Wir haben heute Deutschunterricht.", "私たちは今日ドイツ語の授業があります。"],
     ],
     fromJapanese: [
-      [
-        "私は週末に友達と映画を見ます。とても楽しいです。",
-        "Am Wochenende sehe ich mit meinen Freunden einen Film. Das macht viel Spaß.",
-      ],
-      ["これは私の犬です。名前はミロです。", "Das ist mein Hund. Er heißt Milo."],
-      [
-        "私はコーヒーが好きですが、紅茶は好きではありません。",
-        "Ich mag Kaffee, aber ich mag keinen Tee.",
-      ],
-      ["今日は月曜日です。明日は火曜日です。", "Heute ist Montag. Morgen ist Dienstag."],
-      ["この本はとても面白いです。", "Dieses Buch ist sehr interessant."],
+      ["彼は日本人で、東京出身です。", "Er ist Japaner und kommt aus Tokio."],
+      ["君には兄弟姉妹がいるの？", "Hast du Geschwister?"],
     ],
   },
   {
-    levelSlug: "4kyu",
-    level: "独検4級",
+    topicSlug: "praesens",
+    topic: "動詞の現在人称変化",
     toJapanese: [
+      ["Was machst du am Wochenende?", "週末は何をするの？"],
       [
-        "Gestern bin ich mit meiner Mutter auf den Markt gegangen, um Gemüse zu kaufen.",
-        "昨日、私は母と一緒に野菜を買いに市場へ行きました。",
+        "Wir wohnen in Berlin und lernen Deutsch.",
+        "私たちはベルリンに住んでいて、ドイツ語を学んでいます。",
       ],
-      [
-        "Dieses Wochenende besuchen wir das Museum in der Stadt.",
-        "今週末、私たちは街の美術館を訪れる予定です。",
-      ],
-      [
-        "Es regnet stark, deshalb nehme ich einen Regenschirm mit.",
-        "雨がたくさん降っているので、傘を持っていきます。",
-      ],
-      [
-        "Wie viel kostet dieser Pullover? Ich möchte ihn kaufen.",
-        "このセーターはいくらですか？買いたいです。",
-      ],
-      ["Ich fahre jeden Tag mit dem Bus zur Schule.", "私は毎日バスで学校に行きます。"],
     ],
     fromJapanese: [
-      [
-        "先週、私は家族と一緒に海へ旅行しました。",
-        "Letzte Woche bin ich mit meiner Familie ans Meer gereist.",
-      ],
-      [
-        "明日は友達の誕生日パーティーに行くつもりです。",
-        "Morgen gehe ich zur Geburtstagsparty meines Freundes.",
-      ],
-      [
-        "このレストランの料理はとてもおいしいです。",
-        "Das Essen in diesem Restaurant ist sehr lecker.",
-      ],
-      ["駅までどうやって行けばいいですか？", "Wie komme ich zum Bahnhof?"],
-      [
-        "昨日は忙しかったので、あまり眠れませんでした。",
-        "Gestern war ich beschäftigt, deshalb habe ich nicht viel geschlafen.",
-      ],
+      ["私は音楽を聴くのが好きです。", "Ich höre gern Musik."],
+      ["彼女はよくテニスをします。", "Sie spielt oft Tennis."],
     ],
   },
   {
-    levelSlug: "3kyu",
-    level: "独検3級",
+    topicSlug: "artikel",
+    topic: "名詞の性と冠詞（1格・4格）",
     toJapanese: [
-      [
-        "Als ich klein war, wohnte ich mit meinen Großeltern auf dem Land.",
-        "私が小さかった頃、祖父母と一緒に田舎に住んでいました。",
-      ],
-      [
-        "Dieses Restaurant ist teurer als das andere, aber das Essen schmeckt besser.",
-        "このレストランはもう一方より高いですが、料理はよりおいしいです。",
-      ],
-      [
-        "Ich denke, dass Reisen die beste Art ist, eine Sprache zu lernen.",
-        "旅行することは言語を学ぶ最良の方法だと私は思います。",
-      ],
-      [
-        "Wir haben während unseres Aufenthalts in Deutschland mehrere Städte besucht.",
-        "私たちはドイツ滞在中にいくつもの都市を訪れました。",
-      ],
-      [
-        "Die Besprechung war lang, aber sie war sehr nützlich.",
-        "会議は長かったですが、とても有意義でした。",
-      ],
+      ["Der Tisch ist neu, aber die Lampe ist alt.", "その机は新しいですが、ランプは古いです。"],
+      ["Ich kaufe einen Rock und eine Tasche.", "私はスカートとバッグを買います。"],
     ],
     fromJapanese: [
-      [
-        "子供の頃、私はよくこの公園で遊んでいました。",
-        "Als ich ein Kind war, spielte ich oft in diesem Park.",
-      ],
-      ["このかばんはあのかばんよりも軽いです。", "Diese Tasche ist leichter als jene."],
-      [
-        "彼女は毎日ドイツ語を練習しているので、とても上手に話します。",
-        "Sie übt jeden Tag Deutsch, deshalb spricht sie sehr gut.",
-      ],
-      [
-        "私たちは去年、ベルリンで開催された展覧会に行きました。",
-        "Letztes Jahr sind wir zu der Ausstellung gegangen, die in Berlin stattfand.",
-      ],
-      [
-        "健康のために、毎日野菜を食べるべきです。",
-        "Für die Gesundheit sollte man jeden Tag Gemüse essen.",
-      ],
+      ["私は辞書が1冊必要です。", "Ich brauche ein Wörterbuch."],
+      ["その男性は先生です。", "Der Mann ist Lehrer."],
     ],
   },
   {
-    levelSlug: "jun2kyu",
-    level: "独検準2級",
+    topicSlug: "dativ",
+    topic: "3格と人称代名詞",
     toJapanese: [
-      [
-        "Es ist wichtig, dass sich jeder bemüht, die Umwelt zu schützen.",
-        "一人一人が環境を守るために努力することが重要です。",
-      ],
-      [
-        "Wenn ich mehr Zeit hätte, würde ich um die ganze Welt reisen.",
-        "もし私にもっと時間があれば、世界中を旅行するのですが。",
-      ],
-      [
-        "Dank der neuen Technologien ist die Kommunikation einfacher geworden als früher.",
-        "新しい技術のおかげで、コミュニケーションは以前より簡単になりました。",
-      ],
-      [
-        "Die jüngeren Generationen interessieren sich zunehmend für soziale Fragen.",
-        "若い世代は社会問題にますます関心を持っています。",
-      ],
-      [
-        "Obwohl es schwer ist, Gewohnheiten zu ändern, ist es mit Willenskraft möglich.",
-        "習慣を変えるのは難しいけれども、意志があれば可能です。",
-      ],
+      ["Ich schenke meiner Mutter Blumen.", "私は母に花を贈ります。"],
+      ["Das Buch gefällt mir sehr.", "その本がとても気に入っています。"],
     ],
     fromJapanese: [
-      [
-        "地球温暖化を止めるためには、皆が協力する必要があります。",
-        "Um die globale Erwärmung zu stoppen, müssen alle zusammenarbeiten.",
-      ],
-      [
-        "もし私が首相だったら、教育により多くの予算を使うでしょう。",
-        "Wenn ich Premierminister wäre, würde ich mehr Budget für die Bildung ausgeben.",
-      ],
-      [
-        "インターネットの普及によって、情報を得ることがとても簡単になりました。",
-        "Durch die Verbreitung des Internets ist es sehr einfach geworden, Informationen zu bekommen.",
-      ],
-      [
-        "この問題については、様々な意見があることを理解する必要があります。",
-        "Man muss verstehen, dass es zu diesem Thema verschiedene Meinungen gibt.",
-      ],
-      [
-        "彼が試験に合格したことは、努力の結果だと思います。",
-        "Ich denke, dass die Tatsache, dass er die Prüfung bestanden hat, das Ergebnis seiner Anstrengungen ist.",
-      ],
+      ["私は彼に手紙を書きます。", "Ich schreibe ihm einen Brief."],
+      ["そのかばんは誰のものですか？―私のです。", "Wem gehört die Tasche? – Sie gehört mir."],
     ],
   },
   {
-    levelSlug: "2kyu",
-    level: "独検2級",
+    topicSlug: "starke-verben",
+    topic: "幹母音が変わる動詞",
     toJapanese: [
-      [
-        "Wenn wir diese Entscheidung früher getroffen hätten, wäre die Lage vielleicht anders gewesen.",
-        "もし私たちがもっと早くこの決断をしていたら、状況は違っていたかもしれません。",
-      ],
-      [
-        "Das Buch, von dem ich Ihnen gestern erzählt habe, behandelt die soziale Ungleichheit unserer Zeit.",
-        "昨日お話しした本は、現代の社会的不平等について扱っています。",
-      ],
-      [
-        "Es ist nicht selten, dass Unternehmen angesichts der internationalen Konkurrenz ihre Strategie ändern.",
-        "企業が国際競争に直面して戦略を変更することは珍しくありません。",
-      ],
-      [
-        "Was man auch sagen mag, diese Reform wird bedeutende Auswirkungen auf die Wirtschaft haben.",
-        "何と言われようとも、この改革は経済に重大な影響を及ぼすでしょう。",
-      ],
-      [
-        "Das ist ein Thema, bei dem sich selbst die Experten nicht immer einig sind.",
-        "これは専門家自身も必ずしも意見が一致しない話題です。",
-      ],
+      ["Er spricht gut Japanisch.", "彼は日本語を上手に話します。"],
+      ["Isst du gern Fisch?", "魚を食べるのは好き？"],
     ],
     fromJapanese: [
-      [
-        "政府がもっと早く対策を取っていれば、被害はもっと少なかったでしょう。",
-        "Wenn die Regierung früher Maßnahmen ergriffen hätte, wären die Schäden geringer gewesen.",
-      ],
-      [
-        "彼女が昨夜話していた映画は、実話に基づいているそうです。",
-        "Der Film, von dem sie gestern Abend erzählt hat, soll auf einer wahren Geschichte beruhen.",
-      ],
-      [
-        "少子化は多くの先進国が直面している共通の課題です。",
-        "Der Geburtenrückgang ist eine gemeinsame Herausforderung, vor der viele entwickelte Länder stehen.",
-      ],
-      [
-        "この決定がどんな結果を招くにせよ、私たちはそれを受け入れなければなりません。",
-        "Welche Folgen diese Entscheidung auch immer mit sich bringt, wir müssen sie akzeptieren.",
-      ],
-      [
-        "専門家の間でさえ意見が分かれているのは、この問題が複雑だからです。",
-        "Dass die Meinungen sogar unter Experten auseinandergehen, liegt daran, dass dieses Problem komplex ist.",
-      ],
+      ["彼女は毎晩小説を読みます。", "Sie liest jeden Abend einen Roman."],
+      ["彼は明日ミュンヘンへ行きます。", "Er fährt morgen nach München."],
     ],
   },
   {
-    levelSlug: "jun1kyu",
-    level: "独検準1級",
+    topicSlug: "negation",
+    topic: "否定（nicht・kein）",
+    toJapanese: [
+      ["Ich habe heute keine Zeit.", "今日は時間がありません。"],
+      ["Das Wetter ist nicht schön.", "天気はよくありません。"],
+    ],
+    fromJapanese: [
+      ["私は車を持っていません。", "Ich habe kein Auto."],
+      ["彼はコーヒーを飲みません。", "Er trinkt keinen Kaffee."],
+    ],
+  },
+  {
+    topicSlug: "w-fragen",
+    topic: "疑問詞",
+    toJapanese: [
+      ["Wo wohnen Sie?", "どちらにお住まいですか？"],
+      ["Warum lernst du Deutsch?", "どうしてドイツ語を勉強しているの？"],
+    ],
+    fromJapanese: [
+      ["今何時ですか？", "Wie spät ist es?"],
+      ["そのシャツはいくらですか？", "Wie viel kostet das Hemd?"],
+    ],
+  },
+  {
+    topicSlug: "praepositionen",
+    topic: "前置詞の格支配",
     toJapanese: [
       [
-        "Statt sich vom Misserfolg entmutigen zu lassen, schöpfte sie daraus die Kraft für einen Neuanfang.",
-        "彼女は失敗に落胆するどころか、そこから再出発する力を得ました。",
+        "Nach dem Unterricht gehe ich mit meinem Freund in die Bibliothek.",
+        "授業の後、私は友人と図書館へ行きます。",
       ],
+      ["Die Katze schläft unter dem Tisch.", "猫は机の下で寝ています。"],
+    ],
+    fromJapanese: [
+      ["私は自転車で大学へ行きます。", "Ich fahre mit dem Fahrrad zur Uni."],
+      ["彼は本を机の上に置きます。", "Er legt das Buch auf den Tisch."],
+    ],
+  },
+  {
+    topicSlug: "artikelwoerter",
+    topic: "定冠詞類と不定冠詞類",
+    toJapanese: [
+      ["Dieser Film ist sehr interessant.", "この映画はとても面白いです。"],
       [
-        "Diesem Unternehmen ist es gelungen, die Krise zu nutzen, um sich völlig neu zu erfinden.",
-        "この企業は危機をうまく利用して、自らを完全に作り変えることに成功しました。",
-      ],
-      [
-        "Es wäre falsch zu glauben, dass technischer Fortschritt allein das Glück garantiert.",
-        "技術の進歩さえあれば幸福が保証されると考えるのは間違いでしょう。",
-      ],
-      [
-        "Der Schriftsteller schildert mit bemerkenswerter Feinheit die Qualen der menschlichen Seele.",
-        "その作家は人間の魂の苦悩を、見事な繊細さで描いています。",
-      ],
-      [
-        "Entgegen dem äußeren Anschein erwies sich diese Verhandlung als heikler als erwartet.",
-        "見かけによらず、この交渉は予想以上に繊細なものであることが明らかになりました。",
+        "Unsere Wohnung ist klein, aber gemütlich.",
+        "私たちの住まいは小さいですが、居心地がいいです。",
       ],
     ],
     fromJapanese: [
+      ["君はどの本を買うの？", "Welches Buch kaufst du?"],
+      ["彼女の兄は医者です。", "Ihr Bruder ist Arzt."],
+    ],
+  },
+  {
+    topicSlug: "modalverben",
+    topic: "話法の助動詞",
+    toJapanese: [
+      ["Kannst du Klavier spielen?", "ピアノを弾ける？"],
+      ["Hier darf man nicht rauchen.", "ここではタバコを吸ってはいけません。"],
+    ],
+    fromJapanese: [
+      ["私は明日早く起きなければなりません。", "Ich muss morgen früh aufstehen."],
+      ["私たちは夏にドイツへ行きたい。", "Wir wollen im Sommer nach Deutschland fahren."],
+    ],
+  },
+  {
+    topicSlug: "trennbare-verben",
+    topic: "分離動詞",
+    toJapanese: [
+      ["Der Zug kommt um zehn Uhr in Hamburg an.", "列車は10時にハンブルクに着きます。"],
+      ["Ich rufe dich heute Abend an.", "今晩、君に電話するね。"],
+    ],
+    fromJapanese: [
+      ["私は毎朝6時に起きます。", "Ich stehe jeden Morgen um sechs Uhr auf."],
+      ["その店は9時に開きます。", "Das Geschäft macht um neun Uhr auf."],
+    ],
+  },
+  {
+    topicSlug: "reflexive-verben",
+    topic: "再帰動詞",
+    toJapanese: [
+      ["Ich freue mich auf die Ferien.", "休暇が楽しみです。"],
+      ["Setzen Sie sich bitte!", "どうぞお座りください。"],
+    ],
+    fromJapanese: [
+      ["彼女は音楽に興味があります。", "Sie interessiert sich für Musik."],
+      ["私たちは駅で会います。", "Wir treffen uns am Bahnhof."],
+    ],
+  },
+  {
+    topicSlug: "adjektiv",
+    topic: "形容詞の格変化",
+    toJapanese: [
+      ["Das ist ein schönes Haus mit einem großen Garten.", "それは大きな庭のある素敵な家です。"],
+      ["Ich suche eine billige Wohnung.", "私は安い住まいを探しています。"],
+    ],
+    fromJapanese: [
+      ["その赤いセーターは高すぎます。", "Der rote Pullover ist zu teuer."],
+      ["私は新しい自転車を買います。", "Ich kaufe ein neues Fahrrad."],
+    ],
+  },
+  {
+    topicSlug: "komparation",
+    topic: "比較級と最上級",
+    toJapanese: [
+      ["Mein Bruder ist älter als ich.", "兄は私より年上です。"],
       [
-        "彼は逆境をものともせず、むしろそれをばねにして成功を収めました。",
-        "Anstatt sich von den Widrigkeiten entmutigen zu lassen, nutzte er sie vielmehr als Sprungbrett zum Erfolg.",
+        "Die Zugspitze ist der höchste Berg Deutschlands.",
+        "ツークシュピッツェはドイツで一番高い山です。",
       ],
+    ],
+    fromJapanese: [
+      ["私はコーヒーより紅茶を飲む方が好きです。", "Ich trinke lieber Tee als Kaffee."],
+      ["今日は昨日より寒い。", "Heute ist es kälter als gestern."],
+    ],
+  },
+  {
+    topicSlug: "perfekt",
+    topic: "現在完了",
+    toJapanese: [
+      ["Ich habe gestern einen Brief geschrieben.", "私は昨日手紙を書きました。"],
+      ["Wir sind letztes Jahr nach Wien gefahren.", "私たちは去年ウィーンに行きました。"],
+    ],
+    fromJapanese: [
+      ["君はもう朝ごはんを食べた？", "Hast du schon gefrühstückt?"],
+      ["彼女は昨晩遅く帰宅しました。", "Sie ist gestern Abend spät nach Hause gekommen."],
+    ],
+  },
+  {
+    topicSlug: "praeteritum",
+    topic: "過去形",
+    toJapanese: [
+      ["Als Kind war ich oft krank.", "子どものころ、私はよく病気をしていました。"],
+      ["Wir hatten gestern keine Zeit.", "私たちは昨日時間がありませんでした。"],
+    ],
+    fromJapanese: [
+      ["昨日は天気が良かった。", "Gestern war das Wetter schön."],
+      ["子どものころ、私はピアノが弾けました。", "Als Kind konnte ich Klavier spielen."],
+    ],
+  },
+  {
+    topicSlug: "nebensatz",
+    topic: "従属接続詞と副文",
+    toJapanese: [
+      ["Ich bleibe zu Hause, weil ich erkältet bin.", "風邪をひいているので、私は家にいます。"],
+      ["Weißt du, ob er morgen kommt?", "彼が明日来るかどうか知ってる？"],
+    ],
+    fromJapanese: [
+      ["私は、彼女は親切だと思います。", "Ich glaube, dass sie nett ist."],
       [
-        "この小説は、一見単純に見えて、実は非常に奥深いテーマを扱っています。",
-        "Dieser Roman, der auf den ersten Blick einfach erscheint, behandelt in Wirklichkeit ein sehr tiefgründiges Thema.",
-      ],
-      [
-        "経済成長だけを追い求めることの弊害が、今日ますます明らかになっています。",
-        "Die Schäden, die das ausschließliche Streben nach Wirtschaftswachstum verursacht, werden heute immer deutlicher.",
-      ],
-      [
-        "彼女の発言は一見矛盾しているようだが、よく考えれば筋が通っている。",
-        "Ihre Aussagen scheinen auf den ersten Blick widersprüchlich, sind aber bei genauerem Nachdenken schlüssig.",
-      ],
-      [
-        "交渉が難航したのは、双方が譲歩を拒んだからにほかならない。",
-        "Dass sich die Verhandlungen als schwierig erwiesen, lag einzig und allein daran, dass beide Seiten sich weigerten, Zugeständnisse zu machen.",
+        "天気が良ければ、私たちは散歩をします。",
+        "Wenn das Wetter schön ist, machen wir einen Spaziergang.",
       ],
     ],
   },
   {
-    levelSlug: "1kyu",
-    level: "独検1級",
+    topicSlug: "zu-infinitiv",
+    topic: "zu 不定詞",
     toJapanese: [
-      [
-        "Es wäre naiv zu glauben, dass die Globalisierung allen Ländern gleichermaßen zugutekommt.",
-        "グローバル化があらゆる国に一様に恩恵をもたらすと考えるのは、あまりにも素朴でしょう。",
-      ],
-      [
-        "Nur wenige schaffen es, angesichts eines solchen Dilemmas einen kühlen Kopf zu bewahren.",
-        "そのようなジレンマに直面して冷静さを保てる人はほとんどいません。",
-      ],
-      [
-        "Erst mit zeitlichem Abstand lässt sich die wahre Tragweite dieses Ereignisses ermessen.",
-        "この出来事の本当の意味は、時が経ってから初めて測れるものです。",
-      ],
-      [
-        "Der Autor begnügt sich nicht damit, das Unrecht anzuprangern; er ergründet auch dessen tiefste Wurzeln.",
-        "著者は不正を告発するだけでなく、その最も深い根源を掘り下げています。",
-      ],
-      [
-        "Solange die tieferen Ursachen nicht angegangen werden, werden die Symptome immer wieder auftreten.",
-        "根本的な原因が対処されない限り、その症状は繰り返し現れ続けるでしょう。",
-      ],
+      ["Ich habe keine Lust, heute zu arbeiten.", "今日は働く気になれません。"],
+      ["Es ist nicht leicht, Deutsch zu lernen.", "ドイツ語を学ぶのは簡単ではありません。"],
     ],
     fromJapanese: [
       [
-        "この危機が浮き彫りにしたのは、既存の制度がいかに脆弱であったかという事実にほかならない。",
-        "Was diese Krise offengelegt hat, ist genau die Tatsache, wie zerbrechlich die bestehenden Institutionen waren.",
+        "私は来年ドイツに留学するつもりです。",
+        "Ich habe vor, nächstes Jahr in Deutschland zu studieren.",
       ],
+      ["ドイツ語を話すのは楽しい。", "Es macht Spaß, Deutsch zu sprechen."],
+    ],
+  },
+  {
+    topicSlug: "relativpronomen",
+    topic: "関係代名詞",
+    toJapanese: [
+      ["Der Mann, der dort steht, ist mein Lehrer.", "あそこに立っている男性は私の先生です。"],
+      ["Das ist das Buch, das ich gestern gekauft habe.", "これは私が昨日買った本です。"],
+    ],
+    fromJapanese: [
+      ["私にはベルリンに住んでいる友人がいます。", "Ich habe einen Freund, der in Berlin wohnt."],
       [
-        "議論を尽くしたところで、双方の溝が埋まる見込みは薄いように思われる。",
-        "Selbst wenn man die Debatte bis zum Äußersten führt, scheint es unwahrscheinlich, dass sich die Kluft zwischen beiden Seiten schließen lässt.",
+        "君がくれたかばんを私は毎日使っています。",
+        "Ich benutze jeden Tag die Tasche, die du mir geschenkt hast.",
       ],
+    ],
+  },
+  {
+    topicSlug: "passiv",
+    topic: "受動態",
+    toJapanese: [
+      ["In Österreich wird Deutsch gesprochen.", "オーストリアではドイツ語が話されています。"],
+      ["Das Haus wurde 1900 gebaut.", "その家は1900年に建てられました。"],
+    ],
+    fromJapanese: [
+      ["その窓は毎朝開けられます。", "Das Fenster wird jeden Morgen geöffnet."],
+      ["その本は多くの人に読まれています。", "Das Buch wird von vielen Menschen gelesen."],
+    ],
+  },
+  {
+    topicSlug: "konjunktiv-2",
+    topic: "接続法第2式",
+    toJapanese: [
+      ["Wenn ich Zeit hätte, würde ich dich besuchen.", "時間があれば君を訪ねるのに。"],
+      ["Könnten Sie mir bitte helfen?", "手伝っていただけますか？"],
+    ],
+    fromJapanese: [
       [
-        "彼の作品が今なお読み継がれているのは、人間性への深い洞察ゆえである。",
-        "Dass sein Werk bis heute gelesen wird, liegt an seiner tiefen Einsicht in das Wesen des Menschen.",
+        "もし私が鳥だったら、君のところへ飛んで行くのに。",
+        "Wenn ich ein Vogel wäre, würde ich zu dir fliegen.",
       ],
-      [
-        "表面上は些細に見える決定が、後になって重大な結果を招くことは少なくない。",
-        "Es kommt nicht selten vor, dass eine Entscheidung, die oberflächlich betrachtet unbedeutend erscheint, später schwerwiegende Folgen nach sich zieht.",
-      ],
-      [
-        "危機に際して真価を問われるのは、平時にはめったに試されない資質である。",
-        "In Krisenzeiten werden Eigenschaften auf die Probe gestellt, die in normalen Zeiten selten getestet werden.",
-      ],
+      ["コーヒーを1杯いただきたいのですが。", "Ich hätte gern einen Kaffee."],
     ],
   },
 ];
 
 // ------------------------------------------------------------------
-// スペイン語（西検: 6級・5級・4級・3級・2級・1級）
+// スペイン語
 // ------------------------------------------------------------------
 
-const SPANISH_SEEDS: LevelSeed[] = [
+const SPANISH_SEEDS: TopicSeed[] = [
   {
-    levelSlug: "6kyu",
-    level: "西検6級",
+    topicSlug: "ser-estar",
+    topic: "ser と estar",
     toJapanese: [
-      [
-        "Hola, me llamo Carlos. Soy estudiante y vivo en Madrid.",
-        "こんにちは、私はカルロスといいます。学生で、マドリードに住んでいます。",
-      ],
-      [
-        "Tengo veinte años. Tengo un hermano y una hermana.",
-        "私は20歳です。兄弟が一人と姉妹が一人います。",
-      ],
-      ["Hoy hace buen tiempo. Me gusta la primavera.", "今日はいい天気です。私は春が好きです。"],
-      ["Los domingos hago deporte con mis amigos.", "日曜日に、私は友達とスポーツをします。"],
-      ["Mi madre es profesora y mi padre es médico.", "私の母は教師で、父は医者です。"],
+      ["Soy estudiante y soy de Osaka.", "私は学生で、大阪出身です。"],
+      ["Hoy estoy muy cansado.", "今日はとても疲れています。"],
     ],
     fromJapanese: [
-      [
-        "私は毎日公園を散歩します。犬と一緒に歩くのが好きです。",
-        "Todos los días paseo por el parque. Me gusta caminar con mi perro.",
-      ],
-      ["これは私の犬です。名前はミロです。", "Este es mi perro. Se llama Milo."],
-      [
-        "私はコーヒーが好きですが、紅茶は好きではありません。",
-        "Me gusta el café, pero no me gusta el té.",
-      ],
-      ["今日は月曜日です。明日は火曜日です。", "Hoy es lunes. Mañana es martes."],
-      ["この本はとても面白いです。", "Este libro es muy interesante."],
+      ["マドリードはスペインの首都です。", "Madrid es la capital de España."],
+      ["図書館は駅の近くにあります。", "La biblioteca está cerca de la estación."],
     ],
   },
   {
-    levelSlug: "5kyu",
-    level: "西検5級",
+    topicSlug: "articulos",
+    topic: "名詞・冠詞・形容詞",
     toJapanese: [
-      [
-        "Ayer fui al mercado con mi madre para comprar verduras.",
-        "昨日、私は母と一緒に野菜を買いに市場へ行きました。",
-      ],
-      [
-        "Este fin de semana vamos a visitar el museo del centro.",
-        "今週末、私たちは中心街の美術館を訪れる予定です。",
-      ],
-      [
-        "Está lloviendo mucho, así que llevo un paraguas.",
-        "雨がたくさん降っているので、傘を持っていきます。",
-      ],
-      [
-        "¿Cuánto cuesta este suéter? Quiero comprarlo.",
-        "このセーターはいくらですか？買いたいです。",
-      ],
-      ["Voy a la escuela en autobús todos los días.", "私は毎日バスで学校に行きます。"],
+      ["Tengo un perro blanco y dos gatos negros.", "私は白い犬を1匹と黒い猫を2匹飼っています。"],
+      ["Las chicas son muy simpáticas.", "その女の子たちはとても感じがいいです。"],
     ],
     fromJapanese: [
-      [
-        "先週、私は家族と一緒に海へ旅行しました。",
-        "La semana pasada viajé a la playa con mi familia.",
-      ],
-      [
-        "明日は友達の誕生日パーティーに行くつもりです。",
-        "Mañana voy a ir a la fiesta de cumpleaños de mi amigo.",
-      ],
-      [
-        "このレストランの料理はとてもおいしいです。",
-        "La comida de este restaurante está muy buena.",
-      ],
-      ["駅までどうやって行けばいいですか？", "¿Cómo puedo llegar a la estación?"],
-      [
-        "昨日は忙しかったので、あまり眠れませんでした。",
-        "Ayer estuve ocupado/a, así que no dormí mucho.",
-      ],
+      ["これは面白い本です。", "Este es un libro interesante."],
+      ["その家は大きくて新しい。", "La casa es grande y nueva."],
     ],
   },
   {
-    levelSlug: "4kyu",
-    level: "西検4級",
+    topicSlug: "presente-regular",
+    topic: "規則動詞の現在形",
     toJapanese: [
-      [
-        "Cuando era pequeño, vivía en el campo con mis abuelos.",
-        "私が小さかった頃、祖父母と一緒に田舎に住んでいました。",
-      ],
-      [
-        "Este restaurante es más caro que el otro, pero la comida es mejor.",
-        "このレストランはもう一方より高いですが、料理はよりおいしいです。",
-      ],
-      [
-        "Creo que viajar es la mejor manera de aprender un idioma.",
-        "旅行することは言語を学ぶ最良の方法だと私は思います。",
-      ],
-      [
-        "Visitamos varias ciudades durante nuestra estancia en España.",
-        "私たちはスペイン滞在中にいくつもの都市を訪れました。",
-      ],
-      ["La reunión fue larga, pero fue muy útil.", "会議は長かったですが、とても有意義でした。"],
+      ["Hablamos español en clase.", "私たちは授業でスペイン語を話します。"],
+      ["¿Dónde vives?", "どこに住んでいるの？"],
     ],
     fromJapanese: [
-      [
-        "子供の頃、私はよくこの公園で遊んでいました。",
-        "Cuando era niño/a, jugaba a menudo en este parque.",
-      ],
-      ["このかばんはあのかばんよりも軽いです。", "Esta bolsa es más ligera que aquella."],
-      [
-        "彼女は毎日スペイン語を練習しているので、とても上手に話します。",
-        "Ella practica español todos los días, por eso habla muy bien.",
-      ],
-      [
-        "私たちは去年、マドリードで開催された展覧会に行きました。",
-        "El año pasado fuimos a la exposición que se celebró en Madrid.",
-      ],
-      [
-        "健康のために、毎日野菜を食べるべきです。",
-        "Para la salud, hay que comer verduras todos los días.",
-      ],
+      ["私は毎朝コーヒーを飲みます。", "Bebo café todas las mañanas."],
+      ["彼らは大学で英語を勉強しています。", "Estudian inglés en la universidad."],
     ],
   },
   {
-    levelSlug: "3kyu",
-    level: "西検3級",
+    topicSlug: "presente-irregular",
+    topic: "不規則動詞の現在形",
     toJapanese: [
-      [
-        "Es importante que cada uno haga un esfuerzo para proteger el medio ambiente.",
-        "一人一人が環境を守るために努力することが重要です。",
-      ],
-      [
-        "Si tuviera más tiempo, viajaría por todo el mundo.",
-        "もし私にもっと時間があれば、世界中を旅行するのですが。",
-      ],
-      [
-        "Gracias a las nuevas tecnologías, la comunicación se ha vuelto más fácil que antes.",
-        "新しい技術のおかげで、コミュニケーションは以前より簡単になりました。",
-      ],
-      [
-        "Las nuevas generaciones se interesan cada vez más por los problemas sociales.",
-        "若い世代は社会問題にますます関心を持っています。",
-      ],
-      [
-        "Aunque sea difícil cambiar de hábitos, es posible si hay voluntad.",
-        "習慣を変えるのは難しいけれども、意志があれば可能です。",
-      ],
+      ["Quiero ir a México algún día.", "いつかメキシコに行きたいです。"],
+      ["¿Puedes cerrar la ventana?", "窓を閉めてくれる？"],
     ],
     fromJapanese: [
-      [
-        "地球温暖化を止めるためには、皆が協力する必要があります。",
-        "Para detener el calentamiento global, es necesario que todos cooperen.",
-      ],
-      [
-        "もし私が首相だったら、教育により多くの予算を使うでしょう。",
-        "Si yo fuera el primer ministro, dedicaría más presupuesto a la educación.",
-      ],
-      [
-        "インターネットの普及によって、情報を得ることがとても簡単になりました。",
-        "Gracias a la difusión de Internet, obtener información se ha vuelto muy fácil.",
-      ],
-      [
-        "この問題については、様々な意見があることを理解する必要があります。",
-        "Hay que entender que existen diversas opiniones sobre este tema.",
-      ],
-      [
-        "彼が試験に合格したことは、努力の結果だと思います。",
-        "Creo que el hecho de que él haya aprobado el examen es el resultado de su esfuerzo.",
-      ],
+      ["私は7時に家を出ます。", "Salgo de casa a las siete."],
+      ["彼女は毎日8時間眠ります。", "Ella duerme ocho horas todos los días."],
     ],
   },
   {
-    levelSlug: "2kyu",
-    level: "西検2級",
+    topicSlug: "hay",
+    topic: "hay と estar（存在・所在）",
     toJapanese: [
       [
-        "Si hubiéramos tomado esta decisión antes, la situación podría haber sido diferente.",
-        "もし私たちがもっと早くこの決断をしていたら、状況は違っていたかもしれません。",
+        "Hay un restaurante muy bueno en esta calle.",
+        "この通りにはとてもおいしいレストランがあります。",
       ],
-      [
-        "El libro del que te hablé ayer trata sobre las desigualdades sociales contemporáneas.",
-        "昨日お話しした本は、現代の社会的不平等について扱っています。",
-      ],
-      [
-        "No es raro que las empresas modifiquen su estrategia frente a la competencia internacional.",
-        "企業が国際競争に直面して戦略を変更することは珍しくありません。",
-      ],
-      [
-        "Digan lo que digan, esta reforma tendrá consecuencias importantes para la economía.",
-        "何と言われようとも、この改革は経済に重大な影響を及ぼすでしょう。",
-      ],
-      [
-        "Es un tema sobre el cual ni siquiera los expertos se ponen de acuerdo siempre.",
-        "これは専門家自身も必ずしも意見が一致しない話題です。",
-      ],
+      ["¿Hay un banco por aquí?", "この辺りに銀行はありますか？"],
     ],
     fromJapanese: [
-      [
-        "政府がもっと早く対策を取っていれば、被害はもっと少なかったでしょう。",
-        "Si el gobierno hubiera tomado medidas antes, los daños habrían sido menores.",
-      ],
-      [
-        "彼女が昨夜話していた映画は、実話に基づいているそうです。",
-        "Dicen que la película de la que hablaba ella anoche está basada en una historia real.",
-      ],
-      [
-        "少子化は多くの先進国が直面している共通の課題です。",
-        "La baja natalidad es un desafío común al que se enfrentan muchos países desarrollados.",
-      ],
-      [
-        "この決定がどんな結果を招くにせよ、私たちはそれを受け入れなければなりません。",
-        "Sea cual sea el resultado que traiga esta decisión, tenemos que aceptarlo.",
-      ],
-      [
-        "専門家の間でさえ意見が分かれているのは、この問題が複雑だからです。",
-        "Que las opiniones estén divididas incluso entre los expertos se debe a que este problema es complejo.",
-      ],
+      ["机の上に本が3冊あります。", "Hay tres libros en la mesa."],
+      ["私の鍵はどこにありますか？", "¿Dónde están mis llaves?"],
     ],
   },
   {
-    levelSlug: "1kyu",
-    level: "西検1級",
+    topicSlug: "gustar",
+    topic: "gustar 型の動詞",
     toJapanese: [
-      [
-        "Sería ingenuo pensar que la globalización beneficia a todos los países por igual.",
-        "グローバル化があらゆる国に一様に恩恵をもたらすと考えるのは、あまりにも素朴でしょう。",
-      ],
-      [
-        "Son pocos los que, ante semejante dilema, logran mantener la cabeza fría.",
-        "そのようなジレンマに直面して冷静さを保てる人はほとんどいません。",
-      ],
-      [
-        "Solo con la distancia del tiempo se puede medir verdaderamente el alcance de este acontecimiento.",
-        "この出来事の本当の意味は、時が経ってから初めて測れるものです。",
-      ],
-      [
-        "El autor no se limita a denunciar la injusticia, sino que explora sus raíces más profundas.",
-        "著者は不正を告発するだけでなく、その最も深い根源を掘り下げています。",
-      ],
-      [
-        "Mientras no se aborden las causas profundas, los síntomas seguirán reapareciendo.",
-        "根本的な原因が対処されない限り、その症状は繰り返し現れ続けるでしょう。",
-      ],
+      ["Me gusta mucho la música latina.", "ラテン音楽が大好きです。"],
+      ["A mi hermano le duele la cabeza.", "兄（弟）は頭が痛いです。"],
     ],
     fromJapanese: [
+      ["私たちはサッカーが好きです。", "Nos gusta el fútbol."],
+      ["君はどんな映画が好き？", "¿Qué películas te gustan?"],
+    ],
+  },
+  {
+    topicSlug: "interrogativos",
+    topic: "疑問詞",
+    toJapanese: [
+      ["¿Cuántos años tienes?", "何歳？"],
+      ["¿Por qué estudias español?", "どうしてスペイン語を勉強しているの？"],
+    ],
+    fromJapanese: [
+      ["お名前は何とおっしゃいますか？", "¿Cómo se llama usted?"],
+      ["このシャツはいくらですか？", "¿Cuánto cuesta esta camisa?"],
+    ],
+  },
+  {
+    topicSlug: "pronombres",
+    topic: "目的格人称代名詞",
+    toJapanese: [
+      ["¿Conoces a María? —Sí, la conozco.", "マリアを知ってる？―うん、知ってるよ。"],
+      ["Te escribo un correo esta noche.", "今晩、君にメールを書くね。"],
+    ],
+    fromJapanese: [
+      ["その本を私に貸してくれる？", "¿Me prestas el libro?"],
+      ["私は彼にプレゼントをあげます。", "Le doy un regalo."],
+    ],
+  },
+  {
+    topicSlug: "reflexivos",
+    topic: "再帰動詞",
+    toJapanese: [
+      ["Me levanto a las seis todos los días.", "私は毎日6時に起きます。"],
+      ["¿Cómo te llamas?", "名前は何ていうの？"],
+    ],
+    fromJapanese: [
+      ["子どもたちは9時に寝ます。", "Los niños se acuestan a las nueve."],
+      ["彼は毎朝シャワーを浴びます。", "Él se ducha todas las mañanas."],
+    ],
+  },
+  {
+    topicSlug: "perifrasis",
+    topic: "ir a・tener que",
+    toJapanese: [
+      ["Voy a visitar a mis abuelos este fin de semana.", "今週末、祖父母を訪ねるつもりです。"],
+      ["Tenemos que estudiar para el examen.", "私たちは試験のために勉強しなければなりません。"],
+    ],
+    fromJapanese: [
+      ["明日は雨が降りそうです。", "Mañana va a llover."],
+      ["君は早く寝なければいけない。", "Tienes que acostarte temprano."],
+    ],
+  },
+  {
+    topicSlug: "comparativos",
+    topic: "比較級と最上級",
+    toJapanese: [
+      ["Mi hermana es más alta que yo.", "姉（妹）は私より背が高いです。"],
+      ["Este es el mejor restaurante de la ciudad.", "ここは町で一番のレストランです。"],
+    ],
+    fromJapanese: [
+      ["東京は大阪より大きい。", "Tokio es más grande que Osaka."],
+      ["私は兄ほど速く走れません。", "No corro tan rápido como mi hermano."],
+    ],
+  },
+  {
+    topicSlug: "preterito-perfecto",
+    topic: "現在完了",
+    toJapanese: [
+      ["Hoy he comido paella.", "今日はパエリアを食べました。"],
+      ["¿Has estado alguna vez en Perú?", "ペルーに行ったことはある？"],
+    ],
+    fromJapanese: [
+      ["私はまだ宿題を終えていません。", "Todavía no he terminado los deberes."],
+      ["今朝、彼らは早く起きました。", "Esta mañana se han levantado temprano."],
+    ],
+  },
+  {
+    topicSlug: "indefinido",
+    topic: "点過去",
+    toJapanese: [
+      ["Ayer fui al cine con mis amigos.", "昨日、友達と映画を見に行きました。"],
+      ["Cervantes escribió el Quijote.", "セルバンテスは『ドン・キホーテ』を書きました。"],
+    ],
+    fromJapanese: [
+      ["先週、私たちはバルセロナを訪れました。", "La semana pasada visitamos Barcelona."],
+      ["彼女は2005年に生まれました。", "Ella nació en 2005."],
+    ],
+  },
+  {
+    topicSlug: "imperfecto",
+    topic: "線過去",
+    toJapanese: [
       [
-        "この危機が浮き彫りにしたのは、既存の制度がいかに脆弱であったかという事実にほかならない。",
-        "Lo que esta crisis ha puesto de manifiesto es precisamente lo frágiles que eran las instituciones existentes.",
+        "Cuando era niño, jugaba al fútbol todos los días.",
+        "子どものころ、私は毎日サッカーをしていました。",
       ],
-      [
-        "議論を尽くしたところで、双方の溝が埋まる見込みは薄いように思われる。",
-        "Por más que se agote el debate, parece poco probable que se cierre la brecha entre ambas partes.",
-      ],
-      [
-        "彼の作品が今なお読み継がれているのは、人間性への深い洞察ゆえである。",
-        "Si su obra se sigue leyendo hoy en día, es por su profunda perspicacia sobre la naturaleza humana.",
-      ],
-      [
-        "表面上は些細に見える決定が、後になって重大な結果を招くことは少なくない。",
-        "No es raro que una decisión que parece insignificante en la superficie acabe teniendo consecuencias graves.",
-      ],
-      [
-        "危機に際して真価を問われるのは、平時にはめったに試されない資質である。",
-        "En tiempos de crisis se ponen a prueba cualidades que rara vez se examinan en tiempos normales.",
-      ],
+      ["Hacía buen tiempo cuando salimos.", "私たちが出かけたとき、天気が良かったです。"],
+    ],
+    fromJapanese: [
+      ["以前、私はバレンシアに住んでいました。", "Antes vivía en Valencia."],
+      ["君が電話してきたとき、私は寝ていました。", "Dormía cuando me llamaste."],
+    ],
+  },
+  {
+    topicSlug: "futuro",
+    topic: "未来形",
+    toJapanese: [
+      ["El año que viene viajaré por Sudamérica.", "来年、私は南米を旅行します。"],
+      ["¿Qué hora será?", "今何時だろう？"],
+    ],
+    fromJapanese: [
+      ["明日は晴れるでしょう。", "Mañana hará buen tiempo."],
+      ["彼らは来週来るでしょう。", "Vendrán la semana que viene."],
+    ],
+  },
+  {
+    topicSlug: "imperativo",
+    topic: "命令法",
+    toJapanese: [
+      ["Abre la ventana, por favor.", "窓を開けてね。"],
+      ["No hablen en voz alta, por favor.", "大きな声で話さないでください。"],
+    ],
+    fromJapanese: [
+      ["どうぞここにお座りください。", "Siéntese aquí, por favor."],
+      ["早く来て！", "¡Ven pronto!"],
+    ],
+  },
+  {
+    topicSlug: "subjuntivo",
+    topic: "接続法現在",
+    toJapanese: [
+      ["Quiero que vengas a mi fiesta.", "君に私のパーティーに来てほしい。"],
+      ["Es posible que llueva mañana.", "明日は雨が降るかもしれません。"],
+    ],
+    fromJapanese: [
+      ["早く良くなるといいね。", "Espero que te mejores pronto."],
+      ["彼が着く前に出かけよう。", "Vamos a salir antes de que llegue él."],
+    ],
+  },
+  {
+    topicSlug: "relativos",
+    topic: "関係詞",
+    toJapanese: [
+      ["El chico que está allí es mi primo.", "あそこにいる男の子は私のいとこです。"],
+      ["Esta es la casa donde nací.", "これは私が生まれた家です。"],
+    ],
+    fromJapanese: [
+      ["これは私が昨日買った本です。", "Este es el libro que compré ayer."],
+      ["私にはメキシコに住んでいる友人がいます。", "Tengo un amigo que vive en México."],
     ],
   },
 ];
@@ -1192,8 +1078,8 @@ export function getTranslationProblem(
   return getTranslationProblems(language).find((problem) => problem.id === problemId);
 }
 
-// その言語で選べる級の一覧（易しい順）。カスタム題材を選ぶ場合も含め、設定画面で最初に選ばせる級の選択肢に使う
-export function getTranslationLevels(language: string): string[] {
+// その言語の文法項目の一覧（学ぶ順）。設定画面で問題を絞り込む選択肢に使う
+export function getTranslationTopics(language: string): string[] {
   const problems = TRANSLATION_PROBLEMS[language] ?? [];
-  return Array.from(new Set(problems.map((problem) => problem.level)));
+  return Array.from(new Set(problems.map((problem) => problem.topic)));
 }

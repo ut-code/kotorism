@@ -61,18 +61,9 @@ body {
   font-family: var(--font-noto-sans-jp), Arial, Helvetica, sans-serif;
 }
 
-/* フランス語教材セクション（app/routes/learn._french.*）専用の MDX タイポグラフィ */
-.french-content h1 {
-  border-bottom: 1px solid var(--color-zinc-200);
-  margin-bottom: 0.25rem;
-  padding-bottom: 1.25rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--color-zinc-900);
-}
-
-.french-content h2 {
+/* 学習教材セクション（app/components/learn/SectionLayout.tsx）の本文に MDX で書いた文章の見た目。
+   MDX が直接出力した要素（子要素）にだけ効かせ、演習コンポーネントの中の要素には影響させない */
+.learn-content > h2 {
   margin-top: 2.5rem;
   margin-bottom: 0.75rem;
   padding-left: 0.75rem;
@@ -82,110 +73,85 @@ body {
   color: var(--color-zinc-900);
 }
 
-.french-content p {
+.learn-content > h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--color-zinc-900);
+}
+
+.learn-content > p,
+.learn-content > ul,
+.learn-content > ol {
   margin: 1rem 0;
   line-height: 1.75rem;
   color: var(--color-zinc-700);
 }
 
-/* 「第X章 〜より」の章バッジ */
-.french-content em {
-  display: inline-block;
-  margin: 0.25rem 0 1.5rem;
-  border-radius: 9999px;
-  background: var(--color-tealblue-50);
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  font-style: normal;
-  letter-spacing: 0.02em;
-  color: var(--color-tealblue-700);
-}
-
-.french-content table {
-  width: 100%;
-  max-width: 100%;
-  margin: 1.5rem 0;
-  overflow-x: auto;
-  border: 1px solid var(--color-zinc-200);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.french-content thead {
-  background: var(--color-zinc-100);
-}
-
-.french-content th {
-  padding: 0.5rem 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--color-zinc-700);
-}
-
-.french-content td {
-  border-top: 1px solid var(--color-zinc-200);
-  padding: 0.5rem 1rem;
-  color: var(--color-zinc-700);
-}
-
-.french-content ul {
-  margin: 1rem 0;
+.learn-content > ul {
   padding-left: 1.25rem;
   list-style-type: disc;
 }
 
-.french-content ul ul {
-  margin-top: 0.5rem;
-  list-style-type: circle;
+.learn-content > ol {
+  padding-left: 1.25rem;
+  list-style-type: decimal;
 }
 
-.french-content li {
-  margin: 0.5rem 0;
-  line-height: 1.5rem;
+.learn-content > table {
+  display: block;
+  max-width: 100%;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-zinc-200);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.learn-content > table th,
+.learn-content > table td {
+  padding: 0.5rem 1rem;
+  text-align: left;
   color: var(--color-zinc-700);
 }
 
-.french-content li::marker {
-  color: var(--color-zinc-400);
+.learn-content > table thead {
+  background: var(--color-zinc-100);
 }
 
-@media (min-width: 640px) {
-  .french-content h1 {
-    font-size: 1.875rem;
-  }
-  .french-content h2 {
-    font-size: 1.25rem;
-  }
+.learn-content > table td {
+  border-top: 1px solid var(--color-zinc-200);
 }
 
-.dark .french-content h1 {
-  border-color: var(--color-zinc-800);
-  color: var(--color-zinc-50);
-}
-.dark .french-content h2 {
+.dark .learn-content > h2,
+.dark .learn-content > h3 {
   color: var(--color-zinc-100);
 }
-.dark .french-content p,
-.dark .french-content td,
-.dark .french-content li {
+.dark .learn-content > p,
+.dark .learn-content > ul,
+.dark .learn-content > ol,
+.dark .learn-content > table th,
+.dark .learn-content > table td {
   color: var(--color-zinc-300);
 }
-.dark .french-content em {
-  background: color-mix(in oklab, var(--color-tealblue-500) 15%, transparent);
-  color: var(--color-tealblue-300);
-}
-.dark .french-content table {
+.dark .learn-content > table,
+.dark .learn-content > table td {
   border-color: var(--color-zinc-800);
 }
-.dark .french-content thead {
+.dark .learn-content > table thead {
   background: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
 }
-.dark .french-content th {
-  color: var(--color-zinc-200);
+
+/* 中国語の教材では、日本語フォント（Noto Sans JP）に無い簡体字（买・谢など）を中国語フォントで表示する。
+   日本語と共通の字は日本語の字形のまま表示されるよう、Noto Sans SC は日本語フォントの後ろに置く */
+.chinese-font-fallback {
+  font-family:
+    var(--font-noto-sans-jp), "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
-.dark .french-content td {
-  border-color: var(--color-zinc-800);
+
+/* 簡体字であることを明示した文字（lang="zh-CN"）は、中国語の字形で表示する */
+:lang(zh-CN) {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .vb-arrow-window {

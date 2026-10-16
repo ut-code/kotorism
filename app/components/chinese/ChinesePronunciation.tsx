@@ -217,7 +217,7 @@ export function ChinesePronunciation() {
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="mx-auto max-w-md space-y-6">
       {/* モード切り替え */}
       <div className="flex gap-2 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
         <button
@@ -286,7 +286,7 @@ export function ChinesePronunciation() {
       )}
 
       {/* メインカード */}
-      <div className="rounded-xl bg-zinc-50 p-6 text-center dark:bg-zinc-800/50">
+      <div className="text-center">
         <div className="text-4xl font-black text-zinc-800 dark:text-zinc-100">
           {currentTargetText || (
             <span className="text-zinc-300 dark:text-zinc-600">（未入力）</span>

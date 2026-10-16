@@ -1,1 +1,1 @@
-export { default, title } from "./content.mdx";
+export { default, description, title } from "./content.mdx";

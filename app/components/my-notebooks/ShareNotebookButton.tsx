@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFetcher } from "react-router";
+import { useIsClient } from "@/components/UseIsClient";
 
 // 単語帳の公開/非公開を切り替え、公開中は共有リンクをコピーできるボタン
 export default function ShareNotebookButton({
@@ -15,8 +16,9 @@ export default function ShareNotebookButton({
   const optimisticPublic = isPending ? !isPublic : isPublic;
   const [copied, setCopied] = useState(false);
 
-  const shareUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/share/${notebookId}` : "";
+  // URL はブラウザで表示が確定してから組み立てる（サーバーでは origin が分からず、ハイドレーションが不一致になるため）
+  const isClient = useIsClient();
+  const shareUrl = isClient ? `${window.location.origin}/share/${notebookId}` : "";
 
   function handleToggle() {
     fetcher.submit(

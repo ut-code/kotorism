@@ -230,7 +230,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                 )}
               </div>
             ) : (
-              <div className="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
+              <div className="space-y-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
                     お題（日本語で入力してください）
@@ -330,7 +330,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
             ← 設定に戻る
           </button>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+          <div>
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
               お題
             </div>
@@ -393,7 +393,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
 function EssayFeedbackCard({ submission }: { submission: EssaySubmissionDTO }) {
   const total = totalOf(submission.feedback);
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+    <div className="border-t border-zinc-200 pt-6 dark:border-zinc-700">
       <div className="mb-4 flex items-center justify-between">
         <div className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-400">
           お題: {submission.topicPrompt}
@@ -403,7 +403,7 @@ function EssayFeedbackCard({ submission }: { submission: EssaySubmissionDTO }) {
         </div>
       </div>
 
-      <p className="whitespace-pre-wrap rounded-xl bg-zinc-50 p-3 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+      <p className="whitespace-pre-wrap border-l-4 border-zinc-200 pl-3 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-200">
         {submission.content}
       </p>
 

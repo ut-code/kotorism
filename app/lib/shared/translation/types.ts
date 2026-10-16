@@ -35,7 +35,6 @@ export interface TranslationSubmissionDTO {
   direction: TranslationDirection;
   // プリセット問題のとき: app/lib/shared/translation/problems.ts内での識別子。カスタム題材のときはnull
   problemId: string | null;
-  level: string;
   sourceText: string;
   // プリセット問題の模範解答（一例）。カスタム題材のときはnull
   referenceTranslation: string | null;

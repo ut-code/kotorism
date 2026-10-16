@@ -1,23 +1,13 @@
-import { Outlet } from "react-router";
+import { getSections } from "@/lib/shared/learn/content";
+import SectionLayout from "@/components/learn/SectionLayout";
+import type { Route } from "./+types/route";
 
-import { getLanguage } from "@/lib/shared/learn/languages";
-import { SectionReviewControls } from "@/components/learn/SectionReviewControls";
-import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
+// ドイツ語セクションのレイアウト（learn._<言語> のレイアウト）。
+// 見た目は全言語共通の SectionLayout に任せる
+export async function loader() {
+  return { sections: await getSections("german") };
+}
 
-const language = getLanguage("german");
-
-// ドイツ語セクション専用レイアウト（learn._<言語> のレイアウト）
-export default function GermanSectionLayout() {
-  return (
-    <main className="flex flex-1 flex-col items-center px-6 py-16">
-      <div className="flex w-full max-w-3xl items-center justify-between">
-        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{language?.label}</p>
-        <SectionReviewControls />
-        <SectionViewTracker />
-      </div>
-      <div className="german-content mt-8 w-full max-w-3xl text-left">
-        <Outlet />
-      </div>
-    </main>
-  );
+export default function GermanSectionLayout({ loaderData }: Route.ComponentProps) {
+  return <SectionLayout languageSlug="german" sections={loaderData.sections} />;
 }
