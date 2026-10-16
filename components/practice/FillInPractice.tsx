@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
-import { loadFillInItems, type FillInItem } from "@/components/practice/data";
-import { TypingQuiz, type QuizScope } from "@/components/practice/TypingQuiz";
+import { loadFillInItems } from "@/components/practice/data";
+import { ChoiceChips, SettingRow } from "@/components/practice/PracticeControls";
+import { Quiz, QuizEmpty } from "@/components/practice/Quiz";
+import { languageTypingMode } from "@/components/practice/typing-mode";
 import { PRACTICE_LANGUAGES, type PracticeLanguageSlug } from "@/lib/practice-languages";
 
 // 穴埋め演習。例文の空欄（_）に入る語形を入力する。
@@ -17,23 +19,31 @@ export default function FillInPractice({
 }) {
   const lang = PRACTICE_LANGUAGES[language];
   const items = useMemo(() => loadFillInItems(language, section), [language, section]);
-  const scopes = useMemo<QuizScope<FillInItem>[]>(
-    () => [
-      { value: "all", label: "すべて", match: () => true },
-      ...Array.from(new Set(items.map((item) => item.category)), (category) => ({
-        value: category,
-        label: category,
-        match: (item: FillInItem) => item.category === category,
-      })),
-    ],
-    [items],
-  );
+  const categories = useMemo(() => [...new Set(items.map((item) => item.category))], [items]);
+  const [scope, setScope] = useState("all");
+  const pool = scope === "all" ? items : items.filter((item) => item.category === scope);
+
+  if (items.length === 0) return <QuizEmpty />;
 
   return (
-    <TypingQuiz
-      language={lang}
-      items={items}
-      scopes={scopes}
+    <Quiz
+      pool={pool}
+      settings={
+        <SettingRow label="出題範囲">
+          <ChoiceChips
+            label="出題範囲"
+            options={[
+              { value: "all", label: "すべて" },
+              ...categories.map((category) => ({ value: category, label: category })),
+            ]}
+            value={scope}
+            onChange={setScope}
+          />
+        </SettingRow>
+      }
+      timer
+      lang={lang.lang}
+      mode={languageTypingMode(lang, "語形を入力…")}
       instruction="空欄に入る語形を入力してください"
       renderPrompt={(item) => (
         <>
@@ -59,7 +69,6 @@ export default function FillInPractice({
           <span className="ml-2 text-sm text-zinc-500 dark:text-zinc-400">{item.translation}</span>
         </>
       )}
-      placeholder="語形を入力…"
     />
   );
 }

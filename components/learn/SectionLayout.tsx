@@ -8,7 +8,7 @@ import { SectionViewTracker } from "@/components/learn/SectionViewTracker";
 
 // 学習教材のセクション（/learn/[language]/[sectionSlug]）に共通のレイアウト。各言語の layout.tsx から使う。
 // 見出しと説明はセクションのページ自体には書かず、ページが export する title・description（app/learn/content.ts）から
-// ここで表示する。本文は枠で囲まず、演習コンポーネントがそれぞれカードとして並ぶ
+// ここで表示する。本文・演習は枠で囲まず、背景に直接置く
 export default function SectionLayout({
   languageSlug,
   sections,

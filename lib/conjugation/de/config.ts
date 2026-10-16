@@ -1,5 +1,4 @@
 import type { ConjugationLanguageConfig } from "@/components/verbs/ConjugationPractice";
-import { PRACTICE_LANGUAGES } from "@/lib/practice-languages";
 import { speak } from "@/lib/speech";
 import { buildConjugation } from "./engine";
 import { PERSONS, TENSE_OPTIONS, formsFor, type ConjugationTable, type VerbEntry } from "./types";
@@ -17,7 +16,6 @@ export const germanConjugationConfig: ConjugationLanguageConfig<VerbEntry, Conju
   buildConjugation,
   formsFor,
   speak: (text, handlers) => speak(text, "de-DE", handlers),
-  accentCycles: PRACTICE_LANGUAGES.german.accentCycles,
   toolbarChars: TOOLBAR_CHARS,
-  inputPlaceholder: "活用形を入力...",
+  inputPlaceholder: "活用形を入力…",
 };

@@ -73,6 +73,25 @@ export function PracticeButton({
   );
 }
 
+// 答え合わせの下に出す「発音を聞く」ボタン
+export function SpeakButton({ speaking, onClick }: { speaking: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm font-semibold text-zinc-600 transition-colors hover:border-tealblue-400 hover:text-tealblue-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-tealblue-500 dark:hover:text-tealblue-300"
+    >
+      {speaking ? "再生中…" : "発音を聞く"}
+    </button>
+  );
+}
+
+// 読み上げのオン・オフの選択肢
+export const AUDIO_OPTIONS: ChoiceOption<"on" | "off">[] = [
+  { value: "on", label: "読み上げる" },
+  { value: "off", label: "読み上げない" },
+];
+
 // 正答数と正答率
 export function ScoreSummary({
   correct,

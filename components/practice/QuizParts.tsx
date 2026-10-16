@@ -83,11 +83,14 @@ const OUTCOME_LABEL: Record<QuizOutcome, string> = {
 export function AnswerFeedback({
   outcome,
   answer,
+  showAnswer = true,
   lang,
   explanation,
 }: {
   outcome: QuizOutcome;
   answer: string;
+  // 不正解のときに正解の文を出すか
+  showAnswer?: boolean;
   lang: string;
   explanation?: string;
 }) {
@@ -106,7 +109,7 @@ export function AnswerFeedback({
       >
         {OUTCOME_LABEL[outcome]}
       </p>
-      {!correct && (
+      {!correct && showAnswer && (
         <p className="mt-1 text-zinc-800 dark:text-zinc-200">
           正解:{" "}
           <span lang={lang} className="text-lg font-bold">
