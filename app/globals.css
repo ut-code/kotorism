@@ -14,6 +14,12 @@
   color-scheme: light;
 }
 
+/* 簡体字（lang="zh-CN"）は中国語の字形のフォントで表示する。Noto Sans SC は読み込んだページ（簡体字と日本語漢字の比較など）でだけ使われ、
+   それ以外では端末の中国語フォントになる */
+:lang(zh-CN) {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
