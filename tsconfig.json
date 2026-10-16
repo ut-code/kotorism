@@ -16,8 +16,7 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./*"],
-      "~/*": ["./app/*"]
+      "@/*": ["./app/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.mts", ".react-router/types/**/*"],
