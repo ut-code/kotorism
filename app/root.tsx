@@ -12,10 +12,10 @@ import {
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { getAllLanguageSections } from "@/app/learn/content";
-import { LANGUAGES } from "@/app/learn/languages";
-import { getRequestPath, runWithRequest } from "@/lib/request-context.server";
-import { getCurrentUser } from "@/lib/session.server";
+import { getAllLanguageSections } from "@/lib/shared/learn/content";
+import { LANGUAGES } from "@/lib/shared/learn/languages";
+import { getRequestPath, runWithRequest } from "@/lib/server/request-context.server";
+import { getCurrentUser } from "@/lib/server/session.server";
 import type { Route } from "./+types/root";
 import "./globals.css";
 

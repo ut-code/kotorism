@@ -61,7 +61,7 @@ body {
   font-family: var(--font-noto-sans-jp), Arial, Helvetica, sans-serif;
 }
 
-/* 学習教材セクション（components/learn/SectionLayout.tsx）の本文に MDX で書いた文章の見た目。
+/* 学習教材セクション（app/components/learn/SectionLayout.tsx）の本文に MDX で書いた文章の見た目。
    MDX が直接出力した要素（子要素）にだけ効かせ、演習コンポーネントの中の要素には影響させない */
 .learn-content > h2 {
   margin-top: 2.5rem;
@@ -225,7 +225,7 @@ body {
   }
 }
 
-/* ロゴ文字「りずむ」の縁の虹色（components/brand-name.tsx）。プリズムで分かれた光を表す */
+/* ロゴ文字「りずむ」の縁の虹色（components/BrandName.tsx）。プリズムで分かれた光を表す */
 .vb-brand-rainbow {
   background-image: linear-gradient(
     100deg,
@@ -248,7 +248,7 @@ body {
   animation: vb-splash-logo-in 0.8s ease-out both;
 }
 
-/* 同じセッションで表示済みなら出さない（layout.tsxの<head>内スクリプトが付与） */
+/* 同じセッションで表示済みなら出さない（root.tsxの<head>内スクリプトが付与） */
 .vb-splash-seen .vb-splash {
   display: none;
 }
