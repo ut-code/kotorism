@@ -11,6 +11,12 @@
   --font-geist-mono: "Geist Mono";
   --background: #ffffff;
   --foreground: #171717;
+  /* 学習カレンダーで教材ごとに塗り分ける色（上位4教材 + その他）。色覚多様性を考慮して検証済みの組み合わせ */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-other: #a1a1aa;
   color-scheme: light;
 }
 
@@ -23,6 +29,11 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-other: #71717a;
   color-scheme: dark;
 }
 

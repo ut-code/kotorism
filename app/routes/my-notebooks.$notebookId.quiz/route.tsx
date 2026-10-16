@@ -44,7 +44,7 @@ export default function QuizPage({ loaderData }: Route.ComponentProps) {
       <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">クイズ</p>
 
       <div className="mt-8 w-full max-w-xl">
-        <QuizDeck columns={columns} cards={cards} />
+        <QuizDeck notebookId={notebook.id} columns={columns} cards={cards} />
       </div>
 
       <Link

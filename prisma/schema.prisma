@@ -125,6 +125,10 @@ model User {
   sectionViews           SectionView[]
   essaySubmissions       EssaySubmission[]
   translationSubmissions TranslationSubmission[]
+  studyEvents            StudyEvent[]
+  studyDailyStats        StudyDailyStat[]
+  studyTimeLogs          StudyTimeLog[]
+  studyStreak            StudyStreak?
 
   @@unique([email])
   @@unique([username])
@@ -318,4 +322,89 @@ model SectionView {
   @@index([userId, lastViewedAt])
 
   @@map("section_views")
+}
+
+// 学習操作1回分のログ（カードの表示・クイズの回答・作文の提出など）。学習カレンダー（/history）で
+// 日をクリックしたときの内訳表示に使う。単語帳やカードを削除しても過去の学習実績は残したいため、
+// itemId・deckId には外部キーを張らない
+model StudyEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  occurredAt DateTime @default(now())
+  // 操作の種類。lib/study-events.ts の STUDY_EVENT_TYPES のいずれか
+  eventType  String
+  // 操作の対象。カード系は Card.id、学習教材は sectionSlug、作文・翻訳は提出の id
+  itemId     String
+  // 単語帳での操作なら Notebook.id。学習教材・作文・翻訳では null
+  deckId     String?
+  // 学習教材・作文・翻訳での操作なら言語スラッグ（例: "french"）。単語帳は言語を持たないため null
+  language   String?
+
+  @@index([userId, occurredAt])
+
+  @@map("study_events")
+}
+
+// StudyEvent の件数と StudyTimeLog の学習時間を「日本時間の日付 × 種類 × 単語帳 × 言語」ごとにまとめた集計。
+// 学習カレンダーの過去12ヶ月分の表示を、ログ全件を読まずに出すために StudyEvent / StudyTimeLog と同時に更新する
+model StudyDailyStat {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 日本時間での日付（"YYYY-MM-DD"）
+  day       String
+  eventType String
+  // 一意キーに含めるため、該当しない場合は null ではなく空文字にする（SQLite の UNIQUE は NULL 同士を別物とみなす）
+  deckId    String @default("")
+  language  String @default("")
+  count     Int    @default(0)
+  // 学習時間（秒）。StudyTimeLog と同時に加算する
+  seconds   Int    @default(0)
+
+  @@unique([userId, day, eventType, deckId, language])
+  @@index([userId, day])
+
+  @@map("study_daily_stats")
+}
+
+// 学習ページ（暗記学習・クイズ・学習教材）を開いていた時間。ページを開くたびにブラウザ側で clientId を作り、
+// 画面が表示されていて操作がある間の秒数を一定間隔で送って加算する。日付をまたいだら別の行にする
+model StudyTimeLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // ページを開くたびにブラウザ側で作る識別子
+  clientId  String
+  // 日本時間での日付（"YYYY-MM-DD"）
+  day       String
+  // StudyEvent.eventType と同じ値（暗記学習なら "card_study"、学習教材のページなら "section_study"）
+  eventType String
+  // 単語帳なら Notebook.id、学習教材なら sectionSlug
+  itemId    String
+  deckId    String?
+  language  String?
+  seconds   Int      @default(0)
+  startedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, clientId, day])
+  @@index([userId, day])
+
+  @@map("study_time_logs")
+}
+
+// 何日続けて学習しているか。学習を記録するたびに更新する（日の区切りは日本時間）
+model StudyStreak {
+  id               String @id @default(cuid())
+  userId           String @unique
+  user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 最後に学習した日（"YYYY-MM-DD"）までの連続日数。最後の学習が一昨日以前なら、表示上は途切れた（0日）扱い
+  currentStreak    Int    @default(0)
+  longestStreak    Int    @default(0)
+  lastStudyDay     String
+  // お祝いメッセージを表示済みの節目（10・20・30…）。連続が途切れたら0に戻す
+  celebratedStreak Int    @default(0)
+
+  @@map("study_streaks")
 }

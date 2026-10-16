@@ -5,6 +5,7 @@ import { getLanguage } from "@/lib/shared/learn/languages";
 import { getTranslationProblem } from "../../shared/translation/problems";
 import { gradeTranslation, TranslationGradingError } from "../../shared/translation/grading";
 import { toTranslationSubmissionDTO } from "../../shared/translation/dto";
+import { recordStudyEvent } from "@/lib/server/study-events.server";
 import {
   CUSTOM_SOURCE_MAX_LENGTH,
   TRANSLATION_SCORE_OPTIONS,
@@ -141,6 +142,12 @@ export async function submitTranslation(
       feedback: graded.feedback as unknown as Prisma.InputJsonValue,
       model: graded.model,
     },
+  });
+
+  await recordStudyEvent(user.id, {
+    eventType: "translation",
+    itemId: row.id,
+    language: language.languageSlug,
   });
 
   return { submission: toTranslationSubmissionDTO(row) };

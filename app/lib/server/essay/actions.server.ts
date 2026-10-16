@@ -6,6 +6,7 @@ import { getEssayTopic } from "../../shared/essay/topics";
 import { EssayGradingError, gradeEssay } from "../../shared/essay/grading";
 import { toEssaySubmissionDTO } from "../../shared/essay/dto";
 import { countEssayLength, getEssayLengthUnit } from "../../shared/essay/length";
+import { recordStudyEvent } from "@/lib/server/study-events.server";
 import {
   CRITERION_MAX_MAX,
   CRITERION_MIN_MAX,
@@ -153,6 +154,12 @@ export async function submitEssay(input: SubmitEssayInput): Promise<SubmitEssayR
       feedback: graded.feedback as unknown as Prisma.InputJsonValue,
       model: graded.model,
     },
+  });
+
+  await recordStudyEvent(user.id, {
+    eventType: "essay",
+    itemId: row.id,
+    language: language.languageSlug,
   });
 
   return { submission: toEssaySubmissionDTO(row) };

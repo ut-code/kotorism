@@ -74,7 +74,7 @@ export default function ReviewPage({ loaderData }: Route.ComponentProps) {
       </p>
 
       <div className="mt-8 w-full">
-        <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} />
+        <StudyDeck notebookId={notebook.id} columns={columns} cards={cards} mode="review" />
       </div>
     </main>
   );

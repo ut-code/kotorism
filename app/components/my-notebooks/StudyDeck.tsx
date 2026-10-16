@@ -5,6 +5,7 @@ import Link from "@/components/Link";
 import EyeIcon from "@/components/EyeIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/hooks/useStarColors";
+import { useStudyTimer } from "@/hooks/useStudyTimer";
 import { useSwipe } from "@/hooks/useSwipe";
 import { starColorFor } from "@/lib/shared/star-colors";
 import type { CardData } from "@/lib/shared/card-data";
@@ -59,10 +60,13 @@ export default function StudyDeck({
   notebookId,
   columns,
   cards,
+  mode,
 }: {
   notebookId: string;
   columns: string[];
   cards: Card[];
+  // 通常の暗記学習（/study）か★の復習（/review）か。学習カレンダーで別々に数える
+  mode: "study" | "review";
 }) {
   // 見出し語1件（1つのCard）を、意味などの行数に応じて複数の出題単位（StudyUnit）に展開する
   const units = useMemo(() => {
@@ -79,6 +83,9 @@ export default function StudyDeck({
   const [flipped, setFlipped] = useState(false);
 
   const [frontColumn, setFrontColumn] = useState<string>(columns[0] ?? "");
+
+  // このページを開いている間の学習時間を記録する
+  useStudyTimer({ kind: "deck", deckId: notebookId, mode });
 
   // 現在表示すべき出題単位は、order[index]（実際のunitsインデックス）から引く
   const current = units[order[index]];
@@ -152,7 +159,7 @@ export default function StudyDeck({
     if (countedIdRef.current === currentCard.id) return;
     countedIdRef.current = currentCard.id;
     viewFetcher.submit(
-      { intent: "incrementViewCount", cardId: currentCard.id },
+      { intent: "incrementViewCount", cardId: currentCard.id, mode },
       { method: "post", action: actionUrl },
     );
     // viewFetcher は毎レンダリングで同一とは限らないため、依存にはカードidだけを持たせる

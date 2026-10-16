@@ -32,6 +32,8 @@ import {
 } from "./actions.server";
 
 vi.mock("@/lib/server/session.server", () => ({ requireUser: vi.fn() }));
+// 学習記録はこのテストの対象外。実物は教材のセクション一覧(MDX)まで読み込むため差し替える
+vi.mock("@/lib/server/study-events.server", () => ({ recordStudyEvent: vi.fn() }));
 
 const loginAs = (user: { id: string }) => vi.mocked(requireUser).mockResolvedValue(user as never);
 

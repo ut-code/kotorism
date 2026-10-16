@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/server/prisma.server";
 import { getCurrentUser } from "@/lib/server/session.server";
 import { recordSectionView as recordSectionViewForUser } from "@/lib/server/recent-activity.server";
+import { recordStudyEvent } from "@/lib/server/study-events.server";
+import { getLanguage } from "@/lib/shared/learn/languages";
 import {
   applyManualToggle,
   applyMarkReviewed,
@@ -83,6 +85,7 @@ export async function recordSectionQuizAnswer(
   const key: Key = { language, sectionSlug };
   const next = applyQuizAnswer(await loadState(user.id, key), correct, new Date());
   await saveState(user.id, key, next);
+  await recordSectionStudyEvent(user.id, "section_quiz", key);
 }
 
 // 「復習済みにする」ボタン。読み物セクションの自己申告用で、任意のセクションに使える
@@ -93,6 +96,21 @@ export async function markSectionReviewed(language: string, sectionSlug: string)
   const key: Key = { language, sectionSlug };
   const next = applyMarkReviewed(await loadState(user.id, key), new Date());
   await saveState(user.id, key, next);
+  await recordSectionStudyEvent(user.id, "section_review", key);
+}
+
+// 学習カレンダー用の記録。存在しない言語のセクションは集計を汚さないよう記録しない
+async function recordSectionStudyEvent(
+  userId: string,
+  eventType: "section_quiz" | "section_review",
+  key: Key,
+) {
+  if (!getLanguage(key.language)) return;
+  await recordStudyEvent(userId, {
+    eventType,
+    itemId: key.sectionSlug,
+    language: key.language,
+  });
 }
 
 // 「苦手」手動タグのON/OFFを切り替える。未ログインなら何もしない

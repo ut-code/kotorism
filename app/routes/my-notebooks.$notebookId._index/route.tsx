@@ -22,6 +22,7 @@ import {
   deleteNotebookColumn,
   importCardsFromExcel,
   incrementViewCount,
+  recordCardQuizAnswer,
   renameNotebookColumn,
   resetAllStars,
   resetStar,
@@ -62,7 +63,13 @@ export async function action({ request, params }: Route.ActionArgs) {
       case "resetAllStars":
         return resetAllStars(notebookId);
       case "incrementViewCount":
-        return incrementViewCount(text("cardId"), notebookId);
+        return incrementViewCount(
+          text("cardId"),
+          notebookId,
+          text("mode") === "review" ? "review" : "study",
+        );
+      case "recordQuizAnswer":
+        return recordCardQuizAnswer(text("cardId"), notebookId);
       case "importCards":
         return importCardsFromExcel(notebookId, formData);
       case "addColumn":

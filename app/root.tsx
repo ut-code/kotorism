@@ -12,6 +12,8 @@ import {
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import StreakCelebration from "@/components/study/StreakCelebration";
+import { getPendingCelebration } from "@/lib/server/study-events.server";
 import { getAllLanguageSections } from "@/lib/shared/learn/content";
 import { LANGUAGES } from "@/lib/shared/learn/languages";
 import { getRequestPath, runWithRequest } from "@/lib/server/request-context.server";
@@ -47,7 +49,9 @@ export async function loader() {
     getAllLanguageSections(LANGUAGES.map((l) => l.languageSlug)),
     getCurrentUser(),
   ]);
-  return { allSections, userName: user?.name ?? null };
+  // 連続学習日数が節目（10日ごと）に達していれば、どのページでもお祝いメッセージを出す
+  const celebration = user ? await getPendingCelebration(user.id) : null;
+  return { allSections, userName: user?.name ?? null, celebration };
 }
 
 export const meta: Route.MetaFunction = () => [
@@ -94,7 +98,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 // ルートレイアウト(全ページ共通でHeader, Sidebar, Footerを一元管理)
 export default function App({ loaderData }: Route.ComponentProps) {
-  const { allSections, userName } = loaderData;
+  const { allSections, userName, celebration } = loaderData;
   return (
     <>
       <Header allSections={allSections} userName={userName} />
@@ -106,6 +110,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
       <Footer />
+      {celebration && <StreakCelebration key={celebration} milestone={celebration} />}
     </>
   );
 }
