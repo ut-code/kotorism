@@ -1,0 +1,12 @@
+import { auth } from "@/lib/server/auth.server";
+import type { Route } from "./+types/route";
+
+// better-auth のエンドポイント(/api/auth/*)。GET・POST ともそのままハンドラへ渡す
+
+export function loader({ request }: Route.LoaderArgs) {
+  return auth.handler(request);
+}
+
+export function action({ request }: Route.ActionArgs) {
+  return auth.handler(request);
+}

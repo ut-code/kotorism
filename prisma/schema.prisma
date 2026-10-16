@@ -174,9 +174,9 @@ model EssaySubmission {
   // 言語スラッグ（例: "french"）
   language String
 
-  // お題の種類。"preset"ならlib/essay/topics.tsの事前用意お題、"custom"ならユーザー自身が指定したお題
+  // お題の種類。"preset"ならapp/lib/shared/essay/topics.tsの事前用意お題、"custom"ならユーザー自身が指定したお題
   topicSource     String
-  // プリセットお題を選んだ場合の、lib/essay/topics.ts内での識別子。カスタムお題ではnull
+  // プリセットお題を選んだ場合の、app/lib/shared/essay/topics.ts内での識別子。カスタムお題ではnull
   topicId         String?
   // 実際に使われたお題文（プリセットの複製、またはユーザーが入力したお題）。
   // プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する
@@ -205,15 +205,14 @@ model TranslationSubmission {
   // 言語スラッグ（例: "french"）
   language String
 
-  // 題材の種類。"preset"ならlib/translation/problems.tsの事前用意問題、"custom"ならユーザー自身が用意した原文
+  // 題材の種類。"preset"ならapp/lib/shared/translation/problems.tsの事前用意問題、"custom"ならユーザー自身が用意した原文
   problemSource        String  @default("preset")
   // 訳す方向。"fromJapanese"（和文→外国語）または"toJapanese"（外国語→和文）
   direction            String
-  // プリセット問題を選んだ場合の、lib/translation/problems.ts内での識別子。カスタム題材ではnull
+  // プリセット問題を選んだ場合の、app/lib/shared/translation/problems.ts内での識別子。カスタム題材ではnull
   problemId            String?
-  // 出題時点の検定級（例: "仏検5級"）。プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する
-  level                String
-  // 出題時点の原文（同上の理由で複製して保持する）。カスタム題材ではユーザーが入力した原文
+  // 出題時点の原文。プリセット内容が将来変わっても過去の提出時点の文言を保てるよう複製して保持する。
+  // カスタム題材ではユーザーが入力した原文
   sourceText           String
   // プリセット問題の模範解答（同上の理由で複製して保持する）。カスタム題材には模範解答が無いためnull
   referenceTranslation String?

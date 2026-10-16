@@ -1,0 +1,43 @@
+import FillInPractice from "@/components/practice/FillInPractice";
+
+export const title = "紛らわしい文法（ser/estar・点過去/線過去）穴埋め演習";
+export const description =
+  "ser と estar、点過去と線過去など、迷いやすい文法の空欄に入る語形を入力しましょう。答えると解説が表示されます。";
+
+{/* 穴埋め演習用コンポーネントの読み込み */}
+
+<FillInPractice language="spanish" section="05" />
+
+<div className="hidden" style={{ display: "none" }} aria-hidden="true">
+
+### ser と estar の使い分け
+
+| 例文 (問題文)             | 日本語訳・ヒント                 | 正解    | 解説                                                               |
+| ------------------------- | -------------------------------- | ------- | ------------------------------------------------------------------ |
+| Ella \_ profesora.        | 彼女は教員です。                 | es      | 職業・身分を表すため ser（三名単: es）を使用します。               |
+| Hoy \_ nublado.           | 今日は曇っています。             | está    | 一時的な天候・状態を表すため estar（三名単: está）を使用します。   |
+| Nosotros \_ en el parque. | 私たちは公園にいます。           | estamos | 居場所・所在を表すため estar（一人複: estamos）を使用します。      |
+| Juan \_ alto y simpático. | フアンは背が高くて親切です。     | es      | 性質・特徴を表すため ser（三名単: es）を使用します。               |
+| La sopa \_ muy fría.      | スープがとても冷えています。     | está    | 一時的な状態（温度）を表すため estar（三名単: está）を使用します。 |
+| Madrid \_ en España.      | マドリードはスペインにあります。 | está    | 位置・所在を表すため estar（三名単: está）を使用します。           |
+| Mis padres \_ abogados.   | 私の両親は弁護士です。           | son     | 職業・身分を表すため ser（三人複: son）を使用します。              |
+| ¿Dónde \_ las llaves?     | 鍵はどこにありますか？           | están   | 物の所在を表すため estar（三人複: están）を使用します。            |
+| Mañana \_ domingo.        | 明日は日曜日です。               | es      | 日時・曜日を表すため ser（三名単: es）を使用します。               |
+| El café \_ muy caliente.  | コーヒーがとても熱いです。       | está    | 一時的な状態（温度）を表すため estar（三名単: está）を使用します。 |
+
+### 線過去 と 点過去 の使い分け
+
+| 例文 (問題文)                       | 日本語訳・ヒント                                    | 正解   | 解説                                                                       |
+| ----------------------------------- | --------------------------------------------------- | ------ | -------------------------------------------------------------------------- |
+| Yo \_ con María ayer.               | 私は昨日マリアと話した（hablar）。                  | hablé  | 「昨日（ayer）」完了した特定の過去の動作のため点過去を使用します。         |
+| Cuando yo \_ niño, vivía en Madrid. | 私が子供だったとき（ser）、マドリードに住んでいた。 | era    | 過去の継続的な状態（子供時代）を表すため線過去を使用します。               |
+| Ayer \_ un día maravilloso.         | 昨日は素晴らしい一日だった（ser）。                 | fue    | 「昨日（ayer）」という完了した期間の事実のため点過去を使用します。         |
+| Mientras yo estudiaba, él \_.       | 私は勉強していた間、彼は寝ていた（dormir）。        | dormía | 並行して続いていた過去の動作を表すため線過去を使用します。                 |
+| Todos los días yo \_ al parque.     | 毎日私は公園に行っていた（ir）。                    | iba    | 「毎日（Todos los días）」繰り返された過去の習慣のため線過去を使用します。 |
+| De repente, \_ a llover.            | 突然、雨が降り始めた（empezar）。                   | empezó | 「突然（De repente）」発生した過去の出来事・起点の文脈のため点過去を使用。 |
+| Cuando la vi, ella \_ 10 años.      | 私が彼女に会ったとき、彼女は10歳だった（tener）。   | tenía  | 過去の年齢・状態の背景描写のため線過去を使用します。                       |
+| El año pasado \_ a España.          | 去年、スペインへ旅行した（viajar）。                | viajé  | 「去年（El año pasado）」完了した過去の出来事のため点過去を使用します。    |
+| Siempre \_ en la calle.             | いつも通りで遊んでいた（jugar）。                   | jugaba | 「いつも（Siempre）」行っていた過去の習慣・反復動作のため線過去を使用。    |
+| Ayer \_ mucho frío.                 | 昨日はとても寒かった（hacer）。                     | hizo   | 「昨日（ayer）」完了した過去の特定の天候・気候状態のため点過去を使用。     |
+
+</div>
