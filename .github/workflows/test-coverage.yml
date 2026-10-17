@@ -28,7 +28,7 @@ jobs:
 
       - name: Report coverage on pull request
         if: always()
-        uses: MishaKav/vitest-coverage-report@v1
+        uses: davelosert/vitest-coverage-report-action@v2
         with:
           json-summary-path: ./coverage/coverage-summary.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
