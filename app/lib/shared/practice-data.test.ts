@@ -1,0 +1,151 @@
+import { describe, expect, it } from "vitest";
+
+import { loadFillInItems, loadGrammarTables, loadNumberItems } from "@/components/practice/data";
+import { parseFillInItems, parseGrammarTables, parseNumberItems } from "./practice-data";
+
+describe("parseGrammarTables", () => {
+  it("見出しごとに表を分け、連続する同じセルを結合し、Markdown エスケープを外す", () => {
+    const source = [
+      "### 人称代名詞",
+      "| 主格 | 単数 | 複数 |",
+      "| --- | --- | --- |",
+      String.raw`| 1人称 | je | nous \_mêmes |`,
+      "### 冠詞",
+      "| 格 | 男性 | 女性 |",
+      "| --- | --- | --- |",
+      "| 1格 | der | die |",
+    ].join("\n");
+
+    expect(parseGrammarTables(source)).toEqual([
+      {
+        title: "人称代名詞",
+        headers: ["主格", "単数", "複数"],
+        rows: [
+          {
+            label: "1人称",
+            cells: [
+              { value: "je", colSpan: 1 },
+              { value: "nous _mêmes", colSpan: 1 },
+            ],
+          },
+        ],
+      },
+      {
+        title: "冠詞",
+        headers: ["格", "男性", "女性"],
+        rows: [
+          {
+            label: "1格",
+            cells: [
+              { value: "der", colSpan: 1 },
+              { value: "die", colSpan: 1 },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("見出しがなくても表を読み、同じ値の隣接セルをまとめる", () => {
+    expect(
+      parseGrammarTables(
+        ["| 主格 | m | f | n |", "| --- | --- | --- | --- |", "| 1人称 | ich | ich | er |"].join(
+          "\n",
+        ),
+      ),
+    ).toEqual([
+      {
+        title: "文法表",
+        headers: ["主格", "m", "f", "n"],
+        rows: [
+          {
+            label: "1人称",
+            cells: [
+              { value: "ich", colSpan: 2 },
+              { value: "er", colSpan: 1 },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
+});
+
+describe("parseFillInItems", () => {
+  it("見出しをカテゴリとして付け、表の問題・答え・任意の解説を読み取る", () => {
+    const source = [
+      "### 複合過去",
+      "| 例文 (問題文) | 訳・ヒント | 正解 | 解説 |",
+      "| --- | --- | --- | --- |",
+      String.raw`| Je \_suis arrivé. | 私は着いた。 | suis | être の現在形 |`,
+      "### 半過去",
+      "| 例文 | 訳 | 正解 |",
+      "| --- | --- | --- |",
+      "| Nous parlions. | 私たちは話した。 | parlions |",
+    ].join("\n");
+
+    expect(parseFillInItems(source)).toEqual([
+      {
+        id: "q-1",
+        category: "複合過去",
+        sentence: "Je _suis arrivé.",
+        translation: "私は着いた。",
+        answer: "suis",
+        explanation: "être の現在形",
+      },
+      {
+        id: "q-2",
+        category: "半過去",
+        sentence: "Nous parlions.",
+        translation: "私たちは話した。",
+        answer: "parlions",
+        explanation: undefined,
+      },
+    ]);
+  });
+});
+
+describe("parseNumberItems", () => {
+  it("数字とつづりの行だけを読み、見出し・ハイフン・非数字の行を除外する", () => {
+    expect(
+      parseNumberItems([
+        ["| 数字 | フランス語 |", "| --- | --- |", "| 0 | zéro |", "| 1 | un |", "| 2 | - |"].join(
+          "\n",
+        ),
+        ["| 10 | dix |", "| 1.5 | un et demi |", "| 11 | onze |"].join("\n"),
+      ]),
+    ).toEqual([
+      { num: 0, spelling: "zéro" },
+      { num: 1, spelling: "un" },
+      { num: 10, spelling: "dix" },
+      { num: 11, spelling: "onze" },
+    ]);
+  });
+});
+
+describe("教材 MDX からの演習データ読み込み", () => {
+  it.each(["french", "german", "spanish"] as const)(
+    "%s の表完成・数字タイピングに出題データがある",
+    (language) => {
+      expect(loadGrammarTables(language, "04").length).toBeGreaterThan(0);
+
+      const numberItems = loadNumberItems(language);
+      expect(numberItems.length).toBeGreaterThan(0);
+      expect(
+        numberItems.every(({ num, spelling }) => Number.isInteger(num) && spelling.length > 0),
+      ).toBe(true);
+    },
+  );
+
+  it.each(["french", "spanish"] as const)(
+    "%s の穴埋め問題を MDX から正しく読み込む",
+    (language) => {
+      const fillInItems = loadFillInItems(language, "05");
+      expect(fillInItems.length).toBeGreaterThan(0);
+      expect(
+        fillInItems.every(({ sentence, answer }) => sentence.length > 0 && answer.length > 0),
+      ).toBe(true);
+      expect(fillInItems.some(({ sentence }) => sentence.includes("\\_"))).toBe(false);
+    },
+  );
+});
