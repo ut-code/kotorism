@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npx vitest run --coverage --coverage.reporter=json-summary
+        run: npx vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=json
 
       - name: Report coverage on pull request
         if: always()
