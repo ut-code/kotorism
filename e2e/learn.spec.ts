@@ -17,6 +17,33 @@ test.describe("学習教材", () => {
     ).toBeVisible();
   });
 
+  test("共通クイズで回答して次の問題へ進める", async ({ page }) => {
+    await page.goto("/learn/chinese/05");
+    await page.getByRole("button", { name: "練習を始める" }).click();
+
+    await expect(page.getByRole("progressbar", { name: "進み具合" })).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
+    // 4択と穴埋めが混ざって出題されるので、1問目がどちらの形式でも答えられるようにする
+    const input = page.getByPlaceholder("例: 不用 / buyong");
+    if (await input.isVisible()) {
+      await input.fill("×");
+      await page.getByRole("button", { name: "答え合わせ" }).click();
+    } else {
+      const choices = page.locator(".max-w-xl .flex.flex-col.gap-2 > button");
+      await expect(choices).toHaveCount(4);
+      await choices.first().click();
+    }
+
+    await expect(page.getByRole("status")).toContainText(/正解|不正解/);
+    await page.getByRole("button", { name: "次の問題へ" }).click();
+    await expect(page.getByRole("progressbar", { name: "進み具合" })).toHaveAttribute(
+      "aria-valuenow",
+      "1",
+    );
+  });
+
   test("助動詞クイズは4択と穴埋めを混ぜて出題し、どの問題にも解説が出る", async ({ page }) => {
     await page.goto("/learn/chinese/05");
     await page.getByRole("radio", { name: "全問" }).click();
