@@ -98,11 +98,9 @@ export default function Home() {
               // 比例させて少し引き上げて詰めている
               style={{ marginTop: "calc(-0.278 * var(--vb-title))" }}
             >
-              ことば＋プリズム
+              ことばにプリズムをかざすと、様々な要素が見える。
               <br />
-              ことばで広がる世界に光をあてる。
-              <br />
-              多言語を、多次元で学ぶ。
+              多言語を多次元で学ぶための語学アプリ。
             </p>
           </div>
           <div className="mt-8 grid w-full grid-cols-2 gap-3 sm:mt-4 sm:flex sm:w-auto sm:justify-center sm:gap-4">
