@@ -98,27 +98,29 @@ export default function Home() {
               // 比例させて少し引き上げて詰めている
               style={{ marginTop: "calc(-0.278 * var(--vb-title))" }}
             >
-              自分だけの多次元単語帳を作って共有できる、
+              ことば＋プリズム
               <br />
-              多言語対応の語学暗記アプリ。
+              ことばで広がる世界に光をあてる。
+              <br />
+              多言語を、多次元で学ぶ。
             </p>
           </div>
           <div className="mt-8 grid w-full grid-cols-2 gap-3 sm:mt-4 sm:flex sm:w-auto sm:justify-center sm:gap-4">
             <Link
-              href="/my-notebooks"
+              href="/signup"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-coral-500 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-coral-600 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              My単語帳を使ってみる
+              新規登録する
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
               </span>
             </Link>
             <Link
-              href="/learn"
+              href="/login"
               className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-tealblue-600 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-tealblue-700 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
-              学習教材をみてみる
+              ログインする
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
               <span className="inline-flex max-[379px]:hidden">
                 <FlowArrow />
@@ -132,20 +134,15 @@ export default function Home() {
           PCでは各カードを「文章」「プレビュー/言語ボタン」の2行のsubgridにして、2枚の行の高さをそろえる
           （学習教材の言語ボタンを、My単語帳のプレビュー画像の縦の中心に合わせるため） */}
       <section className="grid w-full max-w-5xl grid-cols-1 gap-8 px-6 pb-28 md:grid-cols-2 md:gap-6">
-        <div className="group relative flex flex-col gap-6 rounded-3xl border border-coral-200 bg-white p-8 text-left transition-all hover:-translate-y-1 hover:border-coral-300 hover:shadow-xl hover:shadow-coral-100 sm:flex-row sm:items-center sm:gap-12 sm:p-9 md:row-span-2 md:grid md:grid-rows-subgrid md:items-start md:gap-8 dark:border-coral-900/40 dark:bg-zinc-950 dark:hover:border-coral-700/60 dark:hover:shadow-none">
-          <Link
-            href="/my-notebooks"
-            className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="My単語帳を使ってみる"
-          />
-
+        {/* カードは紹介のための表示だけで、押してもページは移らない（登録・ログインは上のボタンから） */}
+        <div className="relative flex flex-col gap-6 rounded-3xl border border-coral-200 bg-white p-8 text-left sm:flex-row sm:items-center sm:gap-12 sm:p-9 md:row-span-2 md:grid md:grid-rows-subgrid md:items-start md:gap-8 dark:border-coral-900/40 dark:bg-zinc-950">
           <div className="flex flex-col gap-6 sm:flex-1">
-            <div className="pointer-events-none relative z-10">
+            <div className="relative z-10">
               <h2 className="text-3xl font-bold text-coral-900 dark:text-coral-100">My単語帳</h2>
               <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
                 意味・発音・例文など複数の軸を持つ、
                 <br className="hidden sm:inline" />
-                自分だけの単語帳を作成。そのまま他の人と共有できます。
+                オリジナルの単語帳を作成。他の人との共有もできます。
               </p>
             </div>
           </div>
@@ -155,14 +152,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="group relative flex flex-col gap-6 rounded-3xl border border-tealblue-200 bg-white p-8 text-left transition-all hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 sm:gap-8 sm:p-9 md:row-span-2 md:grid md:grid-rows-subgrid dark:border-tealblue-900/40 dark:bg-zinc-950 dark:hover:border-tealblue-700/60 dark:hover:shadow-none">
-          <Link
-            href="/learn"
-            className="absolute inset-0 z-0 rounded-3xl"
-            aria-label="学習教材をみてみる"
-          />
-
-          <div className="pointer-events-none relative z-10">
+        <div className="relative flex flex-col gap-6 rounded-3xl border border-tealblue-200 bg-white p-8 text-left sm:gap-8 sm:p-9 md:row-span-2 md:grid md:grid-rows-subgrid dark:border-tealblue-900/40 dark:bg-zinc-950">
+          <div className="relative z-10">
             <h2 className="text-3xl font-bold text-tealblue-900 dark:text-tealblue-100">
               学習教材
             </h2>
