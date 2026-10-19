@@ -58,7 +58,8 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
     await workbook.xlsx.load(buffer);
   } catch {
     throw new ExcelParseError(
-      "Excelファイル（.xlsx）として読み込めませんでした。ファイル形式を確認してください。",
+      "Excelファイル（.xlsx）として読み込めませんでした。ファイル形式を確認してください。" +
+        "Googleスプレッドシートの場合は、「ファイル」→「ダウンロード」→「Microsoft Excel（.xlsx）」で保存したファイルを選んでください。",
     );
   }
 
@@ -137,7 +138,7 @@ export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNot
   }
 
   // 見出し語のみで本文列が1件も無かったカードには、空の組を1件持たせておく
-  // （CardFieldsForm・表示側は常に1件以上のrowsがある前提のため）
+  // （表の表示・編集は常に1件以上のrowsがある前提のため）
   for (const card of cards) {
     if (card.rows.length === 0) card.rows.push({});
   }

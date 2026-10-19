@@ -13,23 +13,29 @@ datasource db {
 // My単語帳 1冊分（Excelから取り込んだ、または手動作成した単語帳）
 
 model Notebook {
-  id        String   @id @default(cuid())
-  title     String
+  id           String           @id @default(cuid())
+  title        String
   // Excelの1行目（ヘッダー）に対応する列名を、出現順のまま保存する
-  columns   Json
+  columns      Json
   // trueの間、/share/[id] からログイン無しで閲覧できる
-  isPublic  Boolean  @default(false)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cards     Card[]
-  shares    NotebookShare[]
-  invites   NotebookInvite[]
-  views     NotebookView[]
+  isPublic     Boolean          @default(false)
+  // 作成者がお気に入りにしているか。My単語帳の一覧で、お気に入りを一番上にまとめて並べる
+  favorite     Boolean          @default(false)
+  // My単語帳の一覧での並び順（小さいほど上）。長押しで並べ替えると振り直す。
+  // 同じ値どうし（並べ替える前の単語帳）は作成日の新しい順に並べる
+  listPosition Int              @default(0)
+  // 作成者が「学習済み」にしたか。My単語帳の一覧で、学習済みは一番下にまとめてグレーで並べる
+  studied      Boolean          @default(false)
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  cards        Card[]
+  shares       NotebookShare[]
+  invites      NotebookInvite[]
+  views        NotebookView[]
 
   @@index([userId])
-
   @@map("notebooks")
 }
 
@@ -46,7 +52,6 @@ model NotebookShare {
 
   @@unique([notebookId, userId])
   @@index([userId])
-
   @@map("notebook_shares")
 }
 
@@ -60,26 +65,24 @@ model NotebookInvite {
   createdAt  DateTime @default(now())
 
   @@index([notebookId])
-
   @@map("notebook_invites")
 }
 
 // 単語帳内の1単語（1行）分のデータ
 
 model Card {
-  id         String   @id @default(cuid())
+  id         String         @id @default(cuid())
   notebookId String
-  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  notebook   Notebook       @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   // { [列名]: セルの値 } の形で、その行の全列を保持する
   data       Json
   // Notebook.columns で先頭に来る列を「表」、次を「裏」として暗記学習モードに使う
   position   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
   progress   CardProgress[]
 
   @@index([notebookId, position])
-
   @@map("cards")
 }
 
@@ -101,7 +104,6 @@ model CardProgress {
 
   @@unique([cardId, userId])
   @@index([userId, starred])
-
   @@map("card_progress")
 }
 
@@ -132,7 +134,6 @@ model User {
 
   @@unique([email])
   @@unique([username])
-
   @@map("users")
 }
 
@@ -166,7 +167,6 @@ model SectionProgress {
 
   @@unique([userId, language, sectionSlug])
   @@index([userId, language, needsReview])
-
   @@map("section_progress")
 }
 
@@ -197,7 +197,6 @@ model EssaySubmission {
   createdAt DateTime @default(now())
 
   @@index([userId, language, createdAt])
-
   @@map("essay_submissions")
 }
 
@@ -231,7 +230,6 @@ model TranslationSubmission {
   createdAt DateTime @default(now())
 
   @@index([userId, language, createdAt])
-
   @@map("translation_submissions")
 }
 
@@ -248,7 +246,6 @@ model Session {
 
   @@unique([token])
   @@index([userId])
-
   @@map("sessions")
 }
 
@@ -273,7 +270,6 @@ model Account {
 
   @@unique([issuer, accountId])
   @@index([userId])
-
   @@map("accounts")
 }
 
@@ -286,7 +282,6 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
-
   @@map("verifications")
 }
 
@@ -302,7 +297,6 @@ model NotebookView {
 
   @@unique([userId, notebookId])
   @@index([userId, lastViewedAt])
-
   @@map("notebook_views")
 }
 
@@ -320,7 +314,6 @@ model SectionView {
 
   @@unique([userId, language, sectionSlug])
   @@index([userId, lastViewedAt])
-
   @@map("section_views")
 }
 
@@ -342,7 +335,6 @@ model StudyEvent {
   language   String?
 
   @@index([userId, occurredAt])
-
   @@map("study_events")
 }
 
@@ -364,7 +356,6 @@ model StudyDailyStat {
 
   @@unique([userId, day, eventType, deckId, language])
   @@index([userId, day])
-
   @@map("study_daily_stats")
 }
 
@@ -390,7 +381,6 @@ model StudyTimeLog {
 
   @@unique([userId, clientId, day])
   @@index([userId, day])
-
   @@map("study_time_logs")
 }
 
@@ -407,4 +397,15 @@ model StudyStreak {
   celebratedStreak Int    @default(0)
 
   @@map("study_streaks")
+}
+
+// 削除した単語帳の名前の控え。学習記録（StudyEvent など）は単語帳を削除しても残すが、
+// 単語帳の名前は Notebook と一緒に消えてしまうため、学習カレンダーで元の名前を出せるよう削除時に残しておく
+model DeletedNotebook {
+  // 削除した単語帳の Notebook.id（学習記録の deckId と同じ値）
+  id        String   @id
+  title     String
+  deletedAt DateTime @default(now())
+
+  @@map("deleted_notebooks")
 }

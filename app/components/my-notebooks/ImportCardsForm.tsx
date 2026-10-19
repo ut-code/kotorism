@@ -21,7 +21,7 @@ function SubmitButton({ pending }: { pending: boolean }) {
 }
 
 // 単語帳作成の参考になるテンプレートExcelをダウンロードするパネル。
-// 「Excelから単語を追加」パネルの中に置かれ、普段は折りたたんでおく。
+// 「Excel・スプレッドシートから追加」パネルの中に置かれ、普段は折りたたんでおく。
 // ここでダウンロードしたファイルへ記入した後は、同じパネルの取り込みフォームでそのまま追加できる
 function ImportTemplate() {
   const [expanded, setExpanded] = useState(false);
@@ -115,7 +115,7 @@ function ImportTemplate() {
 }
 
 // 単語帳ページ内で、Excelファイルから単語をまとめて追加するフォーム。
-// 普段は折りたたんでおき、必要なときだけ「Excelから単語を追加」で開く。
+// 普段は折りたたんでおき、必要なときだけ「Excel・スプレッドシートから追加」で開く。
 // 列名が既存の単語帳の列と一致すればそこに値が追加され、一致しない列名は
 // 単語帳の末尾に新しい列として自動で追加される
 export default function ImportCardsForm({ notebookId }: { notebookId: string }) {
@@ -139,7 +139,7 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
         onClick={() => setExpanded(true)}
         className="text-sm text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
       >
-        Excelから単語を追加
+        Excel・スプレッドシートから追加
       </button>
     );
   }
@@ -148,7 +148,7 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
     <div className="flex w-full flex-col gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
-          Excelから単語を追加
+          Excel・スプレッドシートから追加
         </h3>
         <button
           type="button"
@@ -176,6 +176,11 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-500">
           1行目を見出し行として読み取ります。既存の列と同じ名前の列はそこに追加され、無い列名は新しい列として追加されます。
+        </p>
+        {/* Googleスプレッドシートは直接読み込まず、.xlsx で書き出したファイルを取り込んでもらう */}
+        <p className="text-xs text-zinc-500 dark:text-zinc-500">
+          Googleスプレッドシートの場合は、「ファイル」→「ダウンロード」→「Microsoft
+          Excel（.xlsx）」で保存したファイルを選んでください。
         </p>
         {state?.error && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">

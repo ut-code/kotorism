@@ -9,7 +9,10 @@ import {
   parseCardHead,
   parseCardValue,
   parseColumnName,
+  parseDuplicateChoice,
   parseNotebookTitle,
+  parseNewNotebookTitle,
+  DEFAULT_NOTEBOOK_TITLE,
   parseStarCount,
 } from "./notebook-schema";
 
@@ -59,5 +62,31 @@ describe("parseStarCount", () => {
     expect(parseStarCount("abc")).toBe(0);
     expect(parseStarCount(null)).toBe(0);
     expect(parseStarCount("999999999")).toBe(MAX_STAR_COUNT);
+  });
+});
+
+describe("parseNewNotebookTitle", () => {
+  it("新しく作る単語帳は、タイトルが空なら「無題の単語帳」にする", () => {
+    expect(DEFAULT_NOTEBOOK_TITLE).toBe("無題の単語帳");
+    expect(parseNewNotebookTitle(null)).toEqual({ success: true, data: "無題の単語帳" });
+    expect(parseNewNotebookTitle("  ")).toEqual({ success: true, data: "無題の単語帳" });
+  });
+
+  it("タイトルがあれば、そのタイトルで作る（上限は通常のタイトルと同じ）", () => {
+    expect(parseNewNotebookTitle(" 11月の英単語 ")).toEqual({
+      success: true,
+      data: "11月の英単語",
+    });
+    expect(parseNewNotebookTitle("a".repeat(NOTEBOOK_TITLE_MAX_LENGTH + 1)).success).toBe(false);
+  });
+});
+
+describe("parseDuplicateChoice", () => {
+  it("名前が重なったときの選び方（このまま・番号・日付）を受け取り、無ければ undefined", () => {
+    expect(parseDuplicateChoice("keep")).toEqual({ success: true, data: "keep" });
+    expect(parseDuplicateChoice("number")).toEqual({ success: true, data: "number" });
+    expect(parseDuplicateChoice("date")).toEqual({ success: true, data: "date" });
+    expect(parseDuplicateChoice(null)).toEqual({ success: true, data: undefined });
+    expect(parseDuplicateChoice("other").success).toBe(false);
   });
 });

@@ -6,6 +6,7 @@ import { recordNotebookView } from "@/lib/server/recent-activity.server";
 import { getNotebookRole } from "@/lib/server/notebook-access.server";
 import { notFound } from "@/lib/server/http.server";
 import CardRow from "./CardRow";
+import NotebookTitle from "./NotebookTitle";
 import CreateCardForm from "./CreateCardForm";
 import ColumnsEditor from "@/components/my-notebooks/ColumnsEditor";
 import ImportCardsForm from "@/components/my-notebooks/ImportCardsForm";
@@ -23,6 +24,7 @@ import {
   importCardsFromExcel,
   incrementViewCount,
   recordCardQuizAnswer,
+  renameNotebook,
   renameNotebookColumn,
   resetAllStars,
   resetStar,
@@ -82,6 +84,8 @@ export async function action({ request, params }: Route.ActionArgs) {
         return toggleNotebookPublic(notebookId);
       case "deleteNotebook":
         return deleteNotebook(notebookId);
+      case "renameNotebook":
+        return renameNotebook(notebookId, formData);
       case "createInvite":
         return createInvite(notebookId);
       case "revokeInvite":
@@ -114,7 +118,10 @@ export async function loader({ params }: Route.LoaderArgs) {
   // 単語帳本体と、その中の単語（Card）一覧を position 昇順（＝Excelの元の並び順）で取得する
   const notebook = await prisma.notebook.findUniqueOrThrow({
     where: { id: notebookId },
-    include: { cards: { orderBy: { position: "asc" } } },
+    include: {
+      cards: { orderBy: { position: "asc" } },
+      user: { select: { name: true, username: true } },
+    },
   });
 
   // ★・暗記モード表示回数はユーザーごとに独立しているため、自分の進捗だけを取得してカードにマージする
@@ -167,6 +174,8 @@ export async function loader({ params }: Route.LoaderArgs) {
       title: notebook.title,
       isPublic: notebook.isPublic,
       cardCount: notebook.cards.length,
+      // 共同編集者として開いたときに「〇〇さんから共有」と出す、作成者の名前
+      ownerName: notebook.user.username ?? notebook.user.name,
     },
     isOwner,
     invites,
@@ -197,9 +206,7 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-              {notebook.title}
-            </h1>
+            <NotebookTitle notebookId={notebook.id} title={notebook.title} canEdit={isOwner} />
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
               {notebook.cardCount}語
               {!isOwner && (
@@ -208,6 +215,12 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
                 </span>
               )}
             </p>
+            {/* 共同編集者として開いたときは、誰から共有された単語帳かを薄く小さい文字で出す */}
+            {!isOwner && (
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                {notebook.ownerName}さんから共有
+              </p>
+            )}
             {isOwner && (
               <div className="mt-3 flex flex-col items-start gap-2">
                 <ShareNotebookButton notebookId={notebook.id} isPublic={notebook.isPublic} />
