@@ -12,6 +12,7 @@ import {
   isStudyEventType,
   type DayStat,
   type PeriodDetail,
+  NOTEBOOK_CATEGORY,
   type PeriodMaterial,
   type StreakSummary,
   type StudyEventType,
@@ -363,7 +364,7 @@ async function describeMaterial(
     const title = deckTitles.get(row.deckId);
     return {
       label: title ?? "（削除された、または共有が解除された単語帳）",
-      category: "My単語帳",
+      category: NOTEBOOK_CATEGORY,
       href: title ? `/my-notebooks/${row.deckId}` : null,
     };
   }

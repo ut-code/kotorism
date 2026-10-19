@@ -23,11 +23,16 @@
   --font-geist-mono: "Geist Mono";
   --background: #ffffff;
   --foreground: #171717;
-  /* 学習カレンダーで教材ごとに塗り分ける色（上位4教材 + その他）。色覚多様性を考慮して検証済みの組み合わせ */
-  --chart-1: #2a78d6;
-  --chart-2: #eb6834;
-  --chart-3: #1baf7a;
-  --chart-4: #eda100;
+  /* 学習カレンダーで教材ごとに塗り分ける色（lib/shared/material-colors.ts）。My単語帳は coral、学習教材は tealblue の
+     濃さ違いで、同じ種類の中では学習時間の多い順に 1→4 を使う。隣り合っても見分けやすいよう濃淡を交互にしている */
+  --chart-notebook-1: #ff8877; /* coral-500 */
+  --chart-notebook-2: #d6503d; /* coral-700 */
+  --chart-notebook-3: #ffc7bc; /* coral-200 */
+  --chart-notebook-4: #a83b2c; /* coral-800 */
+  --chart-learn-1: #1e9a9c; /* tealblue-500 */
+  --chart-learn-2: #6fd1d1; /* tealblue-300 */
+  --chart-learn-3: #145154; /* tealblue-800 */
+  --chart-learn-4: #a6e6e6; /* tealblue-200 */
   --chart-other: #a1a1aa;
   color-scheme: light;
 }
@@ -41,10 +46,14 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --chart-1: #3987e5;
-  --chart-2: #d95926;
-  --chart-3: #199e70;
-  --chart-4: #c98500;
+  --chart-notebook-1: #ff8877; /* coral-500 */
+  --chart-notebook-2: #ffc7bc; /* coral-200 */
+  --chart-notebook-3: #d6503d; /* coral-700 */
+  --chart-notebook-4: #ffe3de; /* coral-100 */
+  --chart-learn-1: #3fb6b8; /* tealblue-400 */
+  --chart-learn-2: #a6e6e6; /* tealblue-200 */
+  --chart-learn-3: #167e82; /* tealblue-600 */
+  --chart-learn-4: #d3f3f3; /* tealblue-100 */
   --chart-other: #71717a;
   color-scheme: dark;
 }
