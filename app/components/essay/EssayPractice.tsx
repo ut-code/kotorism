@@ -2,7 +2,9 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
+import { AccentTextarea } from "@/components/practice/AccentTextarea";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
+import { getPracticeLanguage } from "@/lib/shared/practice-languages";
 import type { SubmitEssayResult } from "@/lib/server/essay/actions.server";
 import { getEssayTopics } from "@/lib/shared/essay/topics";
 import {
@@ -60,6 +62,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
   const lengthUnit = getEssayLengthUnit(languageSlug);
   const unitLabel = essayLengthUnitLabel(lengthUnit);
   const topics = getEssayTopics(languageSlug);
+  const practiceLanguage = getPracticeLanguage(languageSlug);
 
   const [status, setStatus] = useState<"loading" | "guest" | "ready">("loading");
   const [phase, setPhase] = useState<"settings" | "writing" | "result">("settings");
@@ -114,7 +117,11 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
     } else {
       const prompt = customPrompt.trim();
       if (!prompt) return;
-      setActiveTopic({ source: "custom", prompt, targetWordCount: customWordCount });
+      setActiveTopic({
+        source: "custom",
+        prompt,
+        targetWordCount: customWordCount,
+      });
     }
     setContent("");
     setError(null);
@@ -340,9 +347,10 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
               {unitLabel}程度で書いてください。
             </p>
 
-            <textarea
+            <AccentTextarea
               value={content}
-              onChange={(event) => setContent(event.target.value)}
+              onChange={setContent}
+              language={practiceLanguage}
               maxLength={2000}
               rows={8}
               disabled={pending}

@@ -3,6 +3,8 @@ import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
 import { apiGet, apiPost } from "@/lib/shared/api-client";
+import { AccentTextarea } from "@/components/practice/AccentTextarea";
+import { getPracticeLanguage } from "@/lib/shared/practice-languages";
 import type { SubmitTranslationResult } from "@/lib/server/translation/actions.server";
 import { ChoiceChips, PracticeButton, SettingRow } from "@/components/practice/PracticeControls";
 import {
@@ -49,6 +51,7 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
 export function TranslationPractice({ languageSlug, languageLabel }: TranslationPracticeProps) {
   const problems = getTranslationProblems(languageSlug);
   const topics = useMemo(() => getTranslationTopics(languageSlug), [languageSlug]);
+  const practiceLanguage = getPracticeLanguage(languageSlug);
 
   const [status, setStatus] = useState<"loading" | "guest" | "ready">("loading");
   const [phase, setPhase] = useState<"settings" | "writing" | "result">("settings");
@@ -189,8 +192,14 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
               <ChoiceChips
                 label="訳す方向"
                 options={[
-                  { value: "fromJapanese", label: directionLabel("fromJapanese", languageLabel) },
-                  { value: "toJapanese", label: directionLabel("toJapanese", languageLabel) },
+                  {
+                    value: "fromJapanese",
+                    label: directionLabel("fromJapanese", languageLabel),
+                  },
+                  {
+                    value: "toJapanese",
+                    label: directionLabel("toJapanese", languageLabel),
+                  },
                 ]}
                 value={direction}
                 onChange={selectDirection}
@@ -281,9 +290,11 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                     : `${languageLabel}で入力してください`}
                   ）
                 </label>
-                <textarea
+                <AccentTextarea
                   value={customSourceText}
-                  onChange={(event) => setCustomSourceText(event.target.value)}
+                  onChange={setCustomSourceText}
+                  // 外国語 → 日本語のときは、原文を外国語で入力する
+                  language={direction === "toJapanese" ? practiceLanguage : undefined}
                   maxLength={CUSTOM_SOURCE_MAX_LENGTH}
                   rows={3}
                   placeholder={
@@ -334,9 +345,11 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             </div>
             <p className="text-zinc-800 dark:text-zinc-100">{activeProblem.sourceText}</p>
 
-            <textarea
+            <AccentTextarea
               value={content}
-              onChange={(event) => setContent(event.target.value)}
+              onChange={setContent}
+              // 日本語 → 外国語のときは、訳文を外国語で入力する
+              language={activeProblem.direction === "fromJapanese" ? practiceLanguage : undefined}
               maxLength={500}
               rows={5}
               disabled={pending}

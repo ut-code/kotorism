@@ -1,5 +1,5 @@
 // ↑ / ↓ キーでアルファベットをアクセント記号付きの文字へ切り替えるための共通処理。
-// 動詞の活用（AccentInput）と、表完成・穴埋め・数字タイピングの演習で使う
+// 動詞の活用（AccentInput）、表完成・穴埋め・数字タイピングの演習、作文・翻訳の入力欄（AccentTextarea）で使う
 
 export type AccentIndex = Map<string, { cycle: string[]; index: number }>;
 
@@ -30,4 +30,35 @@ export function cycleAccent(
   if (!entry) return null;
   const { cycle, index: i } = entry;
   return cycle[(i + direction + cycle.length) % cycle.length];
+}
+
+export type TextEdit = { value: string; caret: number };
+
+// カーソル直前の文字をサイクルの次（1）または前（-1）の文字にする。先頭にいる・切り替えられない文字なら null
+export function cycleCharBeforeCaret(
+  index: AccentIndex,
+  value: string,
+  caret: number,
+  direction: 1 | -1,
+): TextEdit | null {
+  if (caret === 0) return null;
+  const next = cycleAccent(index, value[caret - 1], direction);
+  if (!next) return null;
+  return {
+    value: value.slice(0, caret - 1) + next + value.slice(caret),
+    caret,
+  };
+}
+
+// 選択範囲（start〜end。カーソルだけなら start === end）を text で置き換え、カーソルをその後ろに置く
+export function insertAtSelection(
+  value: string,
+  start: number,
+  end: number,
+  text: string,
+): TextEdit {
+  return {
+    value: value.slice(0, start) + text + value.slice(end),
+    caret: start + text.length,
+  };
 }
