@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildAccentIndex, cycleAccent } from "./accent";
+import { buildAccentIndex, cycleAccent, cycleCharBeforeCaret, insertAtSelection } from "./accent";
 
 describe("buildAccentIndex", () => {
   it("小文字・大文字のアクセント文字を同じ順序のサイクルに登録する", () => {
@@ -41,5 +41,41 @@ describe("cycleAccent", () => {
     expect(cycleAccent(index, undefined, 1)).toBeNull();
     expect(cycleAccent(index, "", -1)).toBeNull();
     expect(cycleAccent(index, "x", 1)).toBeNull();
+  });
+});
+
+describe("cycleCharBeforeCaret", () => {
+  const index = buildAccentIndex([["e", "é", "è"]]);
+
+  it("カーソル直前の文字を切り替え、カーソル位置は変えない", () => {
+    expect(cycleCharBeforeCaret(index, "Je mange", 2, 1)).toEqual({
+      value: "Jé mange",
+      caret: 2,
+    });
+    expect(cycleCharBeforeCaret(index, "Je", 2, -1)).toEqual({
+      value: "Jè",
+      caret: 2,
+    });
+  });
+
+  it("先頭にいるときや直前の文字が切り替えられないときは null", () => {
+    expect(cycleCharBeforeCaret(index, "Je", 0, 1)).toBeNull();
+    expect(cycleCharBeforeCaret(index, "Je ", 3, 1)).toBeNull();
+  });
+});
+
+describe("insertAtSelection", () => {
+  it("カーソル位置に文字を入れ、カーソルを入れた文字の後ろへ進める", () => {
+    expect(insertAtSelection("ca va", 1, 1, "ç")).toEqual({
+      value: "cça va",
+      caret: 2,
+    });
+  });
+
+  it("選択範囲は入れた文字で置き換える", () => {
+    expect(insertAtSelection("ca va", 0, 1, "ç")).toEqual({
+      value: "ça va",
+      caret: 1,
+    });
   });
 });
