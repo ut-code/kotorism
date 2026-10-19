@@ -9,6 +9,7 @@ import {
   parseCardHead,
   parseCardValue,
   parseColumnName,
+  parseMove,
   parseDuplicateChoice,
   parseNotebookTitle,
   parseNewNotebookTitle,
@@ -62,6 +63,22 @@ describe("parseStarCount", () => {
     expect(parseStarCount("abc")).toBe(0);
     expect(parseStarCount(null)).toBe(0);
     expect(parseStarCount("999999999")).toBe(MAX_STAR_COUNT);
+  });
+});
+
+describe("parseMove", () => {
+  it("並べ替えの「何番目を」「どの間へ」を、0以上の整数として受け取る", () => {
+    expect(parseMove({ from: "2", insertAt: "0" })).toEqual({
+      success: true,
+      data: { from: 2, insertAt: 0 },
+    });
+  });
+
+  it("数でない・負の数・小数は拒否する", () => {
+    expect(parseMove({ from: "a", insertAt: "0" }).success).toBe(false);
+    expect(parseMove({ from: "-1", insertAt: "0" }).success).toBe(false);
+    expect(parseMove({ from: "1.5", insertAt: "0" }).success).toBe(false);
+    expect(parseMove({ from: "1" }).success).toBe(false);
   });
 });
 

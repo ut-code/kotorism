@@ -11,15 +11,17 @@ import {
   parseCardValue,
   parseColumnName,
   parseDuplicateChoice,
+  parseMove,
   parseNewNotebookTitle,
   parseNotebookTitle,
   parseStarCount,
 } from "@/lib/shared/notebook-schema";
-import type { FormState } from "@/lib/shared/form-state";
+import { isBlankCardFields, pickCardFields } from "@/lib/shared/bulk-edit";
 import { clampToGroup, notebookGroup, sortNotebooks } from "@/lib/shared/notebook-order";
-import { datedTitle, numberedTitle, type RenameNotebookState } from "@/lib/shared/notebook-title";
 import { moveToInsertionPoint } from "@/lib/shared/reorder";
+import { datedTitle, numberedTitle, type RenameNotebookState } from "@/lib/shared/notebook-title";
 import { toStudyDay } from "@/lib/shared/study-calendar";
+import type { FormState } from "@/lib/shared/form-state";
 import { recordStudyEvent } from "@/lib/server/study-events.server";
 
 // フォームの入力を検証してカードのデータにする。不正な入力(空の見出し語・長すぎる値)はエラーメッセージを返す
@@ -32,7 +34,7 @@ function readCardData(
   const bodyColumns = columns.slice(1);
 
   // `row:0:列名`, `row:1:列名`, ... という連番の入力欄を、存在する分だけ読み取る
-  // （CardFieldsForm側は必ず0番から連番でレンダリングする）。同じ連番内の列同士は
+  // （入力欄は必ず0番から連番で置く）。同じ連番内の列同士は
   // 同じ組（Excelの1行に相当）として対応付けられる。空文字の値は保存しない
   const rows: Record<string, string>[] = [];
   let i = 0;
@@ -109,8 +111,8 @@ export async function importCardsFromExcel(
 }
 
 // Excelを介さず、アプリ上でゼロから単語帳を作成する。
-// 「見出し語」「意味」の2列・単語0件で作成し、以降は列の追加/変更（ColumnsEditor）と
-// 単語の追加（CreateCardForm）をこの単語帳のページ上でそのまま行える
+// 「見出し語」「意味」の2列・単語0件で作成し、以降は列の追加・名前の変更・削除と
+// 単語の追加を、この単語帳のページの表（NotebookTable）の上でそのまま行える
 export async function createBlankNotebook(formData: FormData): Promise<FormState> {
   const user = await requireUser();
 
@@ -320,6 +322,62 @@ export async function updateCard(
   return {};
 }
 
+// 単語帳の表の「表を編集」から、全部の単語をまとめて保存する。送られてくる単語ごとの入力欄は
+// `card:<単語のid>:head` のように単語のidが前に付いている（lib/shared/bulk-edit.ts）。編集中に足した行は
+// newCardId（画面で仮に付けた番号）で送られてくるので、新しい単語としていまの単語の後ろに加える。
+// 一部だけ保存されることがないよう、全部の単語を先に読み取ってから、1つのトランザクションでまとめて保存する
+export async function updateCards(notebookId: string, formData: FormData): Promise<FormState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "member");
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId },
+    select: { columns: true },
+  });
+  const columns = normalizeColumns(notebook.columns);
+  const cardIds = [...new Set(formData.getAll("cardId").map(String))];
+
+  const updates: { id: string; data: CardData }[] = [];
+  for (const [index, cardId] of cardIds.entries()) {
+    const parsed = readCardData(columns, pickCardFields(formData, cardId));
+    if ("error" in parsed) {
+      return { error: `${index + 1}行目の単語: ${parsed.error}` };
+    }
+    updates.push({ id: cardId, data: parsed.data });
+  }
+
+  // 編集中に表の＋や ↓ で足した行（newCardId は画面で仮に付けた番号）。何も入力していない行は飛ばす
+  const newCards: CardData[] = [];
+  for (const [index, newCardId] of formData.getAll("newCardId").map(String).entries()) {
+    const fields = pickCardFields(formData, newCardId);
+    if (isBlankCardFields(fields)) continue;
+    const parsed = readCardData(columns, fields);
+    if ("error" in parsed) {
+      return { error: `${cardIds.length + index + 1}行目の単語: ${parsed.error}` };
+    }
+    newCards.push(parsed.data);
+  }
+
+  // この単語帳の単語だけを更新する（他の単語帳の単語のidが送られてきても書き換えない）
+  const owned = await prisma.card.count({ where: { notebookId, id: { in: cardIds } } });
+  if (owned !== cardIds.length) {
+    return { error: "保存できない単語が含まれています。ページを再読み込みしてください。" };
+  }
+  // 新しい単語は、いまの単語の後ろに並べる
+  const last = await prisma.card.aggregate({ where: { notebookId }, _max: { position: true } });
+  const nextPosition = (last._max.position ?? -1) + 1;
+  await prisma.$transaction([
+    ...updates.map(({ id, data }) =>
+      prisma.card.update({ where: { id, notebookId }, data: { data } }),
+    ),
+    ...newCards.map((data, index) =>
+      prisma.card.create({ data: { notebookId, data, position: nextPosition + index } }),
+    ),
+  ]);
+
+  return {};
+}
+
 // 全カードのデータを取得し、変換関数を適用してまとめて保存するヘルパー。
 // 列の追加・変更に伴うデータ移行はすべてこの形で行う
 async function migrateAllCards(
@@ -343,7 +401,7 @@ async function migrateAllCards(
 
 // 単語帳の末尾に列（意味・発音などの列）を1つ追加する。
 // 新設列は既存カードのどのデータにも存在しないだけなので、移行は不要
-// （CardFieldsForm側でキー無し＝空欄として表示される）
+// （表ではキー無し＝空欄として表示される）
 export async function addNotebookColumn(
   notebookId: string,
   formData: FormData,
@@ -430,6 +488,34 @@ export async function renameNotebookColumn(
 
 // 単語帳の列（見出し語列以外）を削除する。見出し語列は構造上削除不可。
 // 既存カードのcellsから該当キーも取り除く
+// 表の列を長押ししたまま動かして並べ替える。列の値は列名で持っているので、カードのデータは書き換えなくてよい。
+// 先頭の見出し語の列（カードの表面）は動かさず、ほかの列だけを、見出し語の列より後ろで並べ替える
+export async function moveNotebookColumn(
+  notebookId: string,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "member");
+  const move = parseMove({ from: formData.get("from"), insertAt: formData.get("insertAt") });
+  if (!move.success) return { error: move.error };
+  const { from, insertAt } = move.data;
+
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId },
+    select: { columns: true },
+  });
+  const columns = normalizeColumns(notebook.columns);
+  if (from < 1 || from >= columns.length || insertAt < 1 || insertAt > columns.length) {
+    return { error: "並べ替えの位置が正しくありません。" };
+  }
+
+  await prisma.notebook.update({
+    where: { id: notebookId },
+    data: { columns: moveToInsertionPoint(columns, from, insertAt) },
+  });
+  return {};
+}
+
 export async function deleteNotebookColumn(notebookId: string, columnIndex: number) {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "member");
@@ -457,6 +543,36 @@ export async function deleteNotebookColumn(notebookId: string, columnIndex: numb
 }
 
 // 単語帳内の単語を1件、削除する
+// 表の行（単語）を長押ししたまま動かして並べ替える。from 番目の単語（cardId で照合する）を insertAt 番目の間へ動かし、
+// 並びの順に position を振り直す。並べ替えている間に単語が増減して並びが変わっていたら、何もしない
+export async function moveCard(notebookId: string, formData: FormData): Promise<FormState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "member");
+  const move = parseMove({ from: formData.get("from"), insertAt: formData.get("insertAt") });
+  if (!move.success) return { error: move.error };
+  const { from, insertAt } = move.data;
+
+  const cards = await prisma.card.findMany({
+    where: { notebookId },
+    orderBy: { position: "asc" },
+    select: { id: true, position: true },
+  });
+  if (cards[from]?.id !== formData.get("cardId") || insertAt > cards.length) {
+    return { error: "単語の並びが変わっています。ページを再読み込みしてください。" };
+  }
+
+  const ordered = moveToInsertionPoint(cards, from, insertAt);
+  await prisma.$transaction(
+    ordered
+      .map((card, position) => ({ ...card, newPosition: position }))
+      .filter((card) => card.position !== card.newPosition)
+      .map((card) =>
+        prisma.card.update({ where: { id: card.id }, data: { position: card.newPosition } }),
+      ),
+  );
+  return {};
+}
+
 export async function deleteCard(cardId: string, notebookId: string) {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "member");
@@ -501,6 +617,20 @@ export async function toggleStar(cardId: string, notebookId: string) {
 
   // 通常の暗記学習（全件）は並び順・件数が変わらないので再検証してよい
   // 復習モード（★のみ）は外した瞬間にカードが抜けて表示中のインデックスがずれるため、セッション中は再検証せず、次回開いたときのDB取得だけに反映させる
+}
+
+// 単語帳の表の★。押すたびに★を付けた状態にして回数を+1する（付いていても外さない）。
+// ★を外すときは回数の修正（setStarCount / resetStar）で0に戻す
+export async function addStar(cardId: string, notebookId: string) {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "member");
+  await prisma.card.findUniqueOrThrow({ where: { id: cardId, notebookId }, select: { id: true } });
+
+  await prisma.cardProgress.upsert({
+    where: { cardId_userId: { cardId, userId: user.id } },
+    update: { starred: true, starCount: { increment: 1 } },
+    create: { cardId, userId: user.id, starred: true, starCount: 1 },
+  });
 }
 
 // 誤ってクリックした場合などに、★の回数を手動で書き換える

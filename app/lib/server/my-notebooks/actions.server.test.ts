@@ -27,7 +27,9 @@ import {
   createCard as createCardAction,
   deleteCard,
   deleteNotebook,
+  moveCard,
   moveNotebook,
+  moveNotebookColumn,
   renameNotebook,
   setStarCount,
   toggleNotebookFavorite,
@@ -35,6 +37,7 @@ import {
   toggleNotebookStudied,
   toggleStar,
   updateCard,
+  updateCards,
 } from "./actions.server";
 
 vi.mock("@/lib/server/session.server", () => ({ requireUser: vi.fn() }));
@@ -156,6 +159,103 @@ describe("renameNotebook", () => {
       loginAs(user);
       await expect(renameNotebook(notebook.id, form({ title: "乗っ取り" }))).rejects.toThrow();
     }
+  });
+});
+
+describe("moveCard", () => {
+  it("単語を指定した位置へ動かし、並びの順に position を振り直す", async () => {
+    const [a, b, c] = [
+      await createCard(notebook.id, "a", 0),
+      await createCard(notebook.id, "b", 1),
+      await createCard(notebook.id, "c", 2),
+    ];
+    loginAs(editor);
+    // a（0番）を、いちばん後ろ（3番の間）へ
+    expect(await moveCard(notebook.id, form({ cardId: a.id, from: "0", insertAt: "3" }))).toEqual(
+      {},
+    );
+    const ordered = await prisma.card.findMany({
+      where: { notebookId: notebook.id },
+      orderBy: { position: "asc" },
+    });
+    expect(ordered.map((card) => card.id)).toEqual([b.id, c.id, a.id]);
+  });
+
+  it("送られてきた単語と、その位置の単語が食い違っていれば何もしない", async () => {
+    const a = await createCard(notebook.id, "a", 0);
+    await createCard(notebook.id, "b", 1);
+    loginAs(owner);
+    const state = await moveCard(notebook.id, form({ cardId: a.id, from: "1", insertAt: "0" }));
+    expect(state.error).toBeTruthy();
+  });
+});
+
+describe("moveNotebookColumn", () => {
+  it("見出し語の列より後ろの列を並べ替える", async () => {
+    await prisma.notebook.update({
+      where: { id: notebook.id },
+      data: { columns: ["見出し語", "意味", "例文", "発音"] },
+    });
+    loginAs(owner);
+    // 発音（3番）を、意味（1番）の前へ
+    expect(await moveNotebookColumn(notebook.id, form({ from: "3", insertAt: "1" }))).toEqual({});
+    const moved = await prisma.notebook.findUniqueOrThrow({ where: { id: notebook.id } });
+    expect(moved.columns).toEqual(["見出し語", "発音", "意味", "例文"]);
+  });
+
+  it("見出し語の列は動かせず、見出し語の列の前にも入れられない", async () => {
+    loginAs(owner);
+    expect(
+      (await moveNotebookColumn(notebook.id, form({ from: "0", insertAt: "2" }))).error,
+    ).toBeTruthy();
+    expect(
+      (await moveNotebookColumn(notebook.id, form({ from: "1", insertAt: "0" }))).error,
+    ).toBeTruthy();
+  });
+});
+
+describe("updateCards", () => {
+  it("既存の単語をまとめて書き換え、新しい行は後ろに単語として加える（空の行は飛ばす）", async () => {
+    const chat = await createCard(notebook.id, "chat", 0);
+    loginAs(editor);
+    const state = await updateCards(
+      notebook.id,
+      form({
+        cardId: chat.id,
+        [`card:${chat.id}:head`]: "chien",
+        [`card:${chat.id}:row:0:意味`]: "犬",
+        newCardId: "new-1",
+        "card:new-1:head": "oiseau",
+        "card:new-1:row:0:意味": "鳥",
+      }),
+    );
+    expect(state).toEqual({});
+    const cards = await prisma.card.findMany({
+      where: { notebookId: notebook.id },
+      orderBy: { position: "asc" },
+    });
+    expect(cards.map((card) => card.data)).toEqual([
+      { head: "chien", rows: [{ 意味: "犬" }] },
+      { head: "oiseau", rows: [{ 意味: "鳥" }] },
+    ]);
+  });
+
+  it("どれか1つでも入力に問題があれば、何も保存しない", async () => {
+    const chat = await createCard(notebook.id, "chat", 0);
+    loginAs(owner);
+    const state = await updateCards(
+      notebook.id,
+      form({
+        cardId: chat.id,
+        [`card:${chat.id}:head`]: "chien",
+        newCardId: "new-1",
+        "card:new-1:head": "",
+        "card:new-1:row:0:意味": "見出し語が空",
+      }),
+    );
+    expect(state.error).toBeTruthy();
+    const unchanged = await prisma.card.findMany({ where: { notebookId: notebook.id } });
+    expect(unchanged.map((card) => (card.data as { head: string }).head)).toEqual(["chat"]);
   });
 });
 
