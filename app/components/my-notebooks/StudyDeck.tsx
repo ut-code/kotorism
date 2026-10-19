@@ -241,12 +241,12 @@ export default function StudyDeck({
           <button
             type="button"
             onClick={() => setFlipped((f) => !f)}
-            className="flex h-[220px] w-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:bg-zinc-950 dark:hover:border-white/[.25]"
+            className="flex h-[220px] w-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-black/[.08] bg-white p-8 text-center transition-colors hover:border-black/[.15] dark:border-coral-800 dark:bg-coral-900/60 dark:hover:border-coral-500"
           >
             {!flipped ? (
               // 表面: 1列目（見出し語）だけを大きく表示する
               <>
-                <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-coral-200">
                   {frontColumn}
                 </span>
                 <span className="text-2xl font-semibold text-black dark:text-zinc-50">
@@ -261,7 +261,7 @@ export default function StudyDeck({
                   if (value === undefined) return null;
                   return (
                     <div key={column}>
-                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+                      <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-coral-200">
                         {column}
                       </p>
                       <p className="text-lg text-black dark:text-zinc-50">{value}</p>
@@ -271,9 +271,9 @@ export default function StudyDeck({
               </div>
             ) : (
               // 意味の列自体が無い、またはこのカードに項目が1件も登録されていない場合のフォールバック表示
-              <p className="text-sm text-zinc-500 dark:text-zinc-500">他に項目がありません</p>
+              <p className="text-sm text-zinc-500 dark:text-coral-200">他に項目がありません</p>
             )}
-            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
+            <span className="mt-2 text-xs text-zinc-400 dark:text-coral-300">
               クリックして{flipped ? "表" : "裏"}を見る
             </span>
           </button>
