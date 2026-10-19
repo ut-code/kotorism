@@ -1,3 +1,4 @@
+import PageTitle, { PAGE_MAIN_CLASS } from "@/components/PageTitle";
 import Link from "@/components/Link";
 
 import { prisma } from "@/lib/server/prisma.server";
@@ -50,11 +51,9 @@ export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
   const { notebooks, sharedNotebooks } = loaderData;
 
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-24">
+    <main className={PAGE_MAIN_CLASS}>
       <div className="w-full max-w-2xl text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          My単語帳
-        </h1>
+        <PageTitle>My単語帳</PageTitle>
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           単語帳を新規作成し、Excelファイルから単語をまとめて追加できます。
         </p>

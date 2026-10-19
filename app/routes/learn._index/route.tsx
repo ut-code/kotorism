@@ -1,3 +1,4 @@
+import PageTitle, { PAGE_MAIN_CLASS } from "@/components/PageTitle";
 import Link from "@/components/Link";
 import LanguageFlag from "@/components/learn/LanguageFlag";
 
@@ -17,11 +18,9 @@ export default function LearnPage({ loaderData }: Route.ComponentProps) {
   const { allSections } = loaderData;
 
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-16 sm:py-24">
+    <main className={PAGE_MAIN_CLASS}>
       <div className="w-full max-w-2xl text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          学習教材
-        </h1>
+        <PageTitle>学習教材</PageTitle>
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           学びたい言語を選択してください。
         </p>

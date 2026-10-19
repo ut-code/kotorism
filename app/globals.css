@@ -301,3 +301,98 @@ body {
     animation: none;
   }
 }
+
+/* フリックでのページ移動（components/SwipePageNavigator.tsx）。ヘッダーなどは動かさず、ページの中身だけを
+   指を動かした向きへスライドさせる。右隣へ移るとき（指は左へ）は古いページが左へ出ていき新しいページが右から入る。
+   どちらの隣へ移るかは <html data-swipe="left|right"> で受け取る */
+.vb-swipe-page {
+  view-transition-name: vb-swipe-page;
+}
+
+:root[data-swipe]::view-transition-old(root),
+:root[data-swipe]::view-transition-new(root) {
+  animation: none;
+}
+
+/* ヘッダーの下の ◀ ▶（components/SwipeHint.tsx）。画面全体（root）は動かさず静止画のままにするため、
+   ここにも名前を付けて、ページのスライドと同じ 0.3 秒で移った先のページの名前へ切り替える。
+   古い名前と新しい名前が重なって読みにくくならないよう、前半で古い名前を消してから後半で新しい名前を出す */
+.vb-swipe-hint {
+  view-transition-name: vb-swipe-hint;
+}
+
+:root[data-swipe]::view-transition-group(vb-swipe-hint) {
+  animation-duration: 0.3s;
+}
+:root[data-swipe]::view-transition-old(vb-swipe-hint) {
+  animation: vb-swipe-hint-out 0.15s ease-out both;
+}
+:root[data-swipe]::view-transition-new(vb-swipe-hint) {
+  animation: vb-swipe-hint-in 0.15s ease-in 0.15s both;
+}
+
+@keyframes vb-swipe-hint-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vb-swipe-hint-in {
+  from {
+    opacity: 0;
+  }
+}
+
+:root[data-swipe]::view-transition-group(vb-swipe-page) {
+  overflow: clip;
+  animation-duration: 0.3s;
+}
+
+:root[data-swipe="right"]::view-transition-old(vb-swipe-page) {
+  animation: vb-swipe-out-left 0.3s ease-out both;
+}
+:root[data-swipe="right"]::view-transition-new(vb-swipe-page) {
+  animation: vb-swipe-in-from-right 0.3s ease-out both;
+}
+:root[data-swipe="left"]::view-transition-old(vb-swipe-page) {
+  animation: vb-swipe-out-right 0.3s ease-out both;
+}
+:root[data-swipe="left"]::view-transition-new(vb-swipe-page) {
+  animation: vb-swipe-in-from-left 0.3s ease-out both;
+}
+
+@keyframes vb-swipe-out-right {
+  to {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+}
+@keyframes vb-swipe-in-from-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0.4;
+  }
+}
+@keyframes vb-swipe-out-left {
+  to {
+    transform: translateX(-100%);
+    opacity: 0.4;
+  }
+}
+@keyframes vb-swipe-in-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+}
+
+/* 動きを減らす設定の端末では、スライドさせずにすぐ切り替える */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-swipe]::view-transition-group(vb-swipe-page),
+  :root[data-swipe]::view-transition-old(vb-swipe-page),
+  :root[data-swipe]::view-transition-new(vb-swipe-page),
+  :root[data-swipe]::view-transition-group(vb-swipe-hint),
+  :root[data-swipe]::view-transition-old(vb-swipe-hint),
+  :root[data-swipe]::view-transition-new(vb-swipe-hint) {
+    animation: none;
+  }
+}
