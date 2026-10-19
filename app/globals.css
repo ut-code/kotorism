@@ -3,9 +3,21 @@
 /* 手動でライト/ダークを切り替えられるように、OS設定ではなくhtmlの.darkクラスを基準にする */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Google Fonts の Noto Sans JP は、マクロン付きの母音（ピンインの第1声 ā ē ī ō ū ǖ）の記号が右にずれて表示される。
+   この字だけを Noto Sans（OFL。Google Fonts から該当字だけを切り出したもの）で表示する。
+   unicode-range で対象の字を絞っているので、ほかの字は Noto Sans JP のまま */
+@font-face {
+  font-family: "Pinyin Macron";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/noto-sans-pinyin-macron.woff2") format("woff2");
+  unicode-range: U+0100-0101, U+0112-0113, U+012A-012B, U+014C-014D, U+016A-016B, U+01D5-01D6;
+}
+
 :root {
-  /* Google Fonts(app/root.tsx の links)で読み込むフォント */
-  --font-noto-sans-jp: "Noto Sans JP";
+  /* Google Fonts(app/root.tsx の links)で読み込むフォント。マクロン付きの母音だけ Pinyin Macron（上）で表示する */
+  --font-noto-sans-jp: "Pinyin Macron", "Noto Sans JP";
   --font-shippori-mincho: "Shippori Mincho";
   --font-hina-mincho: "Hina Mincho";
   --font-geist-mono: "Geist Mono";
@@ -23,7 +35,7 @@
 /* 簡体字（lang="zh-CN"）は中国語の字形のフォントで表示する。Noto Sans SC は読み込んだページ（簡体字と日本語漢字の比較など）でだけ使われ、
    それ以外では端末の中国語フォントになる */
 :lang(zh-CN) {
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Pinyin Macron", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .dark {
@@ -168,7 +180,7 @@ body {
 
 /* 簡体字であることを明示した文字（lang="zh-CN"）は、中国語の字形で表示する */
 :lang(zh-CN) {
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Pinyin Macron", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .vb-arrow-window {

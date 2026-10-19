@@ -2,6 +2,7 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
+import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
 import type { SubmitEssayResult } from "@/lib/server/essay/actions.server";
 import { getEssayTopics } from "@/lib/shared/essay/topics";
@@ -340,15 +341,30 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
               {unitLabel}程度で書いてください。
             </p>
 
-            <textarea
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              maxLength={2000}
-              rows={8}
-              disabled={pending}
-              placeholder={`ここに${languageLabel}で作文を書いてください…`}
-              className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            {languageSlug === "chinese" ? (
+              <div className="mt-4">
+                <ChineseImeInput
+                  multiline
+                  rows={8}
+                  maxLength={2000}
+                  value={content}
+                  onChange={setContent}
+                  disabled={pending}
+                  placeholder={`ここに${languageLabel}で作文を書いてください（ピンイン入力対応）…`}
+                  className="w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+            ) : (
+              <textarea
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                maxLength={2000}
+                rows={8}
+                disabled={pending}
+                placeholder={`ここに${languageLabel}で作文を書いてください…`}
+                className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+            )}
             <div className="mt-1 text-right text-xs text-zinc-400">
               {countEssayLength(content, lengthUnit)}
               {unitLabel}

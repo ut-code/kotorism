@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
+import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
 import type { SubmitTranslationResult } from "@/lib/server/translation/actions.server";
 import { ChoiceChips, PracticeButton, SettingRow } from "@/components/practice/PracticeControls";
@@ -334,19 +335,34 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             </div>
             <p className="text-zinc-800 dark:text-zinc-100">{activeProblem.sourceText}</p>
 
-            <textarea
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              maxLength={500}
-              rows={5}
-              disabled={pending}
-              placeholder={
-                activeProblem.direction === "fromJapanese"
-                  ? `ここに${languageLabel}で訳文を書いてください…`
-                  : "ここに日本語で訳文を書いてください…"
-              }
-              className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            {languageSlug === "chinese" && activeProblem.direction === "fromJapanese" ? (
+              <div className="mt-4">
+                <ChineseImeInput
+                  multiline
+                  rows={5}
+                  maxLength={500}
+                  value={content}
+                  onChange={setContent}
+                  disabled={pending}
+                  placeholder={`ここに${languageLabel}で訳文を書いてください（ピンイン入力対応）…`}
+                  className="w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+            ) : (
+              <textarea
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                maxLength={500}
+                rows={5}
+                disabled={pending}
+                placeholder={
+                  activeProblem.direction === "fromJapanese"
+                    ? `ここに${languageLabel}で訳文を書いてください…`
+                    : "ここに日本語で訳文を書いてください…"
+                }
+                className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+            )}
 
             {error && (
               <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">{error}</p>

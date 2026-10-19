@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import pinyin from "pinyin";
+// 既定の export はブラウザ向けのビルドで関数として取り出せないので、名前付きの export を使う
+import { pinyin } from "pinyin";
 
 interface CustomSpeechRecognitionErrorEvent extends Event {
   readonly error: string;
