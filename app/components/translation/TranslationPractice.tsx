@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
+import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
 import { AccentTextarea } from "@/components/practice/AccentTextarea";
 import { getPracticeLanguage } from "@/lib/shared/practice-languages";
@@ -192,14 +193,8 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
               <ChoiceChips
                 label="訳す方向"
                 options={[
-                  {
-                    value: "fromJapanese",
-                    label: directionLabel("fromJapanese", languageLabel),
-                  },
-                  {
-                    value: "toJapanese",
-                    label: directionLabel("toJapanese", languageLabel),
-                  },
+                  { value: "fromJapanese", label: directionLabel("fromJapanese", languageLabel) },
+                  { value: "toJapanese", label: directionLabel("toJapanese", languageLabel) },
                 ]}
                 value={direction}
                 onChange={selectDirection}
@@ -345,21 +340,36 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             </div>
             <p className="text-zinc-800 dark:text-zinc-100">{activeProblem.sourceText}</p>
 
-            <AccentTextarea
-              value={content}
-              onChange={setContent}
-              // 日本語 → 外国語のときは、訳文を外国語で入力する
-              language={activeProblem.direction === "fromJapanese" ? practiceLanguage : undefined}
-              maxLength={500}
-              rows={5}
-              disabled={pending}
-              placeholder={
-                activeProblem.direction === "fromJapanese"
-                  ? `ここに${languageLabel}で訳文を書いてください…`
-                  : "ここに日本語で訳文を書いてください…"
-              }
-              className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            {languageSlug === "chinese" && activeProblem.direction === "fromJapanese" ? (
+              <div className="mt-4">
+                <ChineseImeInput
+                  multiline
+                  rows={5}
+                  maxLength={500}
+                  value={content}
+                  onChange={setContent}
+                  disabled={pending}
+                  placeholder={`ここに${languageLabel}で訳文を書いてください（ピンイン入力対応）…`}
+                  className="w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+            ) : (
+              <AccentTextarea
+                value={content}
+                onChange={setContent}
+                // 日本語 → 外国語のときは、訳文を外国語で入力する
+                language={activeProblem.direction === "fromJapanese" ? practiceLanguage : undefined}
+                maxLength={500}
+                rows={5}
+                disabled={pending}
+                placeholder={
+                  activeProblem.direction === "fromJapanese"
+                    ? `ここに${languageLabel}で訳文を書いてください…`
+                    : "ここに日本語で訳文を書いてください…"
+                }
+                className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+            )}
 
             {error && (
               <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">{error}</p>

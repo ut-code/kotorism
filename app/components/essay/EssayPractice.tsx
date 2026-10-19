@@ -2,6 +2,7 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
+import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
 import { AccentTextarea } from "@/components/practice/AccentTextarea";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
 import { getPracticeLanguage } from "@/lib/shared/practice-languages";
@@ -117,11 +118,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
     } else {
       const prompt = customPrompt.trim();
       if (!prompt) return;
-      setActiveTopic({
-        source: "custom",
-        prompt,
-        targetWordCount: customWordCount,
-      });
+      setActiveTopic({ source: "custom", prompt, targetWordCount: customWordCount });
     }
     setContent("");
     setError(null);
@@ -347,16 +344,31 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
               {unitLabel}程度で書いてください。
             </p>
 
-            <AccentTextarea
-              value={content}
-              onChange={setContent}
-              language={practiceLanguage}
-              maxLength={2000}
-              rows={8}
-              disabled={pending}
-              placeholder={`ここに${languageLabel}で作文を書いてください…`}
-              className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            {languageSlug === "chinese" ? (
+              <div className="mt-4">
+                <ChineseImeInput
+                  multiline
+                  rows={8}
+                  maxLength={2000}
+                  value={content}
+                  onChange={setContent}
+                  disabled={pending}
+                  placeholder={`ここに${languageLabel}で作文を書いてください（ピンイン入力対応）…`}
+                  className="w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
+            ) : (
+              <AccentTextarea
+                value={content}
+                onChange={setContent}
+                language={practiceLanguage}
+                maxLength={2000}
+                rows={8}
+                disabled={pending}
+                placeholder={`ここに${languageLabel}で作文を書いてください…`}
+                className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+            )}
             <div className="mt-1 text-right text-xs text-zinc-400">
               {countEssayLength(content, lengthUnit)}
               {unitLabel}
