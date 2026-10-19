@@ -232,9 +232,6 @@ export default function StudyDeck({
               width={320}
               height={220}
             />
-            <span className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
-              クリックして次の面へ回転（{activeColumns.length}角柱）
-            </span>
           </div>
         ) : (
           /* それ以外の時は元通りの表裏ボタン */
