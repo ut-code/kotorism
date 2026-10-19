@@ -10,10 +10,16 @@ import {
   parseCardHead,
   parseCardValue,
   parseColumnName,
+  parseDuplicateChoice,
+  parseNewNotebookTitle,
   parseNotebookTitle,
   parseStarCount,
 } from "@/lib/shared/notebook-schema";
 import type { FormState } from "@/lib/shared/form-state";
+import { clampToGroup, notebookGroup, sortNotebooks } from "@/lib/shared/notebook-order";
+import { datedTitle, numberedTitle, type RenameNotebookState } from "@/lib/shared/notebook-title";
+import { moveToInsertionPoint } from "@/lib/shared/reorder";
+import { toStudyDay } from "@/lib/shared/study-calendar";
 import { recordStudyEvent } from "@/lib/server/study-events.server";
 
 // フォームの入力を検証してカードのデータにする。不正な入力(空の見出し語・長すぎる値)はエラーメッセージを返す
@@ -108,28 +114,151 @@ export async function importCardsFromExcel(
 export async function createBlankNotebook(formData: FormData): Promise<FormState> {
   const user = await requireUser();
 
-  const title = parseNotebookTitle(formData.get("title") ?? "");
+  // 一覧の「新しい単語帳」ではタイトルを送らないので、仮のタイトル（無題の単語帳）で作る
+  const title = parseNewNotebookTitle(formData.get("title"));
   if (!title.success) {
     return { error: title.error };
   }
 
+  // 新しい単語帳は、一覧のお気に入り以外（学習済みも除く）の一番上に並べる（並び順を、いまの一番上より1つ小さくする）
+  const top = await prisma.notebook.aggregate({
+    where: { userId: user.id, favorite: false, studied: false },
+    _min: { listPosition: true },
+  });
   const notebook = await prisma.notebook.create({
     data: {
       title: title.data,
       userId: user.id,
       columns: ["見出し語", "意味"],
+      listPosition: (top._min.listPosition ?? 1) - 1,
     },
   });
 
-  throw redirect(`/my-notebooks/${notebook.id}`);
+  // ?new=1 で開くと、単語帳のページはタイトルを入力できる状態で始まる（NotebookTitle）
+  throw redirect(`/my-notebooks/${notebook.id}?new=1`);
 }
 
-// 単語帳を削除する（中の単語もまとめて削除される）。作成者のみ実行可能
+// 単語帳のタイトルを変える。作成者のみ実行可能。
+// 自分の別の単語帳と名前が重なるときは、選び方（onDuplicate）が無ければ保存せずに候補を返し、
+// 選び方があれば「このまま」「番号を付ける」「今日の日付を付ける」のどれかで保存する
+export async function renameNotebook(
+  notebookId: string,
+  formData: FormData,
+): Promise<RenameNotebookState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "owner");
+  const title = parseNotebookTitle(formData.get("title") ?? "");
+  if (!title.success) return { error: title.error };
+  const choice = parseDuplicateChoice(formData.get("onDuplicate"));
+  if (!choice.success) return { error: choice.error };
+
+  const others = await prisma.notebook.findMany({
+    where: { userId: user.id, id: { not: notebookId } },
+    select: { title: true },
+  });
+  const existing = others.map((other) => other.title);
+  let newTitle = title.data;
+  if (existing.includes(title.data)) {
+    const today = toStudyDay(new Date());
+    const numbered = numberedTitle(title.data, existing);
+    const dated = datedTitle(title.data, today, existing);
+    if (choice.data === undefined) {
+      return { duplicate: { title: title.data, numbered, dated } };
+    }
+    if (choice.data === "number") newTitle = numbered;
+    if (choice.data === "date") newTitle = dated;
+  }
+
+  await prisma.notebook.update({ where: { id: notebookId }, data: { title: newTitle } });
+  return {};
+}
+
+// My単語帳の一覧で、単語帳をお気に入りにする・外す。お気に入りは一覧の一番上にまとめて並ぶ。作成者のみ実行可能
+export async function toggleNotebookFavorite(notebookId: string): Promise<FormState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "owner");
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId },
+    select: { favorite: true },
+  });
+  await prisma.notebook.update({
+    where: { id: notebookId },
+    data: { favorite: !notebook.favorite },
+  });
+  return {};
+}
+
+// My単語帳の一覧で、単語帳を長押ししたまま動かして並べ替える。notebookId の単語帳を、beforeNotebookId の単語帳の前へ
+// （無ければ自分のまとまりのいちばん後ろへ）動かす。番号ではなく id で受け取るので、並べ替えている間に
+// 別の画面で単語帳が増減していても、狙った位置に入る。自分の単語帳を一覧と同じ順（sortNotebooks）に並べてから動かし、
+// 並びの順に listPosition を振り直す。お気に入りとそれ以外の境目はまたがず、自分のまとまりの端に入れる（clampToGroup）
+export async function moveNotebook(formData: FormData): Promise<FormState> {
+  const user = await requireUser();
+  const notebooks = sortNotebooks(
+    await prisma.notebook.findMany({
+      where: { userId: user.id },
+      select: { id: true, favorite: true, studied: true, listPosition: true, createdAt: true },
+    }),
+  );
+  const ids = notebooks.map((notebook) => notebook.id);
+  const from = ids.indexOf(String(formData.get("notebookId") ?? ""));
+  const beforeId = String(formData.get("beforeNotebookId") ?? "");
+  const before = beforeId === "" ? notebooks.length : ids.indexOf(beforeId);
+  if (from === -1 || before === -1) {
+    return { error: "並べ替える単語帳が見つかりません。ページを再読み込みしてください。" };
+  }
+  // 前に入れる単語帳を指定しないとき（before が一覧の末尾）は、自分のまとまりのいちばん後ろへ収まる
+  const insertAt = clampToGroup(notebooks.map(notebookGroup), from, before);
+
+  const ordered = moveToInsertionPoint(notebooks, from, insertAt);
+  await prisma.$transaction(
+    ordered
+      .map((notebook, position) => ({ ...notebook, newPosition: position }))
+      .filter((notebook) => notebook.listPosition !== notebook.newPosition)
+      .map((notebook) =>
+        prisma.notebook.update({
+          where: { id: notebook.id },
+          data: { listPosition: notebook.newPosition },
+        }),
+      ),
+  );
+  return {};
+}
+
+// My単語帳の一覧で、単語帳を学習済みにする・学習中に戻す。学習済みは一覧の一番下にまとめてグレーで並ぶ。作成者のみ実行可能
+export async function toggleNotebookStudied(notebookId: string): Promise<FormState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "owner");
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId },
+    select: { studied: true },
+  });
+  await prisma.notebook.update({
+    where: { id: notebookId },
+    data: { studied: !notebook.studied },
+  });
+  return {};
+}
+
+// 単語帳を削除する（中の単語もまとめて削除される）。作成者のみ実行可能。
+// 学習記録（StudyEvent など）は単語帳と外部キーでつないでいないので残る。学習カレンダーで元の名前を出せるよう、
+// 削除と同時に名前を控えておく（DeletedNotebook）
 export async function deleteNotebook(notebookId: string) {
   const user = await requireUser();
   await requireNotebookRole(notebookId, user.id, "owner");
 
-  await prisma.notebook.delete({ where: { id: notebookId, userId: user.id } });
+  const notebook = await prisma.notebook.findUniqueOrThrow({
+    where: { id: notebookId, userId: user.id },
+    select: { title: true },
+  });
+  await prisma.$transaction([
+    prisma.deletedNotebook.upsert({
+      where: { id: notebookId },
+      create: { id: notebookId, title: notebook.title },
+      update: { title: notebook.title, deletedAt: new Date() },
+    }),
+    prisma.notebook.delete({ where: { id: notebookId, userId: user.id } }),
+  ]);
   throw redirect("/my-notebooks");
 }
 

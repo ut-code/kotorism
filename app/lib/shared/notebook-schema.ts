@@ -28,6 +28,21 @@ const cardValueSchema = z
 
 export const parseNotebookTitle = (input: unknown): ParseResult<string> =>
   parseWith(notebookTitleSchema, input);
+// 一覧の「新しい単語帳」で作るときは、まず空の単語帳を開き、タイトルは開いたページで付ける。
+// タイトルが空のまま作るときは、この名前にしておく
+export const DEFAULT_NOTEBOOK_TITLE = "無題の単語帳";
+export const parseNewNotebookTitle = (input: unknown): ParseResult<string> =>
+  typeof input !== "string" || input.trim() === ""
+    ? { success: true, data: DEFAULT_NOTEBOOK_TITLE }
+    : parseNotebookTitle(input);
+// 単語帳のタイトルが自分の別の単語帳と重なったときの選び方。このまま・番号を付ける・今日の日付を付ける。
+// 選んでいない（初めて保存しようとした）ときは undefined で、重なっていれば候補を返して選んでもらう
+const duplicateChoiceSchema = z
+  .enum(["keep", "number", "date"], { error: "名前の付け方が正しくありません。" })
+  .optional();
+export type DuplicateChoice = z.infer<typeof duplicateChoiceSchema>;
+export const parseDuplicateChoice = (input: unknown): ParseResult<DuplicateChoice> =>
+  parseWith(duplicateChoiceSchema, input ?? undefined);
 export const parseColumnName = (input: unknown): ParseResult<string> =>
   parseWith(columnNameSchema, input);
 export const parseCardHead = (input: unknown): ParseResult<string> =>

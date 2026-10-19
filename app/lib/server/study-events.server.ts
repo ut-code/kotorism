@@ -230,11 +230,33 @@ export async function getDailyStats(
 
 // 絞り込みに出す単語帳。今アクセスできる単語帳（自分の単語帳・共同編集中の単語帳）に限る
 export async function getDeckOptions(userId: string): Promise<{ id: string; title: string }[]> {
-  return prisma.notebook.findMany({
-    where: { OR: [{ userId }, { shares: { some: { userId } } }] },
+  const [notebooks, studiedDecks] = await Promise.all([
+    prisma.notebook.findMany({
+      where: { OR: [{ userId }, { shares: { some: { userId } } }] },
+      orderBy: { title: "asc" },
+      select: { id: true, title: true },
+    }),
+    // 学習記録のある単語帳。削除済みでも記録が残っていれば、絞り込みに出す
+    prisma.studyDailyStat.findMany({
+      where: { userId, deckId: { not: "" } },
+      distinct: ["deckId"],
+      select: { deckId: true },
+    }),
+  ]);
+  const deleted = await prisma.deletedNotebook.findMany({
+    where: { id: { in: studiedDecks.map((stat) => stat.deckId) } },
     orderBy: { title: "asc" },
     select: { id: true, title: true },
   });
+  return [
+    ...notebooks,
+    ...deleted.map((notebook) => ({ id: notebook.id, title: deletedLabel(notebook.title) })),
+  ];
+}
+
+// 削除した単語帳の表示名（元の名前に「（削除済み）」を付ける）
+function deletedLabel(title: string) {
+  return `${title}（削除済み）`;
 }
 
 type ActivityRow = {
@@ -293,13 +315,24 @@ export async function getPeriodDetail(
     select: { id: true, title: true },
   });
   const deckTitles = new Map(decks.map((deck) => [deck.id, deck.title]));
+  // 削除した単語帳は、削除時に控えた名前で出す
+  const deletedDecks = await prisma.deletedNotebook.findMany({
+    where: { id: { in: deckIds.filter((id) => !deckTitles.has(id)) } },
+    select: { id: true, title: true },
+  });
+  const deletedTitles = new Map(deletedDecks.map((deck) => [deck.id, deck.title]));
 
   const materials = new Map<string, PeriodMaterial>();
   async function materialFor(row: ActivityRow): Promise<PeriodMaterial> {
     const key = materialKey(row);
     let material = materials.get(key);
     if (!material) {
-      material = { key, ...(await describeMaterial(row, deckTitles)), seconds: 0, counts: [] };
+      material = {
+        key,
+        ...(await describeMaterial(row, deckTitles, deletedTitles)),
+        seconds: 0,
+        counts: [],
+      };
       materials.set(key, material);
     }
     return material;
@@ -359,11 +392,17 @@ export async function getPeriodDetail(
 async function describeMaterial(
   row: ActivityRow,
   deckTitles: Map<string, string>,
+  deletedTitles: Map<string, string>,
 ): Promise<Pick<PeriodMaterial, "label" | "category" | "href">> {
   if (row.deckId) {
     const title = deckTitles.get(row.deckId);
+    const deletedTitle = deletedTitles.get(row.deckId);
     return {
-      label: title ?? "（削除された、または共有が解除された単語帳）",
+      label:
+        title ??
+        (deletedTitle !== undefined
+          ? deletedLabel(deletedTitle)
+          : "（削除された、または共有が解除された単語帳）"),
       category: NOTEBOOK_CATEGORY,
       href: title ? `/my-notebooks/${row.deckId}` : null,
     };

@@ -54,6 +54,15 @@ describe("parseExcelWorkbook", () => {
       ExcelParseError,
     );
   });
+
+  it("xlsx でないデータのエラーでは、Googleスプレッドシートを .xlsx で書き出す方法を案内する", async () => {
+    // Googleスプレッドシートから CSV などで書き出したファイルを選んだときを想定する
+    await expect(
+      parseExcelWorkbook(new TextEncoder().encode("見出し語,意味\nmerci,ありがとう").buffer),
+    ).rejects.toThrow(
+      /Googleスプレッドシート.*「ファイル」→「ダウンロード」→「Microsoft Excel（\.xlsx）」/,
+    );
+  });
 });
 
 describe("createTemplateWorkbookBuffer", () => {
