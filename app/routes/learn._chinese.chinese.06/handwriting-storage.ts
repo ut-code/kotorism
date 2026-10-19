@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
 
+import { createRandomId } from "@/lib/shared/random-id";
+
 // 手書き練習で保存した字（PNG画像）を、このブラウザの localStorage に保存する。
 // 目視で見返すための記録なので、サーバーには送らない（端末・ブラウザごとの保存になる）
 
@@ -72,7 +74,7 @@ export function useSavedHandwritings() {
     items: list,
     add: (entry: Omit<SavedHandwriting, "id" | "savedAt">) =>
       commit([
-        { ...entry, id: crypto.randomUUID(), savedAt: new Date().toISOString() },
+        { ...entry, id: createRandomId(), savedAt: new Date().toISOString() },
         ...getSnapshot(),
       ]),
     remove: (id: string) => commit(getSnapshot().filter((entry) => entry.id !== id)),
