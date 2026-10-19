@@ -1,3 +1,4 @@
+import PageTitle, { PAGE_MAIN_CLASS } from "@/components/PageTitle";
 import RecentActivity from "@/components/home/RecentActivity";
 import StudyCalendar from "@/components/history/StudyCalendar";
 import { LANGUAGES, getLanguage } from "@/lib/shared/learn/languages";
@@ -93,11 +94,9 @@ export default function HistoryPage({ loaderData }: Route.ComponentProps) {
   const { notebooks, sections, calendar } = loaderData;
 
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-16">
+    <main className={PAGE_MAIN_CLASS}>
       <div className="flex w-full max-w-5xl flex-col gap-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          最近の学習履歴
-        </h1>
+        <PageTitle>最近の学習履歴</PageTitle>
         <RecentActivity notebooks={notebooks} sections={sections} />
         <StudyCalendar {...calendar} />
       </div>
