@@ -1,43 +1,24 @@
-import { Quiz as PracticeQuiz, type QuizAnswerMode } from "@/components/practice/Quiz";
+import { useState } from "react";
+
+import { CheckboxPicker } from "@/components/practice/CheckboxPicker";
+import { Quiz as PracticeQuiz } from "@/components/practice/Quiz";
 import {
   BLANK,
-  isFillInCorrect,
-  type AuxVerbQuestion,
+  filterByUnits,
+  GRAMMAR_UNITS,
   type ChoiceFocus,
-} from "@/lib/shared/learn/aux-verb-quiz";
+  type GrammarQuestion,
+} from "@/lib/shared/learn/grammar-quiz";
 
-import { auxiliaryVerbQuiz } from "./quiz-data";
+import { grammarQuiz } from "./quiz-data";
 
-type Item = {
-  id: string;
-  // 答え合わせ・結果画面に出す正解（穴埋めはピンインも添える）
-  answer: string;
-  explanation: string;
-  question: AuxVerbQuestion;
-};
+const unitItems = GRAMMAR_UNITS.map((u) => ({ id: u.id, label: u.label, sub: u.sub }));
 
-const items: Item[] = auxiliaryVerbQuiz.map((q) => ({
-  id: q.id,
-  answer: q.kind === "fill" ? `${q.answer}（${q.pinyin}）` : q.answer,
-  explanation: q.explanation,
-  question: q,
-}));
-
-const INSTRUCTIONS: Record<ChoiceFocus | "fill", string> = {
+const INSTRUCTIONS: Record<ChoiceFocus, string> = {
   meaning: "意味　この文の意味は？",
   form: "形　日本語に合う中国語は？",
   context: "文脈　会話の流れに合う表現は？",
-  fill: "穴埋め　空欄に入る否定表現を入力しよう",
-};
-
-const fillMode: QuizAnswerMode<Item> = {
-  kind: "typing",
-  accentCycles: [],
-  toolbarChars: [],
-  hint: "漢字（日本語入力で「ふよう」→「不用」など）か、ピンイン（声調記号は省略可）で入力できます。",
-  placeholder: "例: 不用 / buyong",
-  isCorrect: (given, item) =>
-    item.question.kind === "fill" && isFillInCorrect(given, item.question),
+  blank: "穴埋め　空欄に入る語は？",
 };
 
 // 空欄入りの中国語文。空欄は下線で示し、答え合わせ後は正解を埋めて見せる
@@ -54,17 +35,7 @@ function BlankSentence({ text, filled }: { text: string; filled?: string }) {
   );
 }
 
-function Prompt({ q, answered }: { q: AuxVerbQuestion; answered: boolean }) {
-  if (q.kind === "fill") {
-    return (
-      <div className="space-y-3">
-        <p lang="zh-CN" className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-          <BlankSentence text={q.sentence} filled={answered ? q.answer : undefined} />
-        </p>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{q.translation}</p>
-      </div>
-    );
-  }
+function Prompt({ q, answered }: { q: GrammarQuestion; answered: boolean }) {
   if (q.focus === "form") {
     return <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{q.prompt}</p>;
   }
@@ -86,38 +57,36 @@ function Prompt({ q, answered }: { q: AuxVerbQuestion; answered: boolean }) {
   );
 }
 
-// 助動詞の否定表現クイズ。「意味」「形」「文脈」の3観点の4択と、穴埋め（入力）を混ぜて出題する。
+// 文法クイズ。選んだ単元の問題を、「意味」「形」「文脈」「穴埋め」の4観点の4択で出題する。
 // 出題順は「練習を始める」を押したときに決めるので、サーバーとブラウザで表示が食い違わない
 export default function Quiz() {
+  const [units, setUnits] = useState<Set<string>>(() => new Set(GRAMMAR_UNITS.map((u) => u.id)));
+
   return (
     <PracticeQuiz
-      pool={items}
+      pool={filterByUnits(grammarQuiz, units)}
+      settings={
+        <CheckboxPicker
+          title="出題する単元"
+          unit="単元"
+          items={unitItems}
+          selected={units}
+          onChange={setUnits}
+          columnsClassName="grid-cols-1 sm:grid-cols-2"
+        />
+      }
+      emptyMessage="出題する単元を1つ以上選んでください。"
       countOptions={["10", "all"]}
       defaultCount="10"
       lang="ja"
-      mode={(item) =>
-        item.question.kind === "fill"
-          ? fillMode
-          : {
-              kind: "choice",
-              choices: (i) => (i.question.kind === "choice" ? i.question.choices : []),
-            }
-      }
-      instruction={(item) =>
-        INSTRUCTIONS[item.question.kind === "fill" ? "fill" : item.question.focus]
-      }
-      renderPrompt={(item, answered) => <Prompt q={item.question} answered={answered} />}
-      renderMistakePrompt={(item) => {
-        const q = item.question;
-        return (
-          <span
-            lang={q.kind === "choice" && q.focus === "form" ? "ja" : "zh-CN"}
-            className="font-semibold"
-          >
-            {(q.kind === "fill" ? q.sentence : q.prompt).replace("\n", " ")}
-          </span>
-        );
-      }}
+      mode={{ kind: "choice", choices: (q) => q.choices }}
+      instruction={(q) => INSTRUCTIONS[q.focus]}
+      renderPrompt={(q, answered) => <Prompt q={q} answered={answered} />}
+      renderMistakePrompt={(q) => (
+        <span lang={q.focus === "form" ? "ja" : "zh-CN"} className="font-semibold">
+          {q.prompt.replace("\n", " ")}
+        </span>
+      )}
     />
   );
 }
