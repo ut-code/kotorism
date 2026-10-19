@@ -106,7 +106,7 @@ export default function Home() {
           <div className="mt-8 grid w-full grid-cols-2 gap-3 sm:mt-4 sm:flex sm:w-auto sm:justify-center sm:gap-4">
             <Link
               href="/signup"
-              className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-coral-500 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-coral-600 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
+              className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-zinc-900 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-black dark:bg-zinc-700 dark:hover:bg-zinc-800 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
               新規登録する
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
@@ -116,7 +116,7 @@ export default function Home() {
             </Link>
             <Link
               href="/login"
-              className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-tealblue-600 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-tealblue-700 sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
+              className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-[#7FCDCC] py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-[#5BB5B4] sm:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
             >
               ログインする
               {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
