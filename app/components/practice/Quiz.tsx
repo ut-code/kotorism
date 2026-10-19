@@ -42,6 +42,9 @@ export type QuizAnswerMode<Q> =
     }
   | { kind: "choice"; choices: (question: Q) => string[] };
 
+// 問題ごとに変えられる設定（固定の値か、問題から決める関数）
+type PerQuestion<Q, T> = T | ((question: Q) => T);
+
 export type CountOption = "5" | "10" | "20" | "all";
 type TimerOption = "off" | "15" | "30" | "45";
 
@@ -83,7 +86,7 @@ export function Quiz<Q extends QuizQuestion>({
   defaultCount = "10",
   timer = false,
   lang,
-  mode,
+  mode: modeOption,
   instruction,
   renderPrompt,
   renderMistakePrompt,
@@ -104,9 +107,10 @@ export function Quiz<Q extends QuizQuestion>({
   timer?: boolean;
   // 答えの言語（HTML の lang 属性）
   lang: string;
-  mode: QuizAnswerMode<Q>;
+  // 答え方。関数にすると問題ごとに答え方を変えられる（選択式と入力式を混ぜる、など）
+  mode: PerQuestion<Q, QuizAnswerMode<Q>>;
   // 問題の上に出す小さな指示文
-  instruction: ReactNode;
+  instruction: PerQuestion<Q, ReactNode>;
   // 出題中の大きな問題。answered は答え合わせ後かどうか（答え合わせ後にだけ意味を出す、など）
   renderPrompt: (question: Q, answered: boolean) => ReactNode;
   // 結果画面の「間違えた問題」に出す短い問題の表記
@@ -140,6 +144,13 @@ export function Quiz<Q extends QuizQuestion>({
 
   const timeLimit = timerOption === "off" ? null : Number(timerOption);
   const question = questions[index];
+  // 今の問題の答え方（出題前は問題が無いので、関数のときは選択式として扱う）
+  const mode: QuizAnswerMode<Q> =
+    typeof modeOption === "function"
+      ? question
+        ? modeOption(question)
+        : { kind: "choice", choices: () => [] }
+      : modeOption;
   // 今の問題の答え合わせの結果（未回答なら undefined）
   const current = records[index];
   const correctCount = records.filter((r) => r.outcome === "correct").length;
@@ -310,7 +321,9 @@ export function Quiz<Q extends QuizQuestion>({
           />
 
           <div className="mt-10 text-center">
-            <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">{instruction}</p>
+            <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+              {typeof instruction === "function" ? instruction(question) : instruction}
+            </p>
             <div className="mt-4">{renderPrompt(question, !!current)}</div>
           </div>
 
