@@ -9,46 +9,8 @@ import {
   SpeakButton,
 } from "@/components/practice/PracticeControls";
 import { Quiz, QuizEmpty } from "@/components/practice/Quiz";
+import { PINYIN_TONE_CYCLES, PINYIN_TOOLBAR_CHARS } from "@/lib/shared/pinyin-tones";
 import { speak } from "@/lib/shared/speech";
-
-// 母音ごとの声調サイクル。母音を入力した直後に ↑/↓ キーで
-// 第1声→第2声→第3声→第4声（→軽声）と切り替えられる。
-const TONE_CYCLES: string[][] = [
-  ["a", "ā", "á", "ǎ", "à"],
-  ["e", "ē", "é", "ě", "è"],
-  ["i", "ī", "í", "ǐ", "ì"],
-  ["o", "ō", "ó", "ǒ", "ò"],
-  ["u", "ū", "ú", "ǔ", "ù"],
-  ["ü", "ǖ", "ǘ", "ǚ", "ǜ"],
-];
-
-const TOOLBAR_CHARS = [
-  "ü",
-  "ā",
-  "á",
-  "ǎ",
-  "à",
-  "ē",
-  "é",
-  "ě",
-  "è",
-  "ī",
-  "í",
-  "ǐ",
-  "ì",
-  "ō",
-  "ó",
-  "ǒ",
-  "ò",
-  "ū",
-  "ú",
-  "ǔ",
-  "ù",
-  "ǖ",
-  "ǘ",
-  "ǚ",
-  "ǜ",
-];
 
 // 声調記号付きの母音 → { 基本母音, 声調番号 }
 const TONE_MARKS: Record<string, { base: string; tone: string }> = {
@@ -181,8 +143,8 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
       }
       mode={{
         kind: "typing",
-        accentCycles: TONE_CYCLES,
-        toolbarChars: TOOLBAR_CHARS,
+        accentCycles: PINYIN_TONE_CYCLES,
+        toolbarChars: PINYIN_TOOLBAR_CHARS,
         chordReplacements: { "u\\": "ü" },
         isCorrect: (given, q) => canonicalPinyin(given) === canonicalPinyin(q.pinyin),
         placeholder: "ピンインを入力…",
