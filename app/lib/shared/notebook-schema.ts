@@ -50,6 +50,14 @@ export const parseCardHead = (input: unknown): ParseResult<string> =>
 export const parseCardValue = (input: unknown): ParseResult<string> =>
   parseWith(cardValueSchema, input);
 
+// 表の行（単語）・列の並べ替え。from 番目を、動かす前の並びでの insertAt 番目の間へ動かす（lib/shared/reorder.ts）。
+// 範囲（項目の数）はサーバー側で、実際の行・列の数と照らし合わせて確かめる
+const invalidMove = { error: "並べ替えの位置が正しくありません。" };
+const indexSchema = z.coerce.number(invalidMove).int(invalidMove).min(0, invalidMove);
+const moveSchema = z.object({ from: indexSchema, insertAt: indexSchema });
+export const parseMove = (input: unknown): ParseResult<{ from: number; insertAt: number }> =>
+  parseWith(moveSchema, input);
+
 // ★の回数。整数に丸め、0 以上 MAX_STAR_COUNT 以下に収める。数値でなければ 0
 export function parseStarCount(input: unknown): number {
   const value = Number(input);

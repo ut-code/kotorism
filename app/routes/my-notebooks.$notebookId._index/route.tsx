@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useFetcher } from "react-router";
+
 import Link from "@/components/Link";
 
 import { prisma } from "@/lib/server/prisma.server";
@@ -5,26 +8,28 @@ import { requireUser } from "@/lib/server/session.server";
 import { recordNotebookView } from "@/lib/server/recent-activity.server";
 import { getNotebookRole } from "@/lib/server/notebook-access.server";
 import { notFound } from "@/lib/server/http.server";
-import CardRow from "./CardRow";
+import NotebookTable from "./NotebookTable";
 import NotebookTitle from "./NotebookTitle";
-import CreateCardForm from "./CreateCardForm";
-import ColumnsEditor from "@/components/my-notebooks/ColumnsEditor";
 import ImportCardsForm from "@/components/my-notebooks/ImportCardsForm";
 import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
 import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
 import ShareManager from "@/components/my-notebooks/ShareManager";
 import { normalizeCardData } from "@/lib/shared/card-data";
+import type { FormState } from "@/lib/shared/form-state";
 import { normalizeColumns } from "@/lib/shared/notebook-columns";
 import {
   addNotebookColumn,
+  addStar,
   createCard,
   deleteCard,
   deleteNotebook,
   deleteNotebookColumn,
   importCardsFromExcel,
   incrementViewCount,
-  recordCardQuizAnswer,
+  moveCard,
+  moveNotebookColumn,
   renameNotebook,
+  recordCardQuizAnswer,
   renameNotebookColumn,
   resetAllStars,
   resetStar,
@@ -32,6 +37,7 @@ import {
   toggleNotebookPublic,
   toggleStar,
   updateCard,
+  updateCards,
 } from "@/lib/server/my-notebooks/actions.server";
 import {
   createInvite,
@@ -54,10 +60,14 @@ export async function action({ request, params }: Route.ActionArgs) {
         return createCard(notebookId, formData);
       case "updateCard":
         return updateCard(text("cardId"), notebookId, formData);
+      case "updateCards":
+        return updateCards(notebookId, formData);
       case "deleteCard":
         return deleteCard(text("cardId"), notebookId);
       case "toggleStar":
         return toggleStar(text("cardId"), notebookId);
+      case "addStar":
+        return addStar(text("cardId"), notebookId);
       case "setStarCount":
         return setStarCount(text("cardId"), notebookId, formData);
       case "resetStar":
@@ -80,6 +90,10 @@ export async function action({ request, params }: Route.ActionArgs) {
         return renameNotebookColumn(notebookId, Number(text("columnIndex")), formData);
       case "deleteColumn":
         return deleteNotebookColumn(notebookId, Number(text("columnIndex")));
+      case "moveColumn":
+        return moveNotebookColumn(notebookId, formData);
+      case "moveCard":
+        return moveCard(notebookId, formData);
       case "togglePublic":
         return toggleNotebookPublic(notebookId);
       case "deleteNotebook":
@@ -190,12 +204,28 @@ export async function loader({ params }: Route.LoaderArgs) {
   };
 }
 
+// 表をまとめて編集するときに、表の中の入力欄を form 属性で結び付けるフォームのid
+const BULK_EDIT_FORM_ID = "bulk-edit-cards";
+const noFormState: FormState = {};
+
 export default function NotebookPage({ loaderData }: Route.ComponentProps) {
   const { notebook, isOwner, invites, shares, columns, cards, starredCount, hasAnyStars } =
     loaderData;
 
+  // 「表を編集」を押すと、表のすべてのセルを入力欄にしてまとめて保存できる（intent=updateCards）。
+  // 保存に成功したら表示に戻り、入力に問題があれば何も保存せずに理由を表示して編集を続ける
+  const [editingAll, setEditingAll] = useState(false);
+  const bulkFetcher = useFetcher<FormState>();
+  const bulkState = bulkFetcher.data ?? noFormState;
+  const savingAll = bulkFetcher.state !== "idle";
+  const [prevBulkState, setPrevBulkState] = useState(bulkState);
+  if (bulkState !== prevBulkState) {
+    setPrevBulkState(bulkState);
+    if (!bulkState.error) setEditingAll(false);
+  }
+
   return (
-    <main className="flex flex-1 flex-col items-center px-6 py-16">
+    <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-4xl">
         <Link
           href="/my-notebooks"
@@ -229,24 +259,25 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
             )}
           </div>
           {notebook.cardCount > 0 && (
-            <div className="flex items-center gap-3">
+            // スマホなど狭い画面では、ボタンが押しつぶされて文字が折り返さないよう、画面幅いっぱいで1行に1つずつ並べる
+            <div className="flex w-full flex-col gap-3 text-center sm:w-auto sm:flex-row sm:items-center">
               {starredCount > 0 && (
                 <Link
                   href={`/my-notebooks/${notebook.id}/review`}
-                  className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
+                  className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium whitespace-nowrap text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
                 >
                   ★を復習する（{starredCount}語）
                 </Link>
               )}
               <Link
                 href={`/my-notebooks/${notebook.id}/quiz`}
-                className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
+                className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium whitespace-nowrap text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
               >
                 クイズに挑戦
               </Link>
               <Link
                 href={`/my-notebooks/${notebook.id}/study`}
-                className="rounded-full bg-coral-500 px-5 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
+                className="rounded-full bg-coral-500 px-5 py-2 text-sm font-medium whitespace-nowrap text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
               >
                 暗記学習を始める
               </Link>
@@ -256,60 +287,62 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
-          {/* 登録フォームは一覧の下にあるため、単語が増えても迷わず辿り着けるよう上からジャンプできるようにする */}
-          <a
-            href="#add-card"
-            className="rounded-full bg-coral-500 px-4 py-1.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
-          >
-            ＋ 単語を追加
-          </a>
-          <ImportCardsForm notebookId={notebook.id} />
-          <ColumnsEditor notebookId={notebook.id} columns={columns} />
+          {cards.length > 0 &&
+            (editingAll ? (
+              <>
+                <button
+                  type="submit"
+                  form={BULK_EDIT_FORM_ID}
+                  disabled={savingAll}
+                  className="rounded-full bg-coral-500 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50"
+                >
+                  {savingAll ? "保存中…" : "保存"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingAll(false)}
+                  className="text-sm text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
+                >
+                  キャンセル
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingAll(true)}
+                aria-label="表を編集"
+                className="rounded-full border border-coral-300 px-4 py-1.5 text-sm font-medium text-coral-700 transition-colors hover:border-coral-500 hover:bg-coral-50 dark:border-coral-900/50 dark:text-coral-300 dark:hover:bg-coral-950/20"
+              >
+                編集
+              </button>
+            ))}
+          {/* 表全体の編集中は「保存」「キャンセル」だけを出し、ほかの操作は編集を終えてから行う */}
+          {!editingAll && (
+            <>
+              {/* 単語・列の追加は表の＋から、列名の変更・削除は列の見出しから行う */}
+              <ImportCardsForm notebookId={notebook.id} />
+            </>
+          )}
         </div>
 
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-black/[.08] dark:border-white/[.145]">
-          <table className="w-full min-w-max border-collapse text-left">
-            <thead className="bg-zinc-50 dark:bg-zinc-900">
-              <tr>
-                {/* 列見出しは columns の並び順そのまま表示する */}
-                {columns.map((column) => (
-                  <th
-                    key={column}
-                    className="px-4 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300"
-                  >
-                    {column}
-                  </th>
-                ))}
-                <th className="px-4 py-3" aria-label="操作" />
-              </tr>
-            </thead>
-            <tbody>
-              {cards.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length + 1}
-                    className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-zinc-500"
-                  >
-                    まだ単語がありません。下のフォームから追加してください。
-                  </td>
-                </tr>
-              ) : (
-                // 単語1件ずつをCardRowに委譲する。表示・編集・削除の切り替えは
-                // 各CardRow内で完結し、このページ自体は action 実行後の loader 再取得でのみ更新される
-                cards.map((card) => (
-                  <CardRow key={card.id} notebookId={notebook.id} columns={columns} card={card} />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* 表をまとめて編集するときのフォーム。入力欄は表の中にあり、form 属性でこのフォームに結び付く */}
+        {editingAll && (
+          <bulkFetcher.Form id={BULK_EDIT_FORM_ID} method="post" className="hidden">
+            <input type="hidden" name="intent" value="updateCards" />
+          </bulkFetcher.Form>
+        )}
+        {editingAll && bulkState.error && (
+          <p role="alert" className="mt-3 text-right text-sm text-red-600 dark:text-red-400">
+            {bulkState.error}
+          </p>
+        )}
 
-        <section id="add-card" className="mt-8 scroll-mt-24">
-          <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
-            単語を追加
-          </h2>
-          <CreateCardForm notebookId={notebook.id} columns={columns} />
-        </section>
+        <NotebookTable
+          notebookId={notebook.id}
+          columns={columns}
+          cards={cards}
+          bulkEditFormId={editingAll ? BULK_EDIT_FORM_ID : undefined}
+        />
       </div>
     </main>
   );

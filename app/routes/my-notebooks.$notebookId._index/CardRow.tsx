@@ -1,27 +1,21 @@
 import { useState } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useSubmit } from "react-router";
 
-import type { FormState } from "@/lib/shared/form-state";
-import CardFieldsForm from "@/components/my-notebooks/CardFieldsForm";
 import EyeIcon from "@/components/EyeIcon";
+import type { LongPressDragHandlers } from "@/hooks/useLongPressDrag";
+import StarIcon from "@/components/StarIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/hooks/useStarColors";
+import { bulkCardFieldName } from "@/lib/shared/bulk-edit";
+import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 import { starColorFor } from "@/lib/shared/star-colors";
+import { displayedStarCount } from "@/lib/shared/star-progress";
 import type { CardData } from "@/lib/shared/card-data";
+import DraggableTr from "./DraggableTr";
 
-const initialState: FormState = {};
-
-function SaveButton({ pending }: { pending: boolean }) {
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-full bg-coral-500 px-3 py-1 text-xs font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-50 dark:hover:shadow-none"
-    >
-      {pending ? "保存中…" : "保存"}
-    </button>
-  );
-}
+// 表全体の編集中の入力欄（編集中に足した新しい行の入力欄でも使う）
+export const editInputClassName =
+  "w-full min-w-16 rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]";
 
 // Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
 // 1つのセルにする。先頭行以外はnull（描画しない）を返し、代わりに直前のセルのrowSpanを伸ばす。
@@ -38,195 +32,226 @@ function computeRowSpans(values: string[]): number[] {
 }
 
 export default function CardRow({
+  index,
   notebookId,
   columns,
   card,
+  bulkEditFormId,
+  drag,
+  dragDisabled,
+  isDragSource,
 }: {
+  // 表の中で何番目の単語か（並べ替えで、どの単語の行かを見分けるのに使う）
+  index: number;
   notebookId: string;
   columns: string[];
   card: { id: string; data: CardData; starred: boolean; starCount: number; viewCount: number };
+  // 表全体を編集中なら、入力欄をまとめて送るフォームのid（route.tsx の「表を編集」）。表示中はundefined
+  bulkEditFormId?: string;
+  // 長押ししたまま動かして並べ替えるときの処理（NotebookTable）
+  drag?: LongPressDragHandlers;
+  dragDisabled?: boolean;
+  // この単語を並べ替えで動かしている最中
+  isDragSource?: boolean;
 }) {
-  // このカードが「表示モード」か「インライン編集モード」かを切り替えるフラグ
-  const [editing, setEditing] = useState(false);
-  // 単語帳ページの action(intent で振り分け)に送信する。fetcher.data が直近の実行結果(state = { error? })
+  // 単語帳ページの action(intent で振り分け)に送信する
   const actionUrl = `/my-notebooks/${notebookId}`;
-  const updateFetcher = useFetcher<FormState>();
-  const state = updateFetcher.data ?? initialState;
-  // stateが変化した（=action実行結果が返ってきた）タイミングだけ、成功時に編集モードを閉じる。
-  // 初回マウント時はprevState === stateなので何もしない
-  const [prevState, setPrevState] = useState(state);
-  if (state !== prevState) {
-    setPrevState(state);
-    if (!state.error) {
-      setEditing(false);
-    }
+
+  // 見出し語の列と、それを除いた列。表示順そのまま
+  const [headColumn, ...bodyColumns] = columns;
+
+  // ★は押すたびに回数を+1して次の色へ進める（addStar）。サーバーの往復を待たずに次の色を見せるため、
+  // 押した後の回数（starTarget）を保存が追いつくまで表示する（displayedStarCount）。
+  // 素早く何回か押しても1回ずつ確実に保存されるよう、押すたびに別の fetcherKey で送る（同じ fetcher だと前の送信が取り消される）
+  const submit = useSubmit();
+  const [starTarget, setStarTarget] = useState<number | null>(null);
+  // 保存が追いついたら（または回数を修正・リセットして保存済みの回数が変わったら）押した後の回数は使わない
+  if (starTarget !== null && card.starCount >= starTarget) {
+    setStarTarget(null);
   }
-
-  // 見出し語を除いた列。表示順そのまま
-  const bodyColumns = columns.slice(1);
-
-  // toggleStarの結果（サーバーの往復）を待たず、クリックした瞬間に★・回数・色を切り替えるための
-  // 楽観的UI。送信中（idleでない間）は反転後の状態を見せる。これが無いと、往復の間だけ
-  // 古い状態（トグル前の☆）が表示され続けてしまい、「一瞬白い星に戻る」ように見えるバグになる
-  const starFetcher = useFetcher();
-  const togglingStar = starFetcher.state !== "idle";
-  const optimisticStar = togglingStar
-    ? card.starred
-      ? { starred: false, starCount: card.starCount }
-      : { starred: true, starCount: card.starCount + 1 }
-    : { starred: card.starred, starCount: card.starCount };
+  const displayedCount = displayedStarCount(card.starCount, starTarget);
+  const displayedStarred = card.starred || starTarget !== null;
+  function handleAddStar() {
+    const next = displayedCount + 1;
+    setStarTarget(next);
+    void submit(
+      { intent: "addStar", cardId: card.id },
+      {
+        method: "post",
+        action: actionUrl,
+        navigate: false,
+        fetcherKey: `addStar:${card.id}:${next}`,
+      },
+    );
+  }
   const deleteFetcher = useFetcher();
 
-  // ★を付けた回数（optimisticStar.starCount）に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
+  // ★を付けた回数に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
   const { colors: starColors } = useStarColors();
-  const starColor = starColorFor(optimisticStar.starCount, starColors);
+  const starColor = starColorFor(displayedCount, starColors);
 
-  if (!editing) {
-    // 見出し語1件につき、rows（組）の件数ぶん<tr>を並べる。見出し語セルと操作セルは
-    // Excelの結合セルのように rowSpan で全組にまたがらせ、本文の各列は列ごとに
-    // 連続して同じ値が続く区間だけをrowSpanでまとめる（結合・分割）
-    const rowCount = card.data.rows.length;
-    const bodySpansByColumn = bodyColumns.map((column) =>
-      computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
-    );
+  // 見出し語1件につき、rows（組）の件数ぶん<tr>を並べる。★・見出し語・操作のセルは全組にまたがらせる
+  const rowCount = card.data.rows.length;
 
+  // 表の左端の★の列。押すたびに回数を+1し、次の色の★を即座に見せる（handleAddStar）。
+  // ★を外すときは、隣の回数（StarCountEditor）から0にリセットする
+  const starCell = (
+    <td rowSpan={rowCount} className="px-1.5 py-3 sm:px-4 align-top whitespace-nowrap">
+      {/* 「★と★を付けた回数」「目と暗記モードで見た回数」をそれぞれひとまとまりにし、
+          まとまりの間を広く空けて、どちらの数字かを見分けやすくする。
+          スマホなど幅の狭い画面では、単語の列に幅を譲るため2段に重ねる */}
+      <span className="inline-flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+        <span className="inline-flex items-center gap-0.5" title="★を付けた回数">
+          <button
+            type="button"
+            onClick={handleAddStar}
+            aria-label={displayedStarred ? "★の回数を増やす" : "★をつける"}
+            style={starColor ? { color: starColor } : undefined}
+            className={
+              starColor
+                ? "flex transition-opacity hover:opacity-75"
+                : "flex text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
+            }
+          >
+            <StarIcon filled={displayedStarred} className="h-4 w-4" />
+          </button>
+          <StarCountEditor
+            cardId={card.id}
+            notebookId={notebookId}
+            starCount={displayedCount}
+            color={starColor}
+          />
+        </span>
+        {/* 目アイコンは暗記モード（/study, /review）でこのカードが表示された累計回数。
+            修正対象ではないのでただの表示に留める。★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
+        <span
+          aria-label="暗記モードで表示した回数"
+          title="暗記モードで見た回数"
+          className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-400 dark:text-zinc-600"
+        >
+          <EyeIcon className="h-4 w-4" />
+          {card.viewCount}
+        </span>
+      </span>
+    </td>
+  );
+
+  if (bulkEditFormId) {
+    // 表全体の編集中。見出し語と、各組・各列の値をすべて入力欄にする。入力欄は表の外にあるフォームに
+    // form 属性で結び付け、単語のidを前に付けた名前（bulkCardFieldName）でまとめて送る。
+    // 結合セル（同じ値が続く組）は、編集中は結合を解いて1組ずつの入力欄にする
+    const field = (name: string) => bulkCardFieldName(card.id, name);
     return (
       <>
         {card.data.rows.map((row, rowIndex) => (
-          <tr key={rowIndex} className="border-t border-black/[.06] dark:border-white/[.1]">
+          <tr
+            key={rowIndex}
+            data-card-index={index}
+            className="border-t border-black/[.06] dark:border-white/[.1]"
+          >
+            {rowIndex === 0 && starCell}
             {rowIndex === 0 && (
-              <td
-                rowSpan={rowCount}
-                className="px-4 py-3 align-top text-sm font-medium text-zinc-900 dark:text-zinc-100"
-              >
-                {card.data.head}
+              <td rowSpan={rowCount} className="px-1.5 py-2 sm:px-4 align-top">
+                <input type="hidden" name="cardId" value={card.id} form={bulkEditFormId} />
+                <input
+                  form={bulkEditFormId}
+                  name={field("head")}
+                  data-grid-col={0}
+                  aria-label={headColumn}
+                  defaultValue={card.data.head}
+                  maxLength={CARD_HEAD_MAX_LENGTH}
+                  className={editInputClassName}
+                />
               </td>
             )}
-            {bodyColumns.map((column, columnIndex) => {
-              const span = bodySpansByColumn[columnIndex][rowIndex];
-              if (span === 0) return null;
-              return (
-                <td
-                  key={column}
-                  rowSpan={span}
-                  className="px-4 py-3 align-top text-sm text-zinc-700 dark:text-zinc-300"
-                >
-                  {row[column] ?? ""}
-                </td>
-              );
-            })}
-            {rowIndex === 0 && (
-              <td rowSpan={rowCount} className="px-4 py-3 text-right align-top whitespace-nowrap">
-                {/* 送信中は楽観的UIでoptimisticStarを即座に切り替える。
-                    表示はcard.starredではなくoptimisticStar.starredを見ることで、
-                    サーバーの往復を待たずに★・色が切り替わる。
-                    回数の表示・修正はStarCountEditorに分離し、誤クリック時に
-                    手動での書き換え・0へのリセットができるようにしている */}
-                <span className="mr-3 inline-flex items-center gap-1">
-                  <starFetcher.Form method="post" action={actionUrl} className="inline">
-                    <input type="hidden" name="intent" value="toggleStar" />
-                    <input type="hidden" name="cardId" value={card.id} />
-                    <button
-                      type="submit"
-                      aria-label={optimisticStar.starred ? "★を外す" : "★をつける"}
-                      style={starColor ? { color: starColor } : undefined}
-                      className={
-                        starColor
-                          ? "text-sm transition-opacity hover:opacity-75"
-                          : "text-sm text-zinc-400 transition-colors hover:underline dark:text-zinc-600"
-                      }
-                    >
-                      {optimisticStar.starred ? "★" : "☆"}
-                    </button>
-                  </starFetcher.Form>
-                  <StarCountEditor
-                    cardId={card.id}
-                    notebookId={notebookId}
-                    starCount={optimisticStar.starCount}
-                    color={starColor}
-                  />
-                  {/* 目アイコンは暗記モード（/study, /review）でこのカードが表示された累計回数。
-                      ★（左）の右隣に並べ、修正対象ではないのでただの表示に留める。
-                      サイズは★の文字サイズ（text-sm）に合わせている */}
-                  <span
-                    aria-label="暗記モードで表示した回数"
-                    className="inline-flex items-center gap-0.5 text-xs text-zinc-400 dark:text-zinc-600"
-                  >
-                    <EyeIcon className="h-3.5 w-3.5" />
-                    {card.viewCount}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setEditing(true)}
-                  className="mr-3 text-sm text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
-                >
-                  編集
-                </button>
-                {/* 確認ダイアログで「キャンセル」された場合はpreventDefaultで送信自体を止める */}
-                <deleteFetcher.Form
-                  method="post"
-                  action={actionUrl}
-                  className="inline"
-                  onSubmit={(event) => {
-                    if (!window.confirm("この単語を削除しますか？")) {
-                      event.preventDefault();
-                    }
-                  }}
-                >
-                  <input type="hidden" name="intent" value="deleteCard" />
-                  <input type="hidden" name="cardId" value={card.id} />
-                  <button
-                    type="submit"
-                    className="text-sm text-red-600 transition-colors hover:underline dark:text-red-400"
-                  >
-                    削除
-                  </button>
-                </deleteFetcher.Form>
+            {bodyColumns.map((column, columnIndex) => (
+              <td key={column} className="px-1.5 py-2 sm:px-4 align-top">
+                <input
+                  form={bulkEditFormId}
+                  name={field(`row:${rowIndex}:${column}`)}
+                  data-grid-col={columnIndex + 1}
+                  aria-label={column}
+                  defaultValue={row[column] ?? ""}
+                  maxLength={CARD_VALUE_MAX_LENGTH}
+                  className={editInputClassName}
+                />
               </td>
-            )}
+            ))}
+            {rowIndex === 0 && <td rowSpan={rowCount} />}
           </tr>
         ))}
       </>
     );
   }
 
-  // 編集モードでは、colSpan（見出し語1列 + 列数 + 操作列1列）で全カラムぶんを1セルに潰して
-  // その中にフォームを丸ごと展開する
+  // 本文の各列は、列ごとに連続して同じ値が続く区間だけをrowSpanでまとめる（Excelの結合セルと同じ）
+  const bodySpansByColumn = bodyColumns.map((column) =>
+    computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
+  );
+
   return (
-    <tr className="border-t border-black/[.06] dark:border-white/[.1]">
-      <td colSpan={bodyColumns.length + 2} className="px-4 py-3">
-        {/* 実行結果は updateFetcher.data（= state）に反映される */}
-        <updateFetcher.Form
-          method="post"
-          action={actionUrl}
-          className="flex flex-col items-start gap-3"
+    <>
+      {card.data.rows.map((row, rowIndex) => (
+        // どの組の行を長押ししても、この単語を並べ替えられる
+        <DraggableTr
+          key={rowIndex}
+          data-card-index={index}
+          drag={drag}
+          dragDisabled={dragDisabled}
+          className={`border-t border-black/[.06] dark:border-white/[.1] ${isDragSource ? "opacity-40" : ""}`}
         >
-          <input type="hidden" name="intent" value="updateCard" />
-          <input type="hidden" name="cardId" value={card.id} />
-          {/* defaultHead/defaultRowsで現在の値を初期表示し、そこから編集する */}
-          <CardFieldsForm
-            columns={columns}
-            defaultHead={card.data.head}
-            defaultRows={card.data.rows}
-          />
-          <div className="flex items-center gap-3">
-            <SaveButton pending={updateFetcher.state !== "idle"} />
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="text-sm text-coral-600 transition-all hover:-translate-y-0.5 hover:text-coral-800 hover:underline dark:text-coral-400 dark:hover:text-coral-200"
+          {rowIndex === 0 && starCell}
+          {rowIndex === 0 && (
+            <td
+              rowSpan={rowCount}
+              className="px-1.5 py-3 sm:px-4 min-w-[4.5rem] align-top text-sm font-medium [overflow-wrap:anywhere] text-zinc-900 dark:text-zinc-100"
             >
-              キャンセル
-            </button>
-          </div>
-        </updateFetcher.Form>
-        {state?.error && (
-          <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
-            {state.error}
-          </p>
-        )}
-      </td>
-    </tr>
+              {card.data.head}
+            </td>
+          )}
+          {bodyColumns.map((column, columnIndex) => {
+            const span = bodySpansByColumn[columnIndex][rowIndex];
+            if (span === 0) return null;
+            return (
+              <td
+                key={column}
+                rowSpan={span}
+                className="px-1.5 py-3 sm:px-4 min-w-[4.5rem] align-top text-sm [overflow-wrap:anywhere] text-zinc-700 dark:text-zinc-300"
+              >
+                {row[column] ?? ""}
+              </td>
+            );
+          })}
+          {rowIndex === 0 && (
+            <td
+              rowSpan={rowCount}
+              className="px-1.5 py-3 sm:px-4 text-right align-top whitespace-nowrap"
+            >
+              {/* 編集は表の上の「編集」からまとめて行う。ここには削除だけを置く。
+                  確認ダイアログで「キャンセル」された場合はpreventDefaultで送信自体を止める */}
+              <deleteFetcher.Form
+                method="post"
+                action={actionUrl}
+                className="inline"
+                onSubmit={(event) => {
+                  if (!window.confirm("この単語を削除しますか？")) {
+                    event.preventDefault();
+                  }
+                }}
+              >
+                <input type="hidden" name="intent" value="deleteCard" />
+                <input type="hidden" name="cardId" value={card.id} />
+                <button
+                  type="submit"
+                  className="text-sm text-red-600 transition-colors hover:underline dark:text-red-400"
+                >
+                  削除
+                </button>
+              </deleteFetcher.Form>
+            </td>
+          )}
+        </DraggableTr>
+      ))}
+    </>
   );
 }
