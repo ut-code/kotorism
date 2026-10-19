@@ -3,8 +3,42 @@ import { useLocation, useNavigate } from "react-router";
 import { useSwipe } from "@/hooks/useSwipe";
 import { getSwipeDestination, type SwipeDirection } from "@/lib/shared/swipe-navigation";
 
-// globals.css のスライドアニメーションの長さと合わせる
-const SWIPE_ANIMATION_MS = 300;
+// ページを切り替えるアニメーション（View Transition）が始まらないとき（動きを減らす設定・非対応のブラウザなど）に、
+// 始まるのを待つフレーム数
+const TRANSITION_START_FRAMES = 10;
+// 何かあっても、スライドの向きの印をいつまでも残さないための上限（ミリ秒）
+const TRANSITION_TIMEOUT_MS = 3000;
+
+const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+// 動いている View Transition のアニメーション（::view-transition-* の疑似要素のもの）
+function viewTransitionAnimations() {
+  return document.documentElement
+    .getAnimations({ subtree: true })
+    .filter((animation) =>
+      ((animation.effect as KeyframeEffect | null)?.pseudoElement ?? "").startsWith(
+        "::view-transition",
+      ),
+    );
+}
+
+// ページを切り替えるアニメーションが実際に終わるまで待つ。遅い端末では決め打ちの時間では終わらないことがあり、
+// 途中で印を外すとスライドがただの切り替えに変わってしまうため、動いているアニメーションを見て待つ
+async function waitForViewTransition() {
+  const deadline = performance.now() + TRANSITION_TIMEOUT_MS;
+  let started = false;
+  let idleFrames = 0;
+  while (performance.now() < deadline) {
+    await nextFrame();
+    const running = viewTransitionAnimations();
+    if (running.length > 0) {
+      started = true;
+      await Promise.allSettled(running.map((animation) => animation.finished));
+    } else if (started || ++idleFrames > TRANSITION_START_FRAMES) {
+      return;
+    }
+  }
+}
 
 // 横スクロールできる要素（学習カレンダーなど）の中で始まったタッチか。そこでの横移動はスクロールに使うため、ページ移動にしない
 function startsInHorizontalScroller(target: EventTarget, container: Element) {
@@ -36,9 +70,9 @@ export default function SwipePageNavigator({
     // どちらの隣へ移るかを CSS（globals.css の vb-swipe-*）に伝えてスライドの向きを決め、アニメーションが終わったら外す
     const root = document.documentElement;
     root.dataset.swipe = direction;
-    void Promise.resolve(navigate(destination, { viewTransition: true })).finally(() => {
-      window.setTimeout(() => delete root.dataset.swipe, SWIPE_ANIMATION_MS + 200);
-    });
+    void Promise.resolve(navigate(destination, { viewTransition: true }))
+      .then(waitForViewTransition)
+      .finally(() => delete root.dataset.swipe);
   };
   const swipeHandlers = useSwipe({
     // 指を左へ動かすと右隣、右へ動かすと左隣のページへ（ページを指でめくる向き）
