@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
@@ -28,6 +28,20 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
   const { pathname } = useLocation();
   const isLearnActive = pathname.startsWith("/learn");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // メニューを開いている間に、メニューと開閉ボタン以外の場所を押したら閉じる
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) return;
+      setIsMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutside);
+    return () => document.removeEventListener("pointerdown", closeOnOutside);
+  }, [isMenuOpen]);
 
   // ログイン状態に応じた表示。PC用・スマホ用に同じ内容を使い回す
   const renderAuth = () =>
@@ -42,20 +56,27 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
       <AuthNavLinks />
     );
 
+  // 折り畳まずに横並びで表示する画面幅。ログイン中はナビのリンクも並ぶためmd以上、
+  // 未ログインはログイン・新規登録だけなのでロゴと1行に収まる440px以上（e2e/auth.spec.tsで確認している）
+  const inline = userName
+    ? { show: "md:flex", hide: "md:hidden" }
+    : { show: "min-[440px]:flex", hide: "min-[440px]:hidden" };
+
   return (
     <>
-      {/* PC表示：ログイン状態を横並びにする（ナビ本体はHeader側で静的に描画される） */}
-      <div className="hidden items-center gap-3 md:flex">{renderAuth()}</div>
+      {/* 広い画面：ログイン状態を横並びにする（ナビ本体はHeader側で静的に描画される） */}
+      <div className={`hidden items-center gap-3 ${inline.show}`}>{renderAuth()}</div>
 
-      {/* スマホ表示：ハンバーガーボタン */}
+      {/* 狭い画面：ハンバーガーボタン */}
       <button
+        ref={menuButtonRef}
         type="button"
         onClick={() => setIsMenuOpen((prev) => !prev)}
         title={isMenuOpen ? "メニューを閉じる" : "メニューを開く"}
         aria-label={isMenuOpen ? "メニューを閉じる" : "メニューを開く"}
         aria-expanded={isMenuOpen}
         aria-controls="header-mobile-menu"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-black/[.08] text-zinc-600 transition-colors hover:bg-zinc-100 md:hidden dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-zinc-900"
+        className={`flex h-9 w-9 items-center justify-center rounded-full border border-black/[.08] text-zinc-600 transition-colors hover:bg-zinc-100 ${inline.hide} dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-zinc-900`}
       >
         {isMenuOpen ? (
           <svg
@@ -82,15 +103,16 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
         )}
       </button>
 
-      {/* スマホ表示：ハンバーガーメニューの中身（ヘッダー直下に展開） */}
+      {/* 狭い画面：ハンバーガーメニューの中身（ヘッダー直下に展開） */}
       {isMenuOpen && (
         <div
+          ref={menuRef}
           id="header-mobile-menu"
           // メニュー内のリンクからページ遷移する際、メニューを閉じる（イベントのバブリングを利用）
           onClick={(e) => {
             if ((e.target as HTMLElement).closest("a")) setIsMenuOpen(false);
           }}
-          className="absolute inset-x-0 top-full border-b border-black/[.08] bg-white px-6 py-4 shadow-lg md:hidden dark:border-white/[.145] dark:bg-zinc-900"
+          className={`absolute inset-x-0 top-full border-b border-black/[.08] bg-white px-6 py-4 shadow-lg ${inline.hide} dark:border-white/[.145] dark:bg-zinc-900`}
         >
           <nav className="flex flex-col gap-1">
             {links.map((link) => (

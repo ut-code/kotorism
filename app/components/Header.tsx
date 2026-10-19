@@ -27,6 +27,9 @@ export default function Header({
   // ログイン中のユーザー名。未ログインならnull
   userName: string | null;
 }) {
+  // My単語帳・学習教材はログインしないと使えないため、未ログインではリンクを出さない
+  const navLinks = userName ? NAV_LINKS : [];
+
   return (
     <header className="sticky top-0 z-50 bg-white/5 dark:bg-zinc-600/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.145]">
       <div className="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
@@ -43,18 +46,20 @@ export default function Header({
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <nav className="hidden items-center gap-x-4 text-[clamp(1rem,2.2vw,1.125rem)] font-semibold tracking-[0.04em] text-zinc-600 md:flex dark:text-zinc-200">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`whitespace-nowrap transition-colors ${link.hoverClassName}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          <HeaderNavClient links={NAV_LINKS} allSections={allSections} userName={userName} />
+          {navLinks.length > 0 && (
+            <nav className="hidden items-center gap-x-4 text-[clamp(1rem,2.2vw,1.125rem)] font-semibold tracking-[0.04em] text-zinc-600 md:flex dark:text-zinc-200">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`whitespace-nowrap transition-colors ${link.hoverClassName}`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
+          <HeaderNavClient links={navLinks} allSections={allSections} userName={userName} />
           <ThemeToggle />
         </div>
       </div>
