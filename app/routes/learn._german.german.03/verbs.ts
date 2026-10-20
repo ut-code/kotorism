@@ -1,3 +1,4 @@
+import { pickVerbs } from "@/lib/shared/conjugation/shared";
 import type { IrregularVerb, RegularVerb, VerbEntry } from "@/lib/shared/conjugation/de/types";
 
 // ==== 弱変化動詞（規則動詞） ====
@@ -691,4 +692,48 @@ const irregularVerbs: IrregularVerb[] = [
   },
 ];
 
-export const verbs: VerbEntry[] = [...irregularVerbs, ...regularVerbs];
+const allVerbs: VerbEntry[] = [...irregularVerbs, ...regularVerbs];
+
+// 出題する動詞。第二外国語の初級で最初に覚える基本動詞に絞る（上のデータはすべて活用できるが、ここに無いものは出題しない）
+const PRACTICE_VERB_IDS = [
+  // 強変化・混合変化（不規則）
+  "sein",
+  "haben",
+  "werden",
+  "koennen",
+  "muessen",
+  "wollen",
+  "duerfen",
+  "moegen",
+  "sollen",
+  "wissen",
+  "gehen",
+  "kommen",
+  "fahren",
+  "schlafen",
+  "sehen",
+  "geben",
+  "nehmen",
+  "sprechen",
+  "essen",
+  "lesen",
+  "schreiben",
+  "trinken",
+  "finden",
+  "denken",
+  "kennen",
+  // 弱変化（規則）
+  "machen",
+  "spielen",
+  "wohnen",
+  "kaufen",
+  "lernen",
+  "hoeren",
+  "arbeiten",
+  "warten",
+  "reisen",
+  "studieren",
+  "besuchen",
+];
+
+export const verbs: VerbEntry[] = pickVerbs(allVerbs, PRACTICE_VERB_IDS);

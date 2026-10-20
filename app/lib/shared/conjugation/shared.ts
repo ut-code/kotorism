@@ -18,3 +18,13 @@ export interface TenseOption {
 export function tenseKey(mood: string, tense: string): string {
   return `${mood}.${tense}`;
 }
+
+// 用意した動詞のうち、練習で出題するものを ID で選ぶ（並びは ids の順）
+export function pickVerbs<V extends VerbLike>(all: readonly V[], ids: readonly string[]): V[] {
+  const byId = new Map(all.map((v) => [v.id, v]));
+  return ids.map((id) => {
+    const verb = byId.get(id);
+    if (!verb) throw new Error(`unknown verb id: ${id}`);
+    return verb;
+  });
+}

@@ -85,6 +85,7 @@ export function Quiz<Q extends QuizQuestion>({
   countOptions = ["5", "10", "20", "all"],
   defaultCount = "10",
   timer = false,
+  startOnTop = false,
   lang,
   mode: modeOption,
   instruction,
@@ -105,6 +106,8 @@ export function Quiz<Q extends QuizQuestion>({
   defaultCount?: CountOption;
   // 1問ごとの制限時間を選べるようにするか
   timer?: boolean;
+  // 「練習を始める」ボタンを設定の上に置くか（設定が長く、すぐに始めたい演習向け）
+  startOnTop?: boolean;
   // 答えの言語（HTML の lang 属性）
   lang: string;
   // 答え方。関数にすると問題ごとに答え方を変えられる（選択式と入力式を混ぜる、など）
@@ -260,10 +263,26 @@ export function Quiz<Q extends QuizQuestion>({
     return () => window.removeEventListener("keydown", handleKeyDown);
   });
 
+  const startButton = (
+    <div className="flex flex-col items-center gap-3">
+      <PracticeButton onClick={startNew} disabled={pool.length === 0}>
+        練習を始める
+      </PracticeButton>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        {pool.length === 0
+          ? emptyMessage
+          : roundSize === pool.length
+            ? `${pool.length} 問を出題します`
+            : `${pool.length} 問から ${roundSize} 問を出題します`}
+      </p>
+    </div>
+  );
+
   return (
     <div ref={rootRef} className="scroll-mt-24">
       {phase === "settings" && (
-        <div>
+        <div className="space-y-10">
+          {startOnTop && startButton}
           <div className="space-y-8">
             {settings}
             {(countOptions.length > 1 || timer) && (
@@ -294,18 +313,7 @@ export function Quiz<Q extends QuizQuestion>({
               </div>
             )}
           </div>
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <PracticeButton onClick={startNew} disabled={pool.length === 0}>
-              練習を始める
-            </PracticeButton>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {pool.length === 0
-                ? emptyMessage
-                : roundSize === pool.length
-                  ? `${pool.length} 問を出題します`
-                  : `${pool.length} 問から ${roundSize} 問を出題します`}
-            </p>
-          </div>
+          {!startOnTop && startButton}
         </div>
       )}
 
