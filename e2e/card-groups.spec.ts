@@ -29,13 +29,17 @@ test("表の下の＋で見出し語を空けて追加すると、すぐ上の�
 
   await table.getByRole("button", { name: "表に単語を追加" }).click();
   await table.getByRole("textbox", { name: "見出し語" }).fill("light");
-  await table.getByRole("textbox", { name: "意味" }).fill("光");
+  const meaning = table.getByRole("textbox", { name: "意味" });
+  await meaning.fill("光");
   await page.keyboard.press("Enter");
-  await expect(table.getByRole("cell", { name: "光", exact: true })).toBeVisible();
+  // 入力欄のマスも同じ文字の cell として見つかるため、保存が済んで入力欄が空に戻るのを待ってから次へ進む
+  // （保存中の Enter は送らないため、待たずに続けると遅い環境で2つ目が追加されない）
+  await expect(meaning).toHaveValue("");
 
   // 見出し語は空のまま、意味だけ入れて追加する
-  await table.getByRole("textbox", { name: "意味" }).fill("軽い");
+  await meaning.fill("軽い");
   await page.keyboard.press("Enter");
+  await expect(meaning).toHaveValue("");
 
   await expect(table.getByRole("cell", { name: "軽い", exact: true })).toBeVisible();
   const head = table.getByRole("cell", { name: "light", exact: true });
@@ -56,6 +60,8 @@ test("まとめて編集で、単語の右の＋から組を足し、マスを�
   await expect(added).toBeFocused();
   await added.fill("軽い");
   await page.getByRole("button", { name: "保存" }).click();
+  // 編集中は入力欄のマスも同じ文字の cell として見つかるため、保存が済んで表示に戻るのを待つ
+  await expect(page.getByRole("button", { name: "表を編集" })).toBeVisible();
 
   await expect(table.getByRole("cell", { name: "軽い", exact: true })).toBeVisible();
   await expect(table.getByRole("cell", { name: "light", exact: true })).toHaveAttribute(
@@ -67,6 +73,8 @@ test("まとめて編集で、単語の右の＋から組を足し、マスを�
   await page.getByRole("button", { name: "表を編集" }).click();
   await table.getByRole("textbox", { name: "意味" }).nth(1).fill("");
   await page.getByRole("button", { name: "保存" }).click();
+  // 編集中は入力欄のマスも同じ文字の cell として見つかるため、保存が済んで表示に戻るのを待つ
+  await expect(page.getByRole("button", { name: "表を編集" })).toBeVisible();
 
   await expect(table.getByRole("cell", { name: "軽い", exact: true })).toHaveCount(0);
   await expect(table.getByRole("cell", { name: "light", exact: true })).toHaveAttribute(
@@ -85,6 +93,8 @@ test("まとめて編集で表の下に足した行の見出し語が空なら�
   await table.getByRole("button", { name: "表に行を追加" }).click();
   await table.getByRole("textbox", { name: "意味" }).last().fill("黒っぽい");
   await page.getByRole("button", { name: "保存" }).click();
+  // 編集中は入力欄のマスも同じ文字の cell として見つかるため、保存が済んで表示に戻るのを待つ
+  await expect(page.getByRole("button", { name: "表を編集" })).toBeVisible();
 
   await expect(table.getByRole("cell", { name: "黒っぽい", exact: true })).toBeVisible();
   await expect(table.getByRole("cell", { name: "dark", exact: true })).toHaveAttribute(
