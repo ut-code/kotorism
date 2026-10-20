@@ -62,12 +62,20 @@ export default function HanziCompare() {
                 onClick={() => setChosenMode(value)}
                 className={`flex flex-1 flex-col items-center rounded-full px-2 py-1.5 text-sm font-medium transition-colors sm:flex-row sm:justify-center sm:gap-1.5 ${
                   mode === value
-                    ? "bg-white text-tealblue-700 shadow-sm dark:bg-zinc-950 dark:text-tealblue-300"
+                    ? "bg-white text-tealblue-700 shadow-sm dark:bg-tealblue-700 dark:text-tealblue-50"
                     : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
                 }`}
               >
                 {label}
-                <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{hint}</span>
+                <span
+                  className={`text-[10px] ${
+                    mode === value
+                      ? "text-zinc-400 dark:text-tealblue-200"
+                      : "text-zinc-400 dark:text-zinc-500"
+                  }`}
+                >
+                  {hint}
+                </span>
               </button>
             ))}
           </div>

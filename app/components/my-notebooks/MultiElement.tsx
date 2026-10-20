@@ -92,7 +92,7 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
                 style={{
                   transform: `rotateY(${angle}deg) translateZ(${tz}px)`,
                 }}
-                className="absolute h-full w-full flex items-center justify-center p-6 rounded-2xl [backface-visibility:visible] border border-black/18 border-t-black/30 bg-white shadow-xl shadow-black/10 inset-shadow-sm dark:border-white/20 dark:border-t-white/40 dark:bg-zinc-950 dark:shadow-white/5"
+                className="absolute h-full w-full flex items-center justify-center p-6 rounded-2xl [backface-visibility:visible] border border-black/18 border-t-black/30 bg-white shadow-xl shadow-black/10 inset-shadow-sm dark:border-coral-800 dark:border-t-coral-600 dark:bg-coral-900/60 dark:shadow-none"
               >
                 {content}
               </div>
