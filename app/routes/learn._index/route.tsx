@@ -1,6 +1,5 @@
 import PageTitle, { PAGE_MAIN_CLASS } from "@/components/PageTitle";
 import Link from "@/components/Link";
-import LanguageFlag from "@/components/learn/LanguageFlag";
 
 import { LANGUAGES } from "@/lib/shared/learn/languages";
 import { LANGUAGE_INTROS } from "@/lib/shared/learn/language-intros";
@@ -38,24 +37,20 @@ export default function LearnPage({ loaderData }: Route.ComponentProps) {
                 href={`/learn/${language.languageSlug}`}
                 aria-describedby={intro ? descriptionId : undefined}
                 // ホバー中は下に出る紹介が隣のカードより手前に来るよう z-index を上げる
-                className="group relative flex items-center justify-between gap-4 rounded-2xl border border-tealblue-200 bg-white p-6 transition-all hover:z-20 hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 focus-visible:z-20 dark:border-tealblue-900/40 dark:bg-zinc-950 dark:hover:border-tealblue-700/60 dark:hover:shadow-none"
+                className="group relative flex items-center justify-between gap-4 rounded-2xl border border-tealblue-200 bg-white p-6 transition-all hover:z-20 hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 focus-visible:z-20 dark:border-tealblue-600 dark:bg-tealblue-900 dark:hover:border-tealblue-400 dark:hover:bg-tealblue-800 dark:hover:shadow-none"
               >
                 <div className="flex min-w-0 items-center gap-4">
-                  <LanguageFlag
-                    languageSlug={language.languageSlug}
-                    className="h-9 w-[3.375rem] shrink-0 drop-shadow-sm transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110"
-                  />
                   <div className="flex min-w-0 flex-col gap-1 text-left">
                     <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
                       {language.label}
                     </span>
-                    <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    <span className="text-xs font-medium text-zinc-500 dark:text-tealblue-200">
                       {intro && <>{intro.nativeName} ・ </>}
                       {count > 0 ? `${count} セクション` : "準備中"}
                     </span>
                   </div>
                 </div>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-zinc-900 dark:text-zinc-500 dark:group-hover:bg-tealblue-950/60 dark:group-hover:text-tealblue-400">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-tealblue-950 dark:text-tealblue-300 dark:group-hover:bg-tealblue-700 dark:group-hover:text-tealblue-50">
                   <svg
                     className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                     fill="none"

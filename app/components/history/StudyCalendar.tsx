@@ -71,13 +71,13 @@ function calendarHref(
 
 // ---- 色 ----
 
-// 学習時間の濃淡（0〜4段階）ごとの色。GitHub の貢献グラフと同じく、表示範囲内の最大値を基準に段階分けする
+// 学習時間の濃淡（0〜4段階）ごとの色。GitHub の貢献グラフと同じく、表示範囲内の最大値を基準に段階分けする。
 const LEVEL_CLASSES = [
   "bg-zinc-100 dark:bg-zinc-800",
-  "bg-coral-100 dark:bg-coral-950",
-  "bg-coral-300 dark:bg-coral-800",
-  "bg-coral-500 dark:bg-coral-600",
-  "bg-coral-700 dark:bg-coral-400",
+  "bg-coral-100",
+  "bg-coral-300",
+  "bg-coral-500",
+  "bg-coral-700",
 ];
 
 function levelOf(stat: DayStat | undefined, maxSeconds: number): number {
@@ -203,7 +203,7 @@ function StreakCard({ streak }: { streak: StreakSummary }) {
 function FilterForm({ view, date, month, filters, options }: Props) {
   const submit = useSubmit();
   const selectClass =
-    "rounded-full border border-black/[.08] bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-200";
+    "rounded-full border border-black/[.08] bg-white px-3 py-1.5 text-sm text-zinc-700 dark:border-white/20 dark:bg-zinc-800 dark:text-zinc-100";
 
   return (
     <Form
@@ -380,7 +380,7 @@ function ViewTabs(props: Props) {
           aria-current={props.view === view ? "page" : undefined}
           className={`rounded-full px-5 py-1.5 text-sm font-medium transition-colors ${
             props.view === view
-              ? "bg-white text-coral-700 shadow-sm dark:bg-zinc-950 dark:text-coral-300"
+              ? "bg-white text-coral-700 shadow-sm dark:bg-coral-800 dark:text-coral-50"
               : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
           }`}
         >
@@ -467,7 +467,11 @@ function MonthCalendar(props: Props) {
               aria-label={`${formatDayLabel(d)}: ${statLabel(stat)}`}
               aria-current={d === date ? "date" : undefined}
               className={`flex aspect-square flex-col items-center justify-center rounded-lg text-xs leading-tight transition-transform hover:scale-105 ${LEVEL_CLASSES[level]} ${
-                level >= 3 ? "text-white dark:text-zinc-950" : "text-zinc-700 dark:text-zinc-200"
+                level >= 3
+                  ? "text-white"
+                  : level >= 1
+                    ? "text-zinc-700"
+                    : "text-zinc-700 dark:text-zinc-200"
               } ${d === date ? "ring-2 ring-zinc-800 dark:ring-zinc-100" : ""} ${
                 d === today ? "font-bold" : ""
               }`}
