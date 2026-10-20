@@ -290,6 +290,9 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
           {cards.length > 0 &&
             (editingAll ? (
               <>
+                <p className="mr-auto text-xs text-zinc-500 dark:text-zinc-500">
+                  見出し語を空けた行は、上の単語の組になります。組のマスを全部空にすると、その組を消します。
+                </p>
                 <button
                   type="submit"
                   form={BULK_EDIT_FORM_ID}

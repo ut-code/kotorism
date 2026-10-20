@@ -17,6 +17,7 @@ import {
   parseStarCount,
 } from "@/lib/shared/notebook-schema";
 import { isBlankCardFields, pickCardFields } from "@/lib/shared/bulk-edit";
+import { compactRows, groupContinuationRows } from "@/lib/shared/card-groups";
 import { clampToGroup, notebookGroup, sortNotebooks } from "@/lib/shared/notebook-order";
 import { moveToInsertionPoint } from "@/lib/shared/reorder";
 import { datedTitle, numberedTitle, type RenameNotebookState } from "@/lib/shared/notebook-title";
@@ -24,19 +25,15 @@ import { toStudyDay } from "@/lib/shared/study-calendar";
 import type { FormState } from "@/lib/shared/form-state";
 import { recordStudyEvent } from "@/lib/server/study-events.server";
 
-// フォームの入力を検証してカードのデータにする。不正な入力(空の見出し語・長すぎる値)はエラーメッセージを返す
-function readCardData(
+// フォームの `row:0:列名`, `row:1:列名`, ... という連番の入力欄を、存在する分だけ読み取って組にする
+// （入力欄は必ず0番から連番で置く）。同じ連番内の列同士は同じ組（Excelの1行に相当）として対応付けられる。
+// 空文字の値は保存せず、どの列も空の組は取り除く（compactRows）
+function readCardRows(
   columns: string[],
   formData: FormData,
-): { data: CardData } | { error: string } {
-  const head = parseCardHead(formData.get("head") ?? "");
-  if (!head.success) return { error: head.error };
+): { rows: CardData["rows"] } | { error: string } {
   const bodyColumns = columns.slice(1);
-
-  // `row:0:列名`, `row:1:列名`, ... という連番の入力欄を、存在する分だけ読み取る
-  // （入力欄は必ず0番から連番で置く）。同じ連番内の列同士は
-  // 同じ組（Excelの1行に相当）として対応付けられる。空文字の値は保存しない
-  const rows: Record<string, string>[] = [];
+  const rows: CardData["rows"] = [];
   let i = 0;
   while (bodyColumns.some((column) => formData.has(`row:${i}:${column}`))) {
     const row: Record<string, string> = {};
@@ -48,9 +45,34 @@ function readCardData(
     rows.push(row);
     i += 1;
   }
-
-  return { data: { head: head.data, rows: rows.length > 0 ? rows : [{}] } };
+  return { rows: compactRows(rows) };
 }
+
+// フォームの入力を検証してカードのデータにする。不正な入力(空の見出し語・長すぎる値)はエラーメッセージを返す
+function readCardData(
+  columns: string[],
+  formData: FormData,
+): { data: CardData } | { error: string } {
+  const head = parseCardHead(formData.get("head") ?? "");
+  if (!head.success) return { error: head.error };
+  const parsed = readCardRows(columns, formData);
+  if ("error" in parsed) return parsed;
+  return { data: { head: head.data, rows: parsed.rows } };
+}
+
+// 見出し語の欄が空（空白だけ）か。見出し語が空の行は、上の単語の新しい組にする（groupContinuationRows）
+const hasBlankHead = (formData: FormData) => String(formData.get("head") ?? "").trim() === "";
+
+// 表に足した1行ぶんの入力を読み取る。見出し語が空の行は、見出し語を空のまま組だけ読み取る（上の単語に付ける分）
+function readTableRow(columns: string[], formData: FormData): { data: CardData } | { error: string } {
+  if (!hasBlankHead(formData)) return readCardData(columns, formData);
+  const parsed = readCardRows(columns, formData);
+  return "error" in parsed ? parsed : { data: { head: "", rows: parsed.rows } };
+}
+
+// 見出し語が空の行の、上に単語が無いとき
+const NO_WORD_ABOVE_ERROR =
+  "見出し語を入力してください（見出し語を空けると、上の単語の組として追加します）";
 
 // 既存の単語帳へ、Excelファイルから単語をまとめて追加する。
 // Excel側の列名（見出し語列を除く）を既存の単語帳の列と名前で突き合わせ、
@@ -274,6 +296,26 @@ export async function createCard(notebookId: string, formData: FormData): Promis
     select: { columns: true },
   });
   const columns = normalizeColumns(notebook.columns);
+
+  // 見出し語を空けて入力したら、いちばん下の単語の新しい組として足す（多義語を1つの単語にまとめる）
+  if (hasBlankHead(formData)) {
+    const parsedRows = readCardRows(columns, formData);
+    if ("error" in parsedRows) return { error: parsedRows.error };
+    const values = parsedRows.rows.filter((row) => Object.keys(row).length > 0);
+    const lastCard = await prisma.card.findFirst({
+      where: { notebookId },
+      orderBy: { position: "desc" },
+      select: { id: true, data: true },
+    });
+    if (values.length === 0 || !lastCard) return { error: NO_WORD_ABOVE_ERROR };
+    const current = normalizeCardData(lastCard.data);
+    await prisma.card.update({
+      where: { id: lastCard.id },
+      data: { data: { ...current, rows: compactRows([...current.rows, ...values]) } },
+    });
+    return { added: current.head };
+  }
+
   const parsed = readCardData(columns, formData);
   if ("error" in parsed) {
     return { error: parsed.error };
@@ -346,16 +388,23 @@ export async function updateCards(notebookId: string, formData: FormData): Promi
     updates.push({ id: cardId, data: parsed.data });
   }
 
-  // 編集中に表の＋や ↓ で足した行（newCardId は画面で仮に付けた番号）。何も入力していない行は飛ばす
-  const newCards: CardData[] = [];
+  // 編集中に表の＋や ↓ で足した行（newCardId は画面で仮に付けた番号）。何も入力していない行は飛ばす。
+  // 見出し語が空の行は、すぐ上の単語の新しい組にする（足した行の先頭なら、いまある最後の単語の組）
+  const newEntries: CardData[] = [];
   for (const [index, newCardId] of formData.getAll("newCardId").map(String).entries()) {
     const fields = pickCardFields(formData, newCardId);
     if (isBlankCardFields(fields)) continue;
-    const parsed = readCardData(columns, fields);
+    const parsed = readTableRow(columns, fields);
     if ("error" in parsed) {
       return { error: `${cardIds.length + index + 1}行目の単語: ${parsed.error}` };
     }
-    newCards.push(parsed.data);
+    newEntries.push(parsed.data);
+  }
+  const { continuation, cards: newCards } = groupContinuationRows(newEntries);
+  if (continuation.length > 0) {
+    const lastUpdate = updates.at(-1);
+    if (!lastUpdate) return { error: `${cardIds.length + 1}行目の単語: ${NO_WORD_ABOVE_ERROR}` };
+    lastUpdate.data.rows = compactRows([...lastUpdate.data.rows, ...continuation]);
   }
 
   // この単語帳の単語だけを更新する（他の単語帳の単語のidが送られてきても書き換えない）
