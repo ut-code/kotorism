@@ -1,51 +1,73 @@
-import NumberTypingPractice from "@/components/practice/NumberTypingPractice";
+import FillInPractice from "@/components/practice/FillInPractice";
 
-export const title = "数字タイピング演習";
+export const title = "文法クイズ（紛らわしい表現）";
 export const description =
-  "表示された数字を、スペイン語のつづりで入力しましょう。出題範囲・問題数・制限時間を選べます。";
+  "ser と estar、点過去と線過去、por と para、hay と estar など、迷いやすい文法の空欄に入る語形を、4択や筆記で答えましょう。答えると解説が表示されます。";
 
-<NumberTypingPractice language="spanish" />
+{/* 穴埋め演習用コンポーネントの読み込み */}
 
-{/* 出題データ定義テーブル (display:none) */}
+<FillInPractice language="spanish" section="06" />
 
 <div className="hidden" style={{ display: "none" }} aria-hidden="true">
 
-| 数  | 綴り         |
-| --- | ------------ |
-| 0   | cero         |
-| 1   | uno          |
-| 2   | dos          |
-| 3   | tres         |
-| 4   | cuatro       |
-| 5   | cinco        |
-| 6   | seis         |
-| 7   | siete        |
-| 8   | ocho         |
-| 9   | nueve        |
-| 10  | diez         |
-| 11  | once         |
-| 12  | doce         |
-| 13  | trece        |
-| 14  | catorce      |
-| 15  | quince       |
-| 16  | dieciséis    |
-| 17  | diecisiete   |
-| 18  | dieciocho    |
-| 19  | diecinueve   |
-| 20  | veinte       |
-| 21  | veintiuno    |
-| 22  | veintidós    |
-| 23  | veintitrés   |
-| 24  | veinticuatro |
-| 25  | veinticinco  |
-| 26  | veintiséis   |
-| 30  | treinta      |
-| 40  | cuarenta     |
-| 50  | cincuenta    |
-| 60  | sesenta      |
-| 70  | setenta      |
-| 80  | ochenta      |
-| 90  | noventa      |
-| 100 | cien         |
+### ser と estar の使い分け
+
+| 例文 (問題文)             | 日本語訳・ヒント                 | 正解    | 解説                                                               | 誤答                    |
+| ------------------------- | -------------------------------- | ------- | ------------------------------------------------------------------ | ----------------------- |
+| Ella \_ profesora.        | 彼女は教員です。                 | es      | 職業・身分を表すため ser（三名単: es）を使用します。               | está / eres / estás     |
+| Hoy \_ nublado.           | 今日は曇っています。             | está    | 一時的な天候・状態を表すため estar（三名単: está）を使用します。   | es / estás / eres       |
+| Nosotros \_ en el parque. | 私たちは公園にいます。           | estamos | 居場所・所在を表すため estar（一人複: estamos）を使用します。      | somos / están / son     |
+| Juan \_ alto y simpático. | フアンは背が高くて親切です。     | es      | 性質・特徴を表すため ser（三名単: es）を使用します。               | está / eres / estás     |
+| La sopa \_ muy fría.      | スープがとても冷えています。     | está    | 一時的な状態（温度）を表すため estar（三名単: está）を使用します。 | es / estás / eres       |
+| Madrid \_ en España.      | マドリードはスペインにあります。 | está    | 位置・所在を表すため estar（三名単: está）を使用します。           | es / estás / eres       |
+| Mis padres \_ abogados.   | 私の両親は弁護士です。           | son     | 職業・身分を表すため ser（三人複: son）を使用します。              | están / somos / estamos |
+| ¿Dónde \_ las llaves?     | 鍵はどこにありますか？           | están   | 物の所在を表すため estar（三人複: están）を使用します。            | son / estamos / somos   |
+| Mañana \_ domingo.        | 明日は日曜日です。               | es      | 日時・曜日を表すため ser（三名単: es）を使用します。               | está / eres / estás     |
+| El café \_ muy caliente.  | コーヒーがとても熱いです。       | está    | 一時的な状態（温度）を表すため estar（三名単: está）を使用します。 | es / estás / eres       |
+
+### 線過去 と 点過去 の使い分け
+
+| 例文 (問題文)                       | 日本語訳・ヒント                                    | 正解   | 解説                                                                       | 誤答                          |
+| ----------------------------------- | --------------------------------------------------- | ------ | -------------------------------------------------------------------------- | ----------------------------- |
+| Yo \_ con María ayer.               | 私は昨日マリアと話した（hablar）。                  | hablé  | 「昨日（ayer）」完了した特定の過去の動作のため点過去を使用します。         | hablaba / hablo / hablaré     |
+| Cuando yo \_ niño, vivía en Madrid. | 私が子供だったとき（ser）、マドリードに住んでいた。 | era    | 過去の継続的な状態（子供時代）を表すため線過去を使用します。               | fui / soy / seré              |
+| Ayer \_ un día maravilloso.         | 昨日は素晴らしい一日だった（ser）。                 | fue    | 「昨日（ayer）」という完了した期間の事実のため点過去を使用します。         | era / es / será               |
+| Mientras yo estudiaba, él \_.       | 私は勉強していた間、彼は寝ていた（dormir）。        | dormía | 並行して続いていた過去の動作を表すため線過去を使用します。                 | durmió / duerme / dormirá     |
+| Todos los días yo \_ al parque.     | 毎日私は公園に行っていた（ir）。                    | iba    | 「毎日（Todos los días）」繰り返された過去の習慣のため線過去を使用します。 | fui / voy / iré               |
+| De repente, \_ a llover.            | 突然、雨が降り始めた（empezar）。                   | empezó | 「突然（De repente）」発生した過去の出来事・起点の文脈のため点過去を使用。 | empezaba / empieza / empezará |
+| Cuando la vi, ella \_ 10 años.      | 私が彼女に会ったとき、彼女は10歳だった（tener）。   | tenía  | 過去の年齢・状態の背景描写のため線過去を使用します。                       | tuvo / tiene / tendrá         |
+| El año pasado \_ a España.          | 去年、スペインへ旅行した（viajar）。                | viajé  | 「去年（El año pasado）」完了した過去の出来事のため点過去を使用します。    | viajaba / viajo / viajaré     |
+| Siempre \_ en la calle.             | いつも通りで遊んでいた（jugar）。                   | jugaba | 「いつも（Siempre）」行っていた過去の習慣・反復動作のため線過去を使用。    | jugó / juega / jugará         |
+| Ayer \_ mucho frío.                 | 昨日はとても寒かった（hacer）。                     | hizo   | 「昨日（ayer）」完了した過去の特定の天候・気候状態のため点過去を使用。     | hacía / hace / hará           |
+
+### por と para の使い分け
+
+| 例文 (問題文)                      | 日本語訳・ヒント                   | 正解 | 解説                                                                      | 誤答            |
+| ---------------------------------- | ---------------------------------- | ---- | ------------------------------------------------------------------------- | --------------- |
+| Gracias \_ tu ayuda.               | 手伝ってくれてありがとう。         | por  | お礼の理由は por で表します（Gracias por…）。                             | para / con / de |
+| Este regalo es \_ ti.              | このプレゼントは君にあげるものだ。 | para | 受け取り手・宛先（〜のための・〜あての）は para で表します。              | por / en / con  |
+| Estudio \_ ser médico.             | 医者になるために勉強している。     | para | 「〜するために」という目的は para + 不定詞で表します。                    | por / de / en   |
+| Te llamo \_ teléfono.              | 電話で連絡するね。                 | por  | 連絡・伝達の手段（電話で・メールで）は por で表します。                   | para / en / de  |
+| Mañana salimos \_ Madrid.          | 明日、マドリードへ向けて出発する。 | para | 「〜へ向けて」という行き先は para で表します。                            | por / en / con  |
+| Pagué veinte euros \_ este libro.  | この本に20ユーロ払った。           | por  | 代金と引き換えに何かを得る「交換」は por で表します。                     | para / de / a   |
+| Necesito el informe \_ el viernes. | 金曜日までにレポートが必要だ。     | para | 「〜までに」という期限は para で表します。                                | por / en / a    |
+| Caminamos \_ la playa.             | 私たちは浜辺を（あちこち）歩いた。 | por  | 「〜を通って・〜のあたりを」という経路や漠然とした場所は por で表します。 | para / de / con |
+| \_ mí, el español es fácil.        | 私にとって、スペイン語は簡単だ。   | Para | 「〜にとって」という意見・判断の基準は para で表します。                  | Por / De / Con  |
+| No pude salir \_ la lluvia.        | 雨のせいで出かけられなかった。     | por  | 原因・理由（〜のせいで・〜のために）は por で表します。                   | para / de / con |
+
+### hay と estar の使い分け
+
+| 例文 (問題文)                      | 日本語訳・ヒント               | 正解  | 解説                                                                                  | 誤答                  |
+| ---------------------------------- | ------------------------------ | ----- | ------------------------------------------------------------------------------------- | --------------------- |
+| \_ un banco cerca de aquí.         | この近くに銀行がある。         | Hay   | 不定冠詞の付いた不特定のもの（un banco）の存在は hay で表します。                     | Está / Es / Están     |
+| El banco \_ cerca de aquí.         | その銀行はこの近くにある。     | está  | 定冠詞の付いた特定のもの（el banco）の所在は estar で表します。                       | hay / es / están      |
+| ¿Dónde \_ el baño?                 | トイレはどこですか？           | está  | 特定のもの（el baño）の所在を尋ねるので estar を使います。                            | hay / es / están      |
+| ¿\_ una farmacia por aquí?         | この辺に薬局はありますか？     | Hay   | あるかどうかわからない不特定のもの（una farmacia）を尋ねるので hay を使います。       | Está / Es / Están     |
+| En mi clase \_ veinte estudiantes. | 私のクラスには学生が20人いる。 | hay   | 数詞の付いた名詞の存在は hay で表します。hay は後ろの名詞が複数でも形が変わりません。 | están / son / estamos |
+| Mis padres \_ en casa.             | 両親は家にいる。               | están | 所有詞の付いた特定の人（mis padres）の居場所は estar（三人複: están）で表します。     | hay / son / está      |
+| No \_ leche en la nevera.          | 冷蔵庫に牛乳がない。           | hay   | 無冠詞の名詞（牛乳などの量・物質）があるかないかは hay で表します。                   | está / es / están     |
+| Las llaves \_ en la mesa.          | 鍵は机の上にある。             | están | 定冠詞の付いた特定のもの（las llaves）の所在は estar（三人複: están）で表します。     | hay / son / está      |
+| \_ mucha gente en la calle.        | 通りに人がたくさんいる。       | Hay   | mucho・poco などの付いた不特定の名詞の存在は hay で表します。                         | Está / Es / Están     |
+| Tu móvil \_ debajo del sofá.       | 君の携帯はソファの下にある。   | está  | 所有詞の付いた特定のもの（tu móvil）の所在は estar で表します。                       | hay / es / están      |
 
 </div>
