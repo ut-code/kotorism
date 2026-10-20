@@ -64,7 +64,10 @@ function readCardData(
 const hasBlankHead = (formData: FormData) => String(formData.get("head") ?? "").trim() === "";
 
 // 表に足した1行ぶんの入力を読み取る。見出し語が空の行は、見出し語を空のまま組だけ読み取る（上の単語に付ける分）
-function readTableRow(columns: string[], formData: FormData): { data: CardData } | { error: string } {
+function readTableRow(
+  columns: string[],
+  formData: FormData,
+): { data: CardData } | { error: string } {
   if (!hasBlankHead(formData)) return readCardData(columns, formData);
   const parsed = readCardRows(columns, formData);
   return "error" in parsed ? parsed : { data: { head: "", rows: parsed.rows } };

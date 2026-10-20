@@ -295,7 +295,9 @@ describe("1つの単語に複数の組（多義語）", () => {
       }),
     );
     expect(state).toEqual({});
-    expect(await cardsData()).toEqual([{ head: "light", rows: [{ 意味: "軽い" }, { 意味: "明るい" }] }]);
+    expect(await cardsData()).toEqual([
+      { head: "light", rows: [{ 意味: "軽い" }, { 意味: "明るい" }] },
+    ]);
   });
 
   it("まとめて編集で足した行の見出し語が空なら、すぐ上の単語の組にする", async () => {
@@ -322,8 +324,9 @@ describe("1つの単語に複数の組（多義語）", () => {
 
   it("上に単語が無いのに見出し語が空なら、エラーにして何も保存しない", async () => {
     loginAs(owner);
-    expect((await createCardAction(notebook.id, form({ head: "", "row:0:意味": "軽い" }))).error)
-      .toBeTruthy();
+    expect(
+      (await createCardAction(notebook.id, form({ head: "", "row:0:意味": "軽い" }))).error,
+    ).toBeTruthy();
     const state = await updateCards(
       notebook.id,
       form({ newCardId: "new-1", "card:new-1:head": "", "card:new-1:row:0:意味": "軽い" }),
