@@ -23,11 +23,16 @@
   --font-geist-mono: "Geist Mono";
   --background: #ffffff;
   --foreground: #171717;
-  /* 学習カレンダーで教材ごとに塗り分ける色（上位4教材 + その他）。色覚多様性を考慮して検証済みの組み合わせ */
-  --chart-1: #2a78d6;
-  --chart-2: #eb6834;
-  --chart-3: #1baf7a;
-  --chart-4: #eda100;
+  /* 学習カレンダーで教材ごとに塗り分ける色（lib/shared/material-colors.ts）。My単語帳は coral、学習教材は tealblue の
+     濃さ違いで、同じ種類の中では学習時間の多い順に 1→4 を使う。隣り合っても見分けやすいよう濃淡を交互にしている */
+  --chart-notebook-1: #ff8877; /* coral-500 */
+  --chart-notebook-2: #d6503d; /* coral-700 */
+  --chart-notebook-3: #ffc7bc; /* coral-200 */
+  --chart-notebook-4: #a83b2c; /* coral-800 */
+  --chart-learn-1: #1e9a9c; /* tealblue-500 */
+  --chart-learn-2: #6fd1d1; /* tealblue-300 */
+  --chart-learn-3: #145154; /* tealblue-800 */
+  --chart-learn-4: #a6e6e6; /* tealblue-200 */
   --chart-other: #a1a1aa;
   color-scheme: light;
 }
@@ -41,10 +46,14 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --chart-1: #3987e5;
-  --chart-2: #d95926;
-  --chart-3: #199e70;
-  --chart-4: #c98500;
+  --chart-notebook-1: #ff8877; /* coral-500 */
+  --chart-notebook-2: #ffc7bc; /* coral-200 */
+  --chart-notebook-3: #d6503d; /* coral-700 */
+  --chart-notebook-4: #ffe3de; /* coral-100 */
+  --chart-learn-1: #3fb6b8; /* tealblue-400 */
+  --chart-learn-2: #a6e6e6; /* tealblue-200 */
+  --chart-learn-3: #167e82; /* tealblue-600 */
+  --chart-learn-4: #d3f3f3; /* tealblue-100 */
   --chart-other: #71717a;
   color-scheme: dark;
 }
@@ -298,6 +307,101 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .vb-splash-logo {
+    animation: none;
+  }
+}
+
+/* フリックでのページ移動（components/SwipePageNavigator.tsx）。ヘッダーなどは動かさず、ページの中身だけを
+   指を動かした向きへスライドさせる。右隣へ移るとき（指は左へ）は古いページが左へ出ていき新しいページが右から入る。
+   どちらの隣へ移るかは <html data-swipe="left|right"> で受け取る */
+.vb-swipe-page {
+  view-transition-name: vb-swipe-page;
+}
+
+:root[data-swipe]::view-transition-old(root),
+:root[data-swipe]::view-transition-new(root) {
+  animation: none;
+}
+
+/* ヘッダーの下の ◀ ▶（components/SwipeHint.tsx）。画面全体（root）は動かさず静止画のままにするため、
+   ここにも名前を付けて、ページのスライドと同じ 0.3 秒で移った先のページの名前へ切り替える。
+   古い名前と新しい名前が重なって読みにくくならないよう、前半で古い名前を消してから後半で新しい名前を出す */
+.vb-swipe-hint {
+  view-transition-name: vb-swipe-hint;
+}
+
+:root[data-swipe]::view-transition-group(vb-swipe-hint) {
+  animation-duration: 0.3s;
+}
+:root[data-swipe]::view-transition-old(vb-swipe-hint) {
+  animation: vb-swipe-hint-out 0.15s ease-out both;
+}
+:root[data-swipe]::view-transition-new(vb-swipe-hint) {
+  animation: vb-swipe-hint-in 0.15s ease-in 0.15s both;
+}
+
+@keyframes vb-swipe-hint-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vb-swipe-hint-in {
+  from {
+    opacity: 0;
+  }
+}
+
+:root[data-swipe]::view-transition-group(vb-swipe-page) {
+  overflow: clip;
+  animation-duration: 0.3s;
+}
+
+:root[data-swipe="right"]::view-transition-old(vb-swipe-page) {
+  animation: vb-swipe-out-left 0.3s ease-out both;
+}
+:root[data-swipe="right"]::view-transition-new(vb-swipe-page) {
+  animation: vb-swipe-in-from-right 0.3s ease-out both;
+}
+:root[data-swipe="left"]::view-transition-old(vb-swipe-page) {
+  animation: vb-swipe-out-right 0.3s ease-out both;
+}
+:root[data-swipe="left"]::view-transition-new(vb-swipe-page) {
+  animation: vb-swipe-in-from-left 0.3s ease-out both;
+}
+
+@keyframes vb-swipe-out-right {
+  to {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+}
+@keyframes vb-swipe-in-from-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0.4;
+  }
+}
+@keyframes vb-swipe-out-left {
+  to {
+    transform: translateX(-100%);
+    opacity: 0.4;
+  }
+}
+@keyframes vb-swipe-in-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+}
+
+/* 動きを減らす設定の端末では、スライドさせずにすぐ切り替える */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-swipe]::view-transition-group(vb-swipe-page),
+  :root[data-swipe]::view-transition-old(vb-swipe-page),
+  :root[data-swipe]::view-transition-new(vb-swipe-page),
+  :root[data-swipe]::view-transition-group(vb-swipe-hint),
+  :root[data-swipe]::view-transition-old(vb-swipe-hint),
+  :root[data-swipe]::view-transition-new(vb-swipe-hint) {
     animation: none;
   }
 }

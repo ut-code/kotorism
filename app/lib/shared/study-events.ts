@@ -57,6 +57,9 @@ export function formatDuration(seconds: number): string {
 export type DayStat = { count: number; seconds: number };
 
 // 学習カレンダーで選んだ期間（1日・1週間・1ヶ月）の内訳に出す教材
+// 単語帳の教材の種類（PeriodMaterial.category）。学習教材・作文・翻訳の種類は言語名になる
+export const NOTEBOOK_CATEGORY = "My単語帳";
+
 export type PeriodMaterial = {
   key: string;
   // 教材名（単語帳のタイトル・学習ページのタイトルなど）

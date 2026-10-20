@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Form, useSubmit } from "react-router";
 
 import Link from "@/components/Link";
@@ -15,7 +15,9 @@ import {
   weekStart,
   type CalendarView,
 } from "@/lib/shared/study-calendar";
+import { OTHER_MATERIAL_COLOR, materialColors } from "@/lib/shared/material-colors";
 import {
+  NOTEBOOK_CATEGORY,
   STREAK_MILESTONE_INTERVAL,
   formatDuration,
   isStudiedDay,
@@ -85,18 +87,9 @@ function levelOf(stat: DayStat | undefined, maxSeconds: number): number {
   return Math.max(1, Math.min(4, Math.ceil((stat.seconds / maxSeconds) * 4)));
 }
 
-// 教材ごとの色（app/globals.css の --chart-*）。期間内で学習時間の多い上位4教材に順に割り当て、残りは「その他」
-const MATERIAL_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
-const OTHER_COLOR = "var(--chart-other)";
+// 教材ごとの色は lib/shared/material-colors.ts（My単語帳は coral 系、学習教材は tealblue 系）
+const OTHER_COLOR = OTHER_MATERIAL_COLOR;
 const OTHER_KEY = "__other__";
-
-function materialColors(materials: PeriodMaterial[]): Map<string, string> {
-  const colors = new Map<string, string>();
-  materials
-    .filter((material) => material.seconds > 0)
-    .forEach((material, i) => colors.set(material.key, MATERIAL_COLORS[i] ?? OTHER_COLOR));
-  return colors;
-}
 
 function statLabel(stat: DayStat | undefined): string {
   if (!stat || (stat.seconds === 0 && stat.count === 0)) return "学習なし";
@@ -295,13 +288,24 @@ function YearHeatmap(props: Props) {
   const { today, firstDay, daily, view, date } = props;
   const maxSeconds = Math.max(0, ...Object.values(daily).map((stat) => stat.seconds));
 
+  // 画面幅が狭く横スクロールになるときは、最初から今月（右端）が見えるようにする。
+  // 日付を選んで再表示されたときは、ユーザーが動かしたスクロール位置をそのまま保つ（初回表示のときだけ動かす）
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    if (scroller) scroller.scrollLeft = scroller.scrollWidth;
+  }, []);
+
   const weeks: string[][] = [];
   for (let start = weekStart(firstDay); start <= today; start = addDays(start, 7)) {
     weeks.push(Array.from({ length: 7 }, (_, i) => addDays(start, i)));
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-black/[.08] p-4 dark:border-white/[.145]">
+    <div
+      ref={scrollerRef}
+      className="overflow-x-auto rounded-2xl border border-black/[.08] p-4 dark:border-white/[.145]"
+    >
       <h3 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
         過去12ヶ月の学習状況
       </h3>
@@ -844,7 +848,7 @@ function StackedDays(props: Props & { colors: Map<string, string> }) {
 // 凡例・ツールチップ用の教材名。学習教材はページ名が言語間で重なる（例: 各言語の「作文」）ため言語を添える
 function legendLabel(material: PeriodMaterial | undefined): string {
   if (!material) return "";
-  return material.category && material.category !== "My単語帳"
+  return material.category && material.category !== NOTEBOOK_CATEGORY
     ? `${material.label}（${material.category}）`
     : material.label;
 }

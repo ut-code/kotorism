@@ -12,6 +12,8 @@ import {
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import SwipeHint from "@/components/SwipeHint";
+import SwipePageNavigator from "@/components/SwipePageNavigator";
 import StreakCelebration from "@/components/study/StreakCelebration";
 import { getPendingCelebration } from "@/lib/server/study-events.server";
 import { getAllLanguageSections } from "@/lib/shared/learn/content";
@@ -105,8 +107,14 @@ export default function App({ loaderData }: Route.ComponentProps) {
       <div className="flex flex-1 flex-col md:flex-row">
         {/* Sidebar 内部で、/ などのTOPページでは表示しない判定をしている */}
         <Sidebar allSections={allSections} />
-        <div className="flex flex-1 flex-col">
-          <Outlet />
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* ログイン中、My単語帳・学習履歴・学習教材 では左右の隣のページへのリンクを出す。
+              PCではメニュー（Sidebar）と重ならないよう、メニューの右側の列の上端に置く */}
+          {userName && <SwipeHint />}
+          {/* ログイン中は、スマホ・タブレットで My単語帳・学習履歴・学習教材 を横フリックで行き来できる */}
+          <SwipePageNavigator enabled={userName !== null}>
+            <Outlet />
+          </SwipePageNavigator>
         </div>
       </div>
       <Footer />

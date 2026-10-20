@@ -10,6 +10,18 @@ test.describe("学習教材", () => {
     await expect(page).toHaveURL(/\/learn\/chinese$/);
   });
 
+  test("言語ごとの一覧から、言語一覧に戻れる", async ({ page }) => {
+    await page.goto("/learn/french");
+    await page.getByRole("link", { name: "言語一覧に戻る" }).click();
+    await expect(page).toHaveURL(/\/learn$/);
+  });
+
+  test("各教材のページから、その言語の学習教材一覧に戻れる", async ({ page }) => {
+    await page.goto("/learn/french/01");
+    await page.getByRole("link", { name: "学習教材一覧に戻る" }).click();
+    await expect(page).toHaveURL(/\/learn\/french$/);
+  });
+
   test("MDX で書かれたセクション(中国語 05)が描画される", async ({ page }) => {
     await page.goto("/learn/chinese/05");
     await expect(
