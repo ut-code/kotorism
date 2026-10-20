@@ -1,9 +1,11 @@
 import { useState } from "react";
 
+import { CollapseToggle } from "@/components/practice/PracticeControls";
+
 // 出題する対象（動詞・漢字など）を複数選ぶ一覧。
 // 「全て選択／全て解除」・グループごとの一括選択・検索での絞り込みができる。
 // 絞り込み中は、表示されているものだけを一括で選択・解除する。
-// collapsible にすると、開くまでは見出しと選択数だけを出し、見出しを押すと開閉する
+// 開くまでは見出しと選択数だけを出し、見出しを押すと開閉する
 export type PickerItem = {
   id: string;
   label: string;
@@ -24,7 +26,6 @@ export function CheckboxPicker({
   labelLang,
   labelClassName = "font-medium",
   columnsClassName = "grid-cols-2 sm:grid-cols-3",
-  collapsible = false,
 }: {
   title: string;
   // 「語」「字」など、選択数の単位
@@ -40,10 +41,8 @@ export function CheckboxPicker({
   labelLang?: string;
   labelClassName?: string;
   columnsClassName?: string;
-  // 初めは閉じておき、見出しを押したときだけ一覧を出す
-  collapsible?: boolean;
 }) {
-  const [open, setOpen] = useState(!collapsible);
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const visible = normalizedQuery
@@ -62,9 +61,7 @@ export function CheckboxPicker({
   };
 
   const count = (
-    <span
-      className={`text-sm font-normal text-zinc-500 dark:text-zinc-400 ${collapsible ? "" : "ml-2"}`}
-    >
+    <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">
       {selected.size} / {items.length} {unit}を選択中
     </span>
   );
@@ -75,28 +72,10 @@ export function CheckboxPicker({
     <section>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-100">
-          {collapsible ? (
-            <button
-              type="button"
-              onClick={() => setOpen(!open)}
-              aria-expanded={open}
-              className="group inline-flex items-baseline gap-2 text-left hover:text-tealblue-700 dark:hover:text-tealblue-300"
-            >
-              <span
-                aria-hidden="true"
-                className={`inline-block text-xs text-zinc-400 transition-transform group-hover:text-tealblue-600 dark:text-zinc-500 ${open ? "rotate-90" : ""}`}
-              >
-                ▶
-              </span>
-              {title}
-              {count}
-            </button>
-          ) : (
-            <>
-              {title}
-              {count}
-            </>
-          )}
+          <CollapseToggle open={open} onToggle={() => setOpen(!open)}>
+            {title}
+            {count}
+          </CollapseToggle>
         </h3>
         <div className="flex gap-4 text-sm">
           {open && (

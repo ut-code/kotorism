@@ -39,6 +39,7 @@ test.describe("学習教材", () => {
     // 全単元の問題を1問ずつ解くので時間がかかる
     test.slow();
     await page.goto("/learn/chinese/05");
+    await page.getByRole("button", { name: /^問題数/ }).click();
     await page.getByRole("radio", { name: "全問" }).click();
     await page.getByRole("button", { name: "練習を始める" }).click();
 
@@ -65,11 +66,13 @@ test.describe("学習教材", () => {
     const summary = page.getByText(/問を出題します$/);
     const totalText = await summary.textContent();
 
+    await page.getByRole("button", { name: /^出題する単元/ }).click();
     await page.getByRole("button", { name: "全て解除" }).click();
     await expect(page.getByRole("button", { name: "練習を始める" })).toBeDisabled();
     await expect(page.getByText("出題する単元を1つ以上選んでください。")).toBeVisible();
 
     await page.getByRole("checkbox", { name: /時相・アスペクト/ }).check();
+    await page.getByRole("button", { name: /^問題数/ }).click();
     await page.getByRole("radio", { name: "全問" }).click();
     await expect(summary).toHaveText(/^\d+ 問を出題します$/);
     const total = Number(/(\d+) 問から/.exec(totalText ?? "")?.[1]);

@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
-  ChoiceChips,
+  CollapsibleChoice,
   EmptyPractice,
   PracticeButton,
-  SettingRow,
   type ChoiceOption,
 } from "@/components/practice/PracticeControls";
 import {
@@ -85,7 +84,6 @@ export function Quiz<Q extends QuizQuestion>({
   countOptions = ["5", "10", "20", "all"],
   defaultCount = "10",
   timer = false,
-  startOnTop = false,
   lang,
   mode: modeOption,
   instruction,
@@ -97,7 +95,7 @@ export function Quiz<Q extends QuizQuestion>({
 }: {
   // 今の設定で出題できる問題
   pool: Q[];
-  // 演習ごとの設定（出題範囲・出題対象など）。問題数・制限時間の上に表示する
+  // 演習ごとの設定（出題範囲・出題対象など）。「練習を始める」の下、問題数・制限時間の上に表示する
   settings?: ReactNode;
   // 出題できる問題が無いときの案内
   emptyMessage?: string;
@@ -106,8 +104,6 @@ export function Quiz<Q extends QuizQuestion>({
   defaultCount?: CountOption;
   // 1問ごとの制限時間を選べるようにするか
   timer?: boolean;
-  // 「練習を始める」ボタンを設定の上に置くか（設定が長く、すぐに始めたい演習向け）
-  startOnTop?: boolean;
   // 答えの言語（HTML の lang 属性）
   lang: string;
   // 答え方。関数にすると問題ごとに答え方を変えられる（選択式と入力式を混ぜる、など）
@@ -263,57 +259,42 @@ export function Quiz<Q extends QuizQuestion>({
     return () => window.removeEventListener("keydown", handleKeyDown);
   });
 
-  const startButton = (
-    <div className="flex flex-col items-center gap-3">
-      <PracticeButton onClick={startNew} disabled={pool.length === 0}>
-        練習を始める
-      </PracticeButton>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-        {pool.length === 0
-          ? emptyMessage
-          : roundSize === pool.length
-            ? `${pool.length} 問を出題します`
-            : `${pool.length} 問から ${roundSize} 問を出題します`}
-      </p>
-    </div>
-  );
-
   return (
     <div ref={rootRef} className="scroll-mt-24">
       {phase === "settings" && (
         <div className="space-y-10">
-          {startOnTop && startButton}
-          <div className="space-y-8">
+          <div className="flex flex-col items-center gap-3">
+            <PracticeButton onClick={startNew} disabled={pool.length === 0}>
+              練習を始める
+            </PracticeButton>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {pool.length === 0
+                ? emptyMessage
+                : roundSize === pool.length
+                  ? `${pool.length} 問を出題します`
+                  : `${pool.length} 問から ${roundSize} 問を出題します`}
+            </p>
+          </div>
+          <div className="space-y-6">
             {settings}
-            {(countOptions.length > 1 || timer) && (
-              <div className="space-y-5">
-                {countOptions.length > 1 && (
-                  <SettingRow label="問題数">
-                    <ChoiceChips
-                      label="問題数"
-                      options={countOptions.map((value) => ({ value, label: COUNT_LABELS[value] }))}
-                      value={count}
-                      onChange={setCount}
-                    />
-                  </SettingRow>
-                )}
-                {timer && (
-                  <SettingRow label="制限時間">
-                    <ChoiceChips
-                      label="1問あたりの制限時間"
-                      options={TIMER_OPTIONS}
-                      value={timerOption}
-                      onChange={setTimerOption}
-                    />
-                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                      1問あたりの時間です。
-                    </p>
-                  </SettingRow>
-                )}
-              </div>
+            {countOptions.length > 1 && (
+              <CollapsibleChoice
+                title="問題数"
+                options={countOptions.map((value) => ({ value, label: COUNT_LABELS[value] }))}
+                value={count}
+                onChange={setCount}
+              />
+            )}
+            {timer && (
+              <CollapsibleChoice
+                title="制限時間"
+                options={TIMER_OPTIONS}
+                value={timerOption}
+                onChange={setTimerOption}
+                note="1問あたりの時間です。"
+              />
             )}
           </div>
-          {!startOnTop && startButton}
         </div>
       )}
 

@@ -11,6 +11,8 @@ export type FillInItem = {
   translation: string;
   answer: string;
   explanation?: string;
+  // 4択のときの誤答（表の5列目に「 / 」区切りで書く）。無ければ空
+  distractors: string[];
 };
 
 export type NumberItem = { num: number; spelling: string };
@@ -92,6 +94,7 @@ export function parseFillInItems(source: string): FillInItem[] {
       translation: cells[1],
       answer: cells[2],
       explanation: cells[3] || undefined,
+      distractors: cells[4] ? cells[4].split(" / ").map((d) => d.trim()) : [],
     });
   }
   return items;

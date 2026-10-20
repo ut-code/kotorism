@@ -4,8 +4,7 @@ import type { HanziEntry } from "@/routes/learn._chinese.chinese.03/characters";
 import { CheckboxPicker } from "@/components/practice/CheckboxPicker";
 import {
   AUDIO_OPTIONS,
-  ChoiceChips,
-  SettingRow,
+  CollapsibleChoice,
   SpeakButton,
 } from "@/components/practice/PracticeControls";
 import { Quiz, QuizEmpty } from "@/components/practice/Quiz";
@@ -128,17 +127,13 @@ export function PinyinPractice({ characters }: PinyinPracticeProps) {
             labelClassName="text-lg font-medium"
             columnsClassName="grid-cols-3 sm:grid-cols-4"
           />
-          <SettingRow label="音声">
-            <ChoiceChips
-              label="音声読み上げ"
-              options={AUDIO_OPTIONS}
-              value={audio}
-              onChange={setAudio}
-            />
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              答え合わせのときに、漢字の発音を読み上げます。
-            </p>
-          </SettingRow>
+          <CollapsibleChoice
+            title="音声"
+            options={AUDIO_OPTIONS}
+            value={audio}
+            onChange={setAudio}
+            note="答え合わせのときに、漢字の発音を読み上げます。"
+          />
         </>
       }
       mode={{

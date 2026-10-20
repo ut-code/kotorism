@@ -30,7 +30,7 @@ test.describe("動詞の活用", () => {
 
   test("初期設定は4択で出題し、筆記に切り替えられる", async ({ page }) => {
     await page.goto("/learn/french/03");
-    await expect(page.getByRole("radio", { name: "4択" })).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("button", { name: /^答え方/ })).toContainText("4択");
     await page.getByRole("button", { name: "練習を始める" }).click();
 
     const choices = page.locator(".max-w-xl .flex.flex-col.gap-2 > button");
@@ -40,6 +40,7 @@ test.describe("動詞の活用", () => {
     await expect(page.getByRole("status")).toContainText(/正解|不正解/);
 
     await page.getByRole("button", { name: "設定に戻る" }).click();
+    await page.getByRole("button", { name: /^答え方/ }).click();
     await page.getByRole("radio", { name: "筆記" }).click();
     await page.getByRole("button", { name: "練習を始める" }).click();
     await expect(page.getByRole("textbox")).toBeVisible();

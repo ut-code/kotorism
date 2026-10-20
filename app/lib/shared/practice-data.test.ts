@@ -92,6 +92,7 @@ describe("parseFillInItems", () => {
         translation: "私は着いた。",
         answer: "suis",
         explanation: "être の現在形",
+        distractors: [],
       },
       {
         id: "q-2",
@@ -100,8 +101,18 @@ describe("parseFillInItems", () => {
         translation: "私たちは話した。",
         answer: "parlions",
         explanation: undefined,
+        distractors: [],
       },
     ]);
+  });
+
+  it("5列目の誤答を「 / 」で区切って読み取る（4択の選択肢に使う）", () => {
+    const source = [
+      "| 例文 (問題文) | 訳・ヒント | 正解 | 解説 | 誤答 |",
+      "| --- | --- | --- | --- | --- |",
+      String.raw`| Je \_ (regarder) un film. | 映画を見た。 | ai regardé | 複合過去 | regardais / regarde / regarderai |`,
+    ].join("\n");
+    expect(parseFillInItems(source)[0].distractors).toEqual(["regardais", "regarde", "regarderai"]);
   });
 });
 
@@ -124,6 +135,18 @@ describe("parseNumberItems", () => {
 });
 
 describe("教材 MDX からの演習データ読み込み", () => {
+  it.each(["french", "spanish"] as const)(
+    "%s の紛らわしい文法（穴埋め）は、どの問題にも正解と異なる誤答が3つある",
+    (language) => {
+      const items = loadFillInItems(language, "05");
+      expect(items.length).toBeGreaterThan(0);
+      for (const item of items) {
+        expect(item.distractors, item.sentence).toHaveLength(3);
+        expect(new Set([item.answer, ...item.distractors]).size, item.sentence).toBe(4);
+      }
+    },
+  );
+
   it.each(["french", "german", "spanish"] as const)(
     "%s の表完成・数字タイピングに出題データがある",
     (language) => {
