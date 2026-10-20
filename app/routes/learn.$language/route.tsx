@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import BackLink from "@/components/learn/BackLink";
 import { notFound } from "@/lib/server/http.server";
 
 import { prisma } from "@/lib/server/prisma.server";
@@ -33,21 +33,7 @@ export default function LearnLanguagePage({ loaderData }: Route.ComponentProps) 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 sm:py-24">
       <div className="w-full max-w-3xl">
-        <Link
-          href="/learn"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-        >
-          <svg
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          学習教材一覧に戻る
-        </Link>
+        <BackLink href="/learn">言語一覧に戻る</BackLink>
       </div>
 
       <div className="mt-4 w-full max-w-3xl text-center">

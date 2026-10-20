@@ -52,11 +52,16 @@ for (const { path, left, leftPath, right, rightPath } of PAGES) {
   });
 }
 
-test("3ページ以外（単語帳の中・教材の中など）には出さない", async ({ page }) => {
-  await page.goto("/learn/french/01");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "ページの切り替え" })).toHaveCount(0);
-});
+// 学習教材の下の階層（言語ごとの一覧・各教材のページ）にも、学習教材と同じ ◀▶ を出す
+for (const path of ["/learn/french", "/learn/french/01"]) {
+  test(`${path} にも学習教材と同じ ◀ 最近の学習履歴・My単語帳 ▶ を出す`, async ({ page }) => {
+    await page.goto(path);
+    const switcher = page.getByRole("navigation", { name: "ページの切り替え" });
+    await expect(switcher.getByRole("link", { name: "最近の学習履歴", exact: true })).toBeVisible();
+    await switcher.getByRole("link", { name: "My単語帳", exact: true }).click();
+    await expect(page).toHaveURL(/\/my-notebooks$/);
+  });
+}
 
 // フリック・◀▶で行き来したときに見出しが動いて見えないよう、3ページで見出しの大きさと位置を揃える
 for (const viewport of [
