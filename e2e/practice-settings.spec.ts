@@ -14,6 +14,7 @@ const PRACTICES: {
   { name: "中国語の文法クイズ", path: "/learn/chinese/05", start: "練習を始める" },
   { name: "フランス語の文法クイズ（基本1）", path: "/learn/french/05", start: "練習を始める" },
   { name: "フランス語の文法クイズ（基本2）", path: "/learn/french/06", start: "練習を始める" },
+  { name: "フランス語の発音クイズ", path: "/learn/french/09", start: "練習を始める" },
   { name: "表完成", path: "/learn/french/04", start: null },
   { name: "作文", path: "/learn/french/01", start: "書き始める" },
   { name: "翻訳", path: "/learn/spanish/02", start: "訳し始める" },
