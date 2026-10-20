@@ -5,7 +5,9 @@ import { CollapseToggle } from "@/components/practice/PracticeControls";
 // 出題する対象（動詞・漢字など）を複数選ぶ一覧。
 // 「全て選択／全て解除」・グループごとの一括選択・検索での絞り込みができる。
 // 絞り込み中は、表示されているものだけを一括で選択・解除する。
-// 開くまでは見出しと選択数だけを出し、見出しを押すと開閉する
+// 開くまでは見出しと選択数だけを出し、見出しを押すと開閉する。
+// variant="chip" にすると、選択肢を「答え方」などの1つだけ選ぶ設定と同じ丸いチップで並べる
+// （チェックボックスは出さず、チップの色で選択中かを示す）
 export type PickerItem = {
   id: string;
   label: string;
@@ -26,6 +28,7 @@ export function CheckboxPicker({
   labelLang,
   labelClassName = "font-medium",
   columnsClassName = "grid-cols-2 sm:grid-cols-3",
+  variant = "card",
 }: {
   title: string;
   // 「語」「字」など、選択数の単位
@@ -41,6 +44,8 @@ export function CheckboxPicker({
   labelLang?: string;
   labelClassName?: string;
   columnsClassName?: string;
+  // card: 枠付きの四角いカードを格子状に並べる / chip: 丸いチップを折り返して並べる
+  variant?: "card" | "chip";
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -146,38 +151,65 @@ export function CheckboxPicker({
             />
           )}
 
-          <div className={`mt-3 grid gap-2 ${columnsClassName}`}>
-            {visible.map((item) => (
-              <label
-                key={item.id}
-                className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
-                  selected.has(item.id)
-                    ? "border-tealblue-500 bg-tealblue-50 dark:border-tealblue-400 dark:bg-tealblue-950/40"
-                    : "border-zinc-200 hover:border-tealblue-300 dark:border-zinc-700 dark:hover:border-tealblue-600"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.has(item.id)}
-                  onChange={() => setMany([item.id], !selected.has(item.id))}
-                  className="h-4 w-4 shrink-0 accent-tealblue-600"
-                />
-                <span className="min-w-0">
-                  <span
-                    lang={labelLang}
-                    className={`text-zinc-800 dark:text-zinc-100 ${labelClassName}`}
+          {variant === "chip" ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {visible.map((item) => {
+                const checked = selected.has(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={checked}
+                    onClick={() => setMany([item.id], !checked)}
+                    className={`inline-flex items-baseline gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                      checked
+                        ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-400 dark:bg-tealblue-950/50 dark:text-tealblue-300"
+                        : "border-zinc-200 text-zinc-600 hover:border-tealblue-300 hover:text-tealblue-700 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-tealblue-600 dark:hover:text-tealblue-300"
+                    }`}
                   >
-                    {item.label}
-                  </span>
-                  {item.sub && (
-                    <span className="ml-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      {item.sub}
+                    <span lang={labelLang} className="font-semibold">
+                      {item.label}
                     </span>
-                  )}
-                </span>
-              </label>
-            ))}
-          </div>
+                    {item.sub && <span className="text-xs opacity-75">{item.sub}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={`mt-3 grid gap-2 ${columnsClassName}`}>
+              {visible.map((item) => (
+                <label
+                  key={item.id}
+                  className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
+                    selected.has(item.id)
+                      ? "border-tealblue-500 bg-tealblue-50 dark:border-tealblue-400 dark:bg-tealblue-950/40"
+                      : "border-zinc-200 hover:border-tealblue-300 dark:border-zinc-700 dark:hover:border-tealblue-600"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.id)}
+                    onChange={() => setMany([item.id], !selected.has(item.id))}
+                    className="h-4 w-4 shrink-0 accent-tealblue-600"
+                  />
+                  <span className="min-w-0">
+                    <span
+                      lang={labelLang}
+                      className={`text-zinc-800 dark:text-zinc-100 ${labelClassName}`}
+                    >
+                      {item.label}
+                    </span>
+                    {item.sub && (
+                      <span className="ml-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        {item.sub}
+                      </span>
+                    )}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
           {visible.length === 0 && (
             <p className="py-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
               「{query.trim()}」に一致するものがありません。

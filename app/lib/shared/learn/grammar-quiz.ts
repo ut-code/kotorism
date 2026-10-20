@@ -1,23 +1,13 @@
-// 中国語「文法クイズ」の問題の型と、単元での絞り込み・出題データの点検
+// 各言語の「文法クイズ」の問題の型と、単元での絞り込み・出題データの点検。
+// 単元の定義と出題データは言語ごとに、各セクションのフォルダの quiz-data.ts に置く
 
 // 穴埋め問題の空欄
 export const BLANK = "＿＿";
 
 // 出題の単元。問題には units で1つ以上の単元タグを付け、学習者は単元を選んで出題範囲を絞る
-export const GRAMMAR_UNITS = [
-  { id: "aux-verb", label: "助動詞の否定", sub: "不想・不用・不会…" },
-  { id: "negation", label: "否定表現", sub: "不・没・别" },
-  { id: "aspect", label: "時相・アスペクト", sub: "了・着・过" },
-  { id: "possibility", label: "可能表現", sub: "能・会・可以" },
-  { id: "complement", label: "方向補語・結果補語", sub: "上来・完・懂…" },
-  { id: "preposition", label: "介詞", sub: "在・对・给…" },
-] as const;
+export type GrammarUnitDef = { id: string; label: string; sub?: string };
 
-export type GrammarUnit = (typeof GRAMMAR_UNITS)[number]["id"];
-
-const UNIT_IDS = new Set<string>(GRAMMAR_UNITS.map((u) => u.id));
-
-// 4択の観点。意味＝中国語文の訳を選ぶ、形＝日本語に合う中国語の形を選ぶ、
+// 4択の観点。意味＝学ぶ言語の文の訳を選ぶ、形＝日本語に合う学ぶ言語の形を選ぶ、
 // 文脈＝会話の流れに合う表現を選ぶ、穴埋め＝日本語訳を手がかりに文の空欄に入る語を選ぶ
 export type ChoiceFocus = "meaning" | "form" | "context" | "blank";
 
@@ -25,11 +15,12 @@ export type ChoiceFocus = "meaning" | "form" | "context" | "blank";
 const BLANK_FOCUSES: ReadonlySet<ChoiceFocus> = new Set(["context", "blank"]);
 
 // 文法クイズの問題。すべて選択肢4つの4択
-export type GrammarQuestion = {
+// U は単元タグの型（言語ごとの単元 id の和集合にすると、タグの書き間違いを型で防げる）
+export type GrammarQuestion<U extends string = string> = {
   focus: ChoiceFocus;
   id: string;
-  units: GrammarUnit[];
-  // 問題文（意味: 中国語文 / 形: 日本語文 / 文脈: 空欄入りの中国語の会話 / 穴埋め: 空欄入りの中国語の文）
+  units: U[];
+  // 問題文（意味: 学ぶ言語の文 / 形: 日本語文 / 文脈: 空欄入りの会話 / 穴埋め: 空欄入りの文）
   prompt: string;
   // 問題文に添える補足（文脈: 場面説明 / 穴埋め: 文の日本語訳）
   note?: string;
@@ -48,7 +39,11 @@ export function filterByUnits<Q extends { units: readonly string[] }>(
 }
 
 // 出題データの不備（解説が空、選択肢の数・重複、空欄の数など）を1件ずつ説明文で返す
-export function findQuestionProblems(questions: GrammarQuestion[]): string[] {
+export function findQuestionProblems(
+  questions: GrammarQuestion[],
+  units: readonly GrammarUnitDef[],
+): string[] {
+  const unitIds = new Set(units.map((u) => u.id));
   const problems: string[] = [];
   const seen = new Set<string>();
   for (const q of questions) {
@@ -56,7 +51,7 @@ export function findQuestionProblems(questions: GrammarQuestion[]): string[] {
     seen.add(q.id);
     if (!q.explanation.trim()) problems.push(`${q.id}: 解説がありません`);
     if (q.units.length === 0) problems.push(`${q.id}: 単元タグがありません`);
-    else if (q.units.some((u) => !UNIT_IDS.has(u)))
+    else if (q.units.some((u) => !unitIds.has(u)))
       problems.push(`${q.id}: 知らない単元タグがあります`);
     else if (new Set(q.units).size !== q.units.length)
       problems.push(`${q.id}: 単元タグが重複しています`);

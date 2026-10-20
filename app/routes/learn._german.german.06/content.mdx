@@ -1,0 +1,8 @@
+export const title = "文法クイズ（その他）";
+export const description =
+  "語順、否定（nicht・kein）、現在完了の助動詞、話法の助動詞から単元を選んで、格変化以外の文法の理解度を確認してみましょう。";
+
+import { GrammarQuiz } from "@/components/practice/GrammarQuiz";
+import { grammarQuiz, grammarUnits } from "./quiz-data";
+
+<GrammarQuiz units={grammarUnits} questions={grammarQuiz} lang="de" languageLabel="ドイツ語" />

@@ -1,69 +1,8 @@
-import NumberTypingPractice from "@/components/practice/NumberTypingPractice";
-
-export const title = "数字タイピング演習";
+export const title = "文法クイズ（格変化）";
 export const description =
-  "表示された数字を、ドイツ語のつづりで入力しましょう。出題範囲・問題数・制限時間を選べます。";
+  "定冠詞・不定冠詞・所有冠詞、人称代名詞・再帰代名詞、動詞と前置詞の格支配、形容詞の語尾から単元を選んで、格変化を重点的に練習しましょう。";
 
-<NumberTypingPractice language="german" />
+import { GrammarQuiz } from "@/components/practice/GrammarQuiz";
+import { grammarQuiz, grammarUnits } from "./quiz-data";
 
-{/* 出題データ定義テーブル (display:none) */}
-
-<div className="hidden" style={{ display: "none" }} aria-hidden="true">
-
-| 数  | 綴り             |
-| --- | ---------------- |
-| 0   | null             |
-| 1   | eins             |
-| 2   | zwei             |
-| 3   | drei             |
-| 4   | vier             |
-| 5   | fünf             |
-| 6   | sechs            |
-| 7   | sieben           |
-| 8   | acht             |
-| 9   | neun             |
-| 10  | zehn             |
-| 11  | elf              |
-| 12  | zwölf            |
-| 13  | dreizehn         |
-| 14  | vierzehn         |
-| 15  | fünfzehn         |
-| 16  | sechzehn         |
-| 17  | siebzehn         |
-| 18  | achtzehn         |
-| 19  | neunzehn         |
-| 20  | zwanzig          |
-| 21  | einundzwanzig    |
-| 22  | zweiundzwanzig   |
-| 23  | dreiundzwanzig   |
-| 24  | vierundzwanzig   |
-| 25  | fünfundzwanzig   |
-| 26  | sechsundzwanzig  |
-| 30  | dreißig          |
-| 31  | einunddreißig    |
-| 40  | vierzig          |
-| 41  | einundvierzig    |
-| 50  | fünfzig          |
-| 51  | einundfünfzig    |
-| 60  | sechzig          |
-| 61  | einundsechzig    |
-| 70  | siebzig          |
-| 71  | einundsiebzig    |
-| 72  | zweiundsiebzig   |
-| 73  | dreiundsiebzig   |
-| 74  | vierundsiebzig   |
-| 75  | fünfundsiebzig   |
-| 76  | sechsundsiebzig  |
-| 77  | siebenundsiebzig |
-| 78  | achtundsiebzig   |
-| 79  | neunundsiebzig   |
-| 80  | achtzig          |
-| 81  | einundachtzig    |
-| 82  | zweiundachtzig   |
-| 90  | neunzig          |
-| 91  | einundneunzig    |
-| 92  | zweiundneunzig   |
-| 99  | neunundneunzig   |
-| 100 | hundert          |
-
-</div>
+<GrammarQuiz units={grammarUnits} questions={grammarQuiz} lang="de" languageLabel="ドイツ語" />
