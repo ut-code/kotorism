@@ -7,6 +7,14 @@ import StarIcon from "@/components/StarIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/hooks/useStarColors";
 import { bulkCardFieldName } from "@/lib/shared/bulk-edit";
+import {
+  expandMergedValues,
+  initialMergedUp,
+  mergeSpans,
+  mergeWithNext,
+  splitLast,
+  type MergedUp,
+} from "@/lib/shared/card-groups";
 import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 import { starColorFor } from "@/lib/shared/star-colors";
 import { displayedStarCount } from "@/lib/shared/star-progress";
@@ -16,20 +24,6 @@ import DraggableTr from "./DraggableTr";
 // 表全体の編集中の入力欄（編集中に足した新しい行の入力欄でも使う）
 export const editInputClassName =
   "w-full min-w-16 rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]";
-
-// Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
-// 1つのセルにする。先頭行以外はnull（描画しない）を返し、代わりに直前のセルのrowSpanを伸ばす。
-// 空文字同士は結合しない（未入力のセルが1つの大きな空欄に見えて紛らわしいのを避けるため）
-function computeRowSpans(values: string[]): number[] {
-  const spans = values.map(() => 1);
-  for (let i = values.length - 1; i > 0; i -= 1) {
-    if (values[i] !== "" && values[i] === values[i - 1]) {
-      spans[i - 1] += spans[i];
-      spans[i] = 0;
-    }
-  }
-  return spans;
-}
 
 export default function CardRow({
   index,
@@ -85,9 +79,13 @@ export default function CardRow({
     );
   }
   const deleteFetcher = useFetcher();
-  // 表全体の編集中に、この単語へ足した空の組の数（右端の＋）。保存で送り、編集を終えたら消す
-  const [addedRows, setAddedRows] = useState(0);
-  if (!bulkEditFormId && addedRows > 0) setAddedRows(0);
+  // 表全体の編集中の、各組の入力中の値とマスの結合（右端の＋で足した空の組も含める）。
+  // 編集を始めたときの値から、同じ値が続くマスを結合済みとして始め（表示中の結合と同じ見た目）、編集を終えたら消す
+  const [editState, setEditState] = useState<{
+    rows: CardData["rows"];
+    mergedUp: MergedUp[];
+  } | null>(null);
+  if (!bulkEditFormId && editState !== null) setEditState(null);
 
   // ★を付けた回数に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
   const { colors: starColors } = useStarColors();
@@ -140,14 +138,48 @@ export default function CardRow({
   if (bulkEditFormId) {
     // 表全体の編集中。見出し語と、各組・各列の値をすべて入力欄にする。入力欄は表の外にあるフォームに
     // form 属性で結び付け、単語のidを前に付けた名前（bulkCardFieldName）でまとめて送る。
-    // 結合セル（同じ値が続く組）は、編集中は結合を解いて1組ずつの入力欄にする。
+    // 本文の各列は Excel の結合セルのように、列ごとに下の組のマスと結合（⬇ 結合）・分割（✂ 分割）できる。
+    // 結合したマスは1つの入力欄に1回入力するだけで、結合した組すべてに同じ値を隠し入力で送る
+    // （サーバー側は結合を知らずに、1組ずつ入力したときと同じ読み取り方をする）。
     // 右端の＋でこの単語に空の組を足せ、組のマスを全部空にして保存するとその組を消す（compactRows）
     const field = (name: string) => bulkCardFieldName(card.id, name);
-    const editRows = [
-      ...card.data.rows,
-      ...Array.from({ length: addedRows }, (): Record<string, string> => ({})),
-    ];
+    const current = editState ?? {
+      rows: card.data.rows,
+      mergedUp: initialMergedUp(card.data.rows, bodyColumns),
+    };
+    const editRows = expandMergedValues(current.rows, current.mergedUp, bodyColumns);
     const editRowCount = editRows.length;
+    const editSpansByColumn = bodyColumns.map((column) => mergeSpans(current.mergedUp, column));
+    const updateEdit = (update: (state: typeof current) => typeof current) =>
+      setEditState((prev) => update(prev ?? current));
+    const updateValue = (rowIndex: number, column: string, value: string) =>
+      updateEdit((state) => ({
+        ...state,
+        rows: state.rows.map((row, i) => (i === rowIndex ? { ...row, [column]: value } : row)),
+      }));
+    // 先頭が start の結合に、すぐ下の組のマスを結合する。
+    // 下のマスに別の値が入っていれば、上のマスの値にそろえて消えてしまうため確認する
+    const mergeCell = (start: number, column: string) => {
+      const below = editRows[start + editSpansByColumn[bodyColumns.indexOf(column)][start]];
+      const existing = below?.[column] ?? "";
+      if (
+        existing !== "" &&
+        existing !== (editRows[start][column] ?? "") &&
+        !window.confirm(`結合すると「${existing}」は上のマスの値にそろえられます。よろしいですか？`)
+      ) {
+        return;
+      }
+      updateEdit((state) => ({ ...state, mergedUp: mergeWithNext(state.mergedUp, start, column) }));
+    };
+    // 先頭が start の結合から、いちばん下の組のマスを切り離す。切り離したマスは空欄から入力し直す
+    // （同じ値のままだと、保存して表示に戻ったときにまた結合して見えるため）
+    const splitCell = (start: number, column: string) => {
+      const last = start + editSpansByColumn[bodyColumns.indexOf(column)][start] - 1;
+      updateEdit((state) => ({
+        rows: state.rows.map((row, i) => (i === last ? { ...row, [column]: "" } : row)),
+        mergedUp: splitLast(state.mergedUp, start, column),
+      }));
+    };
     return (
       <>
         {editRows.map((row, rowIndex) => (
@@ -171,26 +203,76 @@ export default function CardRow({
                 />
               </td>
             )}
-            {bodyColumns.map((column, columnIndex) => (
-              <td key={column} className="px-1.5 py-2 sm:px-4 align-top">
-                <input
-                  form={bulkEditFormId}
-                  name={field(`row:${rowIndex}:${column}`)}
-                  data-grid-col={columnIndex + 1}
-                  aria-label={column}
-                  defaultValue={row[column] ?? ""}
-                  // ＋で足した組は、最初の欄から入力を始められるようにする
-                  autoFocus={rowIndex >= card.data.rows.length && columnIndex === 0}
-                  maxLength={CARD_VALUE_MAX_LENGTH}
-                  className={editInputClassName}
-                />
-              </td>
-            ))}
+            {bodyColumns.map((column, columnIndex) => {
+              const span = editSpansByColumn[columnIndex][rowIndex];
+              // 上の組のマスに結合されたマスは描画しない（値は結合の先頭のマスの隠し入力で送る）
+              if (span === 0) return null;
+              const hasBelow = rowIndex + span < editRowCount;
+              return (
+                <td key={column} rowSpan={span} className="px-1.5 py-2 sm:px-4 align-top">
+                  <input
+                    form={bulkEditFormId}
+                    name={field(`row:${rowIndex}:${column}`)}
+                    data-grid-col={columnIndex + 1}
+                    aria-label={column}
+                    value={row[column] ?? ""}
+                    onChange={(event) => updateValue(rowIndex, column, event.target.value)}
+                    // ＋で足した組は、最初の欄から入力を始められるようにする
+                    autoFocus={rowIndex >= card.data.rows.length && columnIndex === 0}
+                    maxLength={CARD_VALUE_MAX_LENGTH}
+                    className={editInputClassName}
+                  />
+                  {/* 結合された組にも同じ値を送るための隠し入力 */}
+                  {Array.from({ length: span - 1 }, (_, k) => rowIndex + 1 + k).map(
+                    (mergedIndex) => (
+                      <input
+                        key={mergedIndex}
+                        type="hidden"
+                        form={bulkEditFormId}
+                        name={field(`row:${mergedIndex}:${column}`)}
+                        value={row[column] ?? ""}
+                      />
+                    ),
+                  )}
+                  {(span > 1 || hasBelow) && (
+                    <span className="mt-1 flex gap-2 text-xs whitespace-nowrap">
+                      {span > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => splitCell(rowIndex, column)}
+                          aria-label={`「${column}」の結合を分割`}
+                          title="いちばん下の組のマスを切り離す"
+                          className="text-coral-600 transition-colors hover:underline dark:text-coral-400"
+                        >
+                          ✂ 分割
+                        </button>
+                      )}
+                      {hasBelow && (
+                        <button
+                          type="button"
+                          onClick={() => mergeCell(rowIndex, column)}
+                          aria-label={`「${column}」を下の組と結合`}
+                          title="下の組のマスと結合し、1回の入力で同じ値を保存する"
+                          className="text-zinc-500 transition-colors hover:underline dark:text-zinc-400"
+                        >
+                          ⬇ 結合
+                        </button>
+                      )}
+                    </span>
+                  )}
+                </td>
+              );
+            })}
             {rowIndex === 0 && (
               <td rowSpan={editRowCount} className="px-1.5 py-2 sm:px-4 text-right align-top">
                 <button
                   type="button"
-                  onClick={() => setAddedRows((count) => count + 1)}
+                  onClick={() =>
+                    updateEdit((state) => ({
+                      rows: [...state.rows, {}],
+                      mergedUp: [...state.mergedUp, ...initialMergedUp([{}], bodyColumns)],
+                    }))
+                  }
                   aria-label={`「${card.data.head}」に組を追加`}
                   title="組（意味など）を追加"
                   className="px-1 text-lg leading-none text-zinc-400 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
@@ -206,9 +288,10 @@ export default function CardRow({
   }
 
   // 本文の各列は、列ごとに連続して同じ値が続く区間だけをrowSpanでまとめる（Excelの結合セルと同じ）
-  const bodySpansByColumn = bodyColumns.map((column) =>
-    computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
-  );
+  // 空のマス同士は結合しない（未入力のマスが1つの大きな空欄に見えて紛らわしいのを避けるため）。
+  // 編集を始めたときの結合（initialMergedUp）と同じ基準にして、編集を開いても見た目が変わらないようにする
+  const viewMergedUp = initialMergedUp(card.data.rows, bodyColumns);
+  const bodySpansByColumn = bodyColumns.map((column) => mergeSpans(viewMergedUp, column));
 
   return (
     <>
