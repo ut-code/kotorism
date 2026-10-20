@@ -25,18 +25,16 @@ export type SubjuntivoTense = "presente" | "pretéritoPerfecto";
 
 export type Mood = "indicativo" | "condicional" | "subjuntivo";
 
+// 出題する時制・法。第二外国語の初級文法で扱うものに絞る
+// （過去完了・未来完了・可能法過去・接続法現在完了は ConjugationTable にはあるが出題しない）
 export const TENSE_OPTIONS: TenseOption[] = [
   { mood: "indicativo", tense: "presente", label: "直説法 現在" },
-  { mood: "indicativo", tense: "pretéritoImperfecto", label: "直説法 線過去" },
   { mood: "indicativo", tense: "pretéritoIndefinido", label: "直説法 点過去" },
+  { mood: "indicativo", tense: "pretéritoImperfecto", label: "直説法 線過去" },
   { mood: "indicativo", tense: "pretéritoPerfectoCompuesto", label: "直説法 現在完了" },
-  { mood: "indicativo", tense: "pretéritoPluscuamperfecto", label: "直説法 過去完了" },
   { mood: "indicativo", tense: "futuroSimple", label: "直説法 未来" },
-  { mood: "indicativo", tense: "futuroCompuesto", label: "直説法 未来完了" },
   { mood: "condicional", tense: "simple", label: "可能法 現在" },
-  { mood: "condicional", tense: "compuesto", label: "可能法 過去" },
   { mood: "subjuntivo", tense: "presente", label: "接続法 現在" },
-  { mood: "subjuntivo", tense: "pretéritoPerfecto", label: "接続法 現在完了" },
 ];
 
 export { tenseKey } from "@/lib/shared/conjugation/shared";

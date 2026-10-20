@@ -17,17 +17,15 @@ export type KonjunktivITense = "präsens" | "perfekt";
 
 export type Mood = "indikativ" | "konjunktivII" | "konjunktivI";
 
+// 出題する時制・法。第二外国語の初級文法で扱うものに絞る
+// （過去完了・未来II・接続法II式過去・接続法I式過去は ConjugationTable にはあるが出題しない）
 export const TENSE_OPTIONS: TenseOption[] = [
   { mood: "indikativ", tense: "präsens", label: "直説法 現在" },
   { mood: "indikativ", tense: "präteritum", label: "直説法 過去" },
   { mood: "indikativ", tense: "perfekt", label: "直説法 現在完了" },
-  { mood: "indikativ", tense: "plusquamperfekt", label: "直説法 過去完了" },
-  { mood: "indikativ", tense: "futurI", label: "直説法 未来I" },
-  { mood: "indikativ", tense: "futurII", label: "直説法 未来II" },
+  { mood: "indikativ", tense: "futurI", label: "直説法 未来" },
   { mood: "konjunktivII", tense: "präsens", label: "接続法II式 現在" },
-  { mood: "konjunktivII", tense: "perfekt", label: "接続法II式 過去" },
   { mood: "konjunktivI", tense: "präsens", label: "接続法I式 現在" },
-  { mood: "konjunktivI", tense: "perfekt", label: "接続法I式 過去" },
 ];
 
 export { tenseKey } from "@/lib/shared/conjugation/shared";

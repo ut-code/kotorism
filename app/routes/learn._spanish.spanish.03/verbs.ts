@@ -1,3 +1,4 @@
+import { pickVerbs } from "@/lib/shared/conjugation/shared";
 import type { IrregularVerb, VerbEntry } from "@/lib/shared/conjugation/es/types";
 
 // ==== 不規則動詞 ====
@@ -490,4 +491,49 @@ const regularVerbs: VerbEntry[] = [
   { id: "compartir", infinitive: "compartir", meaning: "共有する", kind: "regular", group: "ir" },
 ];
 
-export const verbs: VerbEntry[] = [...irregularVerbs, ...regularVerbs];
+const allVerbs: VerbEntry[] = [...irregularVerbs, ...regularVerbs];
+
+// 出題する動詞。第二外国語の初級で最初に覚える基本動詞に絞る（上のデータはすべて活用できるが、ここに無いものは出題しない）
+const PRACTICE_VERB_IDS = [
+  // 不規則動詞
+  "ser",
+  "estar",
+  "tener",
+  "hacer",
+  "ir",
+  "poder",
+  "saber",
+  "querer",
+  "poner",
+  "salir",
+  "venir",
+  "decir",
+  "dar",
+  "ver",
+  "conocer",
+  "pensar",
+  "volver",
+  "dormir",
+  "pedir",
+  "jugar",
+  "entender",
+  "escribir",
+  // 規則 -ar
+  "hablar",
+  "estudiar",
+  "trabajar",
+  "cantar",
+  "comprar",
+  "escuchar",
+  // 規則 -er
+  "comer",
+  "beber",
+  "aprender",
+  "comprender",
+  // 規則 -ir
+  "vivir",
+  "recibir",
+  "subir",
+];
+
+export const verbs: VerbEntry[] = pickVerbs(allVerbs, PRACTICE_VERB_IDS);

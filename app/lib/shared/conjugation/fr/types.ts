@@ -25,18 +25,15 @@ export type SubjonctifTense = "présent" | "passé";
 
 export type Mood = "indicatif" | "conditionnel" | "subjonctif";
 
+// 出題する時制・法。第二外国語の初級文法で扱うものに絞る
+// （単純過去・大過去・前未来・条件法過去・接続法過去は ConjugationTable にはあるが出題しない）
 export const TENSE_OPTIONS: TenseOption[] = [
   { mood: "indicatif", tense: "présent", label: "直説法 現在" },
-  { mood: "indicatif", tense: "imparfait", label: "直説法 半過去" },
-  { mood: "indicatif", tense: "passéSimple", label: "直説法 単純過去" },
   { mood: "indicatif", tense: "passéComposé", label: "直説法 複合過去" },
-  { mood: "indicatif", tense: "plusQueParfait", label: "直説法 大過去" },
+  { mood: "indicatif", tense: "imparfait", label: "直説法 半過去" },
   { mood: "indicatif", tense: "futurSimple", label: "直説法 単純未来" },
-  { mood: "indicatif", tense: "futurAntérieur", label: "直説法 前未来" },
   { mood: "conditionnel", tense: "présent", label: "条件法 現在" },
-  { mood: "conditionnel", tense: "passé", label: "条件法 過去" },
   { mood: "subjonctif", tense: "présent", label: "接続法 現在" },
-  { mood: "subjonctif", tense: "passé", label: "接続法 過去" },
 ];
 
 export { tenseKey } from "@/lib/shared/conjugation/shared";
