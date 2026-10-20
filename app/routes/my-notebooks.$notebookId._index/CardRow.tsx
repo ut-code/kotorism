@@ -85,6 +85,9 @@ export default function CardRow({
     );
   }
   const deleteFetcher = useFetcher();
+  // 表全体の編集中に、この単語へ足した空の組の数（右端の＋）。保存で送り、編集を終えたら消す
+  const [addedRows, setAddedRows] = useState(0);
+  if (!bulkEditFormId && addedRows > 0) setAddedRows(0);
 
   // ★を付けた回数に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
   const { colors: starColors } = useStarColors();
@@ -95,11 +98,9 @@ export default function CardRow({
 
   // 表の左端の★の列。押すたびに回数を+1し、次の色の★を即座に見せる（handleAddStar）。
   // ★を外すときは、隣の回数（StarCountEditor）から0にリセットする
-  const starCell = (
-    <td rowSpan={rowCount} className="px-1.5 py-3 sm:px-4 align-top whitespace-nowrap">
-      {/* 「★と★を付けた回数」「目と暗記モードで見た回数」をそれぞれひとまとまりにし、
-          まとまりの間を広く空けて、どちらの数字かを見分けやすくする。
-          スマホなど幅の狭い画面では、単語の列に幅を譲るため2段に重ねる */}
+  // rowSpan: この単語の組の数（表全体の編集中は、＋で足した組も含める）
+  const starCell = (rowSpan: number) => (
+    <td rowSpan={rowSpan} className="px-1.5 py-3 sm:px-4 align-top whitespace-nowrap">
       <span className="inline-flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-4">
         <span className="inline-flex items-center gap-0.5" title="★を付けた回数">
           <button
@@ -123,7 +124,7 @@ export default function CardRow({
           />
         </span>
         {/* 目アイコンは暗記モード（/study, /review）でこのカードが表示された累計回数。
-            修正対象ではないのでただの表示に留める。★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
+            ★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
         <span
           aria-label="暗記モードで表示した回数"
           title="暗記モードで見た回数"
@@ -139,19 +140,25 @@ export default function CardRow({
   if (bulkEditFormId) {
     // 表全体の編集中。見出し語と、各組・各列の値をすべて入力欄にする。入力欄は表の外にあるフォームに
     // form 属性で結び付け、単語のidを前に付けた名前（bulkCardFieldName）でまとめて送る。
-    // 結合セル（同じ値が続く組）は、編集中は結合を解いて1組ずつの入力欄にする
+    // 結合セル（同じ値が続く組）は、編集中は結合を解いて1組ずつの入力欄にする。
+    // 右端の＋でこの単語に空の組を足せ、組のマスを全部空にして保存するとその組を消す（compactRows）
     const field = (name: string) => bulkCardFieldName(card.id, name);
+    const editRows = [
+      ...card.data.rows,
+      ...Array.from({ length: addedRows }, (): Record<string, string> => ({})),
+    ];
+    const editRowCount = editRows.length;
     return (
       <>
-        {card.data.rows.map((row, rowIndex) => (
+        {editRows.map((row, rowIndex) => (
           <tr
             key={rowIndex}
             data-card-index={index}
             className="border-t border-black/[.06] dark:border-white/[.1]"
           >
-            {rowIndex === 0 && starCell}
+            {rowIndex === 0 && starCell(editRowCount)}
             {rowIndex === 0 && (
-              <td rowSpan={rowCount} className="px-1.5 py-2 sm:px-4 align-top">
+              <td rowSpan={editRowCount} className="px-1.5 py-2 sm:px-4 align-top">
                 <input type="hidden" name="cardId" value={card.id} form={bulkEditFormId} />
                 <input
                   form={bulkEditFormId}
@@ -172,12 +179,26 @@ export default function CardRow({
                   data-grid-col={columnIndex + 1}
                   aria-label={column}
                   defaultValue={row[column] ?? ""}
+                  // ＋で足した組は、最初の欄から入力を始められるようにする
+                  autoFocus={rowIndex >= card.data.rows.length && columnIndex === 0}
                   maxLength={CARD_VALUE_MAX_LENGTH}
                   className={editInputClassName}
                 />
               </td>
             ))}
-            {rowIndex === 0 && <td rowSpan={rowCount} />}
+            {rowIndex === 0 && (
+              <td rowSpan={editRowCount} className="px-1.5 py-2 sm:px-4 text-right align-top">
+                <button
+                  type="button"
+                  onClick={() => setAddedRows((count) => count + 1)}
+                  aria-label={`「${card.data.head}」に組を追加`}
+                  title="組（意味など）を追加"
+                  className="px-1 text-lg leading-none text-zinc-400 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
+                >
+                  ＋
+                </button>
+              </td>
+            )}
           </tr>
         ))}
       </>
@@ -200,7 +221,7 @@ export default function CardRow({
           dragDisabled={dragDisabled}
           className={`border-t border-black/[.06] dark:border-white/[.1] ${isDragSource ? "opacity-40" : ""}`}
         >
-          {rowIndex === 0 && starCell}
+          {rowIndex === 0 && starCell(rowCount)}
           {rowIndex === 0 && (
             <td
               rowSpan={rowCount}

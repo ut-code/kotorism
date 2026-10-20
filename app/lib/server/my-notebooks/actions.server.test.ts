@@ -249,13 +249,87 @@ describe("updateCards", () => {
         cardId: chat.id,
         [`card:${chat.id}:head`]: "chien",
         newCardId: "new-1",
-        "card:new-1:head": "",
-        "card:new-1:row:0:意味": "見出し語が空",
+        "card:new-1:head": "oiseau",
+        "card:new-1:row:0:意味": "あ".repeat(CARD_VALUE_MAX_LENGTH + 1),
       }),
     );
     expect(state.error).toBeTruthy();
     const unchanged = await prisma.card.findMany({ where: { notebookId: notebook.id } });
     expect(unchanged.map((card) => (card.data as { head: string }).head)).toEqual(["chat"]);
+  });
+});
+
+describe("1つの単語に複数の組（多義語）", () => {
+  const cardsData = async () =>
+    (
+      await prisma.card.findMany({
+        where: { notebookId: notebook.id },
+        orderBy: { position: "asc" },
+      })
+    ).map((card) => card.data);
+
+  it("表の＋で見出し語を空けて追加すると、いちばん下の単語の新しい組になる", async () => {
+    await createCard(notebook.id, "chat", 0);
+    await createCard(notebook.id, "light", 1);
+    loginAs(editor);
+    const state = await createCardAction(notebook.id, form({ head: " ", "row:0:意味": "軽い" }));
+    expect(state).toEqual({ added: "light" });
+    expect(await cardsData()).toEqual([
+      { head: "chat", rows: [{ 意味: "chatの意味" }] },
+      { head: "light", rows: [{ 意味: "lightの意味" }, { 意味: "軽い" }] },
+    ]);
+  });
+
+  it("まとめて編集で、組を足したり、全部のマスを空にした組を消したりできる", async () => {
+    const light = await createCard(notebook.id, "light", 0);
+    loginAs(owner);
+    const field = (name: string) => `card:${light.id}:${name}`;
+    const state = await updateCards(
+      notebook.id,
+      form({
+        cardId: light.id,
+        [field("head")]: "light",
+        [field("row:0:意味")]: "",
+        [field("row:1:意味")]: "軽い",
+        [field("row:2:意味")]: "明るい",
+      }),
+    );
+    expect(state).toEqual({});
+    expect(await cardsData()).toEqual([{ head: "light", rows: [{ 意味: "軽い" }, { 意味: "明るい" }] }]);
+  });
+
+  it("まとめて編集で足した行の見出し語が空なら、すぐ上の単語の組にする", async () => {
+    const light = await createCard(notebook.id, "light", 0);
+    loginAs(owner);
+    const formData = form({
+      cardId: light.id,
+      [`card:${light.id}:head`]: "light",
+      [`card:${light.id}:row:0:意味`]: "光",
+      "card:new-1:head": "",
+      "card:new-1:row:0:意味": "軽い",
+      "card:new-2:head": "dark",
+      "card:new-2:row:0:意味": "暗い",
+      "card:new-3:head": "",
+      "card:new-3:row:0:意味": "黒っぽい",
+    });
+    for (const id of ["new-1", "new-2", "new-3"]) formData.append("newCardId", id);
+    expect(await updateCards(notebook.id, formData)).toEqual({});
+    expect(await cardsData()).toEqual([
+      { head: "light", rows: [{ 意味: "光" }, { 意味: "軽い" }] },
+      { head: "dark", rows: [{ 意味: "暗い" }, { 意味: "黒っぽい" }] },
+    ]);
+  });
+
+  it("上に単語が無いのに見出し語が空なら、エラーにして何も保存しない", async () => {
+    loginAs(owner);
+    expect((await createCardAction(notebook.id, form({ head: "", "row:0:意味": "軽い" }))).error)
+      .toBeTruthy();
+    const state = await updateCards(
+      notebook.id,
+      form({ newCardId: "new-1", "card:new-1:head": "", "card:new-1:row:0:意味": "軽い" }),
+    );
+    expect(state.error).toBeTruthy();
+    expect(await prisma.card.count({ where: { notebookId: notebook.id } })).toBe(0);
   });
 });
 

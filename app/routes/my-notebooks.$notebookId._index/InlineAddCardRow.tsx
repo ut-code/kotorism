@@ -23,6 +23,7 @@ function moveBetweenInputs(event: React.KeyboardEvent<HTMLInputElement>) {
 }
 
 // 【試作】単語帳の表のいちばん下に置く「＋」の行。押すとその上に入力行が開き、表の中で単語（1組ぶん）を追加できる。
+// 見出し語を空けて追加すると、いちばん下の単語の新しい組になる（多義語。サーバーの createCard）。
 // Enter・↓・＋で追加して次の空の行へ進み（見出し語の欄から続けて入力できる）、Esc・「キャンセル」で閉じる。
 // ← → で隣の欄へ移れる。入力中も＋は出したままにする
 // 表の行（<tr>）の中には <form> を置けないため、入力値を state で持ち、Enter で fetcher.submit する
@@ -170,7 +171,7 @@ export default function InlineAddCardRow({
               {state.error}
             </span>
           ) : (
-            "Enter・↓ で追加して次の行へ、Escでキャンセルします。← → で隣の欄へ移れます。"
+            "Enter・↓ で追加して次の行へ、Escでキャンセルします。← → で隣の欄へ移れます。見出し語を空けると、上の単語の組として追加します。"
           )}
         </td>
       </tr>
