@@ -3,7 +3,10 @@ import Link from "@/components/Link";
 import { useLocation } from "react-router";
 
 import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
+import { AccentTextarea } from "@/components/practice/AccentTextarea";
+import { CollapsibleChoice, CollapsibleSetting } from "@/components/practice/PracticeControls";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
+import { getPracticeLanguage } from "@/lib/shared/practice-languages";
 import type { SubmitEssayResult } from "@/lib/server/essay/actions.server";
 import { getEssayTopics } from "@/lib/shared/essay/topics";
 import {
@@ -61,6 +64,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
   const lengthUnit = getEssayLengthUnit(languageSlug);
   const unitLabel = essayLengthUnitLabel(lengthUnit);
   const topics = getEssayTopics(languageSlug);
+  const practiceLanguage = getPracticeLanguage(languageSlug);
 
   const [status, setStatus] = useState<"loading" | "guest" | "ready">("loading");
   const [phase, setPhase] = useState<"settings" | "writing" | "result">("settings");
@@ -170,68 +174,69 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
     <div className="mx-auto max-w-2xl space-y-8">
       {phase === "settings" && (
         <>
-          <section className="space-y-4">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">お題</div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setTopicSource("preset")}
-                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
-                  topicSource === "preset"
-                    ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300"
-                }`}
-              >
-                お題から選ぶ
-              </button>
-              <button
-                type="button"
-                onClick={() => setTopicSource("custom")}
-                className={`flex-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
-                  topicSource === "custom"
-                    ? "border-tealblue-500 bg-tealblue-50 text-tealblue-700 dark:border-tealblue-500 dark:bg-tealblue-900/30 dark:text-tealblue-300"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300"
-                }`}
-              >
-                自分でお題を決める
-              </button>
-            </div>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={startWriting}
+              disabled={!canStart}
+              className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+            >
+              書き始める
+            </button>
+          </div>
 
+          <div className="space-y-6">
+            <CollapsibleChoice
+              title="お題の決め方"
+              options={[
+                { value: "preset", label: "お題から選ぶ" },
+                { value: "custom", label: "自分でお題を決める" },
+              ]}
+              value={topicSource}
+              onChange={setTopicSource}
+            />
             {topicSource === "preset" ? (
-              <div className="space-y-2">
-                {topics.map((topic) => (
-                  <label
-                    key={topic.id}
-                    className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition-colors ${
-                      selectedTopicId === topic.id
-                        ? "border-tealblue-400 bg-tealblue-50/60 dark:border-tealblue-600 dark:bg-tealblue-900/20"
-                        : "border-zinc-200 bg-white hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="essay-topic"
-                      className="mt-1 h-4 w-4 accent-tealblue-600"
-                      checked={selectedTopicId === topic.id}
-                      onChange={() => setSelectedTopicId(topic.id)}
-                    />
-                    <span>
-                      <span className="block text-zinc-800 dark:text-zinc-100">{topic.prompt}</span>
-                      <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                        目安: {topic.targetWordCount}
-                        {unitLabel}
+              <CollapsibleSetting
+                title="お題"
+                summary={topics.find((topic) => topic.id === selectedTopicId)?.prompt ?? "未選択"}
+              >
+                <div className="space-y-2">
+                  {topics.map((topic) => (
+                    <label
+                      key={topic.id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition-colors ${
+                        selectedTopicId === topic.id
+                          ? "border-tealblue-400 bg-tealblue-50/60 dark:border-tealblue-600 dark:bg-tealblue-900/20"
+                          : "border-zinc-200 bg-white hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="essay-topic"
+                        className="mt-1 h-4 w-4 accent-tealblue-600"
+                        checked={selectedTopicId === topic.id}
+                        onChange={() => setSelectedTopicId(topic.id)}
+                      />
+                      <span>
+                        <span className="block text-zinc-800 dark:text-zinc-100">
+                          {topic.prompt}
+                        </span>
+                        <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                          目安: {topic.targetWordCount}
+                          {unitLabel}
+                        </span>
                       </span>
-                    </span>
-                  </label>
-                ))}
-                {topics.length === 0 && (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    この言語にはまだお題が用意されていません。「自分でお題を決める」から始めてください。
-                  </p>
-                )}
-              </div>
+                    </label>
+                  ))}
+                  {topics.length === 0 && (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      この言語にはまだお題が用意されていません。「自分でお題を決める」から始めてください。
+                    </p>
+                  )}
+                </div>
+              </CollapsibleSetting>
             ) : (
-              <div className="space-y-4">
+              <>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
                     お題（日本語で入力してください）
@@ -245,10 +250,10 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                     className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-tealblue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                    {essayLengthGuideLabel(lengthUnit)}
-                  </label>
+                <CollapsibleSetting
+                  title={essayLengthGuideLabel(lengthUnit)}
+                  summary={`${customWordCount}${unitLabel}`}
+                >
                   <div className="flex flex-wrap gap-2">
                     {ESSAY_LENGTH_OPTIONS.map((count) => (
                       <button
@@ -266,49 +271,42 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                       </button>
                     ))}
                   </div>
-                </div>
-              </div>
+                </CollapsibleSetting>
+              </>
             )}
-          </section>
-
-          <section className="space-y-3">
-            <div className="text-base font-bold text-zinc-800 dark:text-zinc-100">
-              採点基準ごとの配点（各{CRITERION_MIN_MAX}〜{CRITERION_MAX_MAX}点）
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {ESSAY_CRITERIA.map(({ key, label }) => (
-                <div
-                  key={key}
-                  className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700"
-                >
-                  <div className="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    {label}
-                  </div>
-                  <select
-                    value={criteriaMax[key]}
-                    onChange={(event) => setCriterionMax(key, Number(event.target.value))}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-                  >
-                    {CRITERION_MAX_SELECT_OPTIONS.map((value) => (
-                      <option key={value} value={value}>
-                        {value}点満点
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={startWriting}
-              disabled={!canStart}
-              className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+            <CollapsibleSetting
+              title="採点基準ごとの配点"
+              summary={ESSAY_CRITERIA.map(
+                ({ key, label }) => `${label} ${criteriaMax[key]}点`,
+              ).join("・")}
             >
-              書き始める
-            </button>
+              <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+                各{CRITERION_MIN_MAX}〜{CRITERION_MAX_MAX}点で選べます。
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {ESSAY_CRITERIA.map(({ key, label }) => (
+                  <div
+                    key={key}
+                    className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700"
+                  >
+                    <div className="mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      {label}
+                    </div>
+                    <select
+                      value={criteriaMax[key]}
+                      onChange={(event) => setCriterionMax(key, Number(event.target.value))}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                    >
+                      {CRITERION_MAX_SELECT_OPTIONS.map((value) => (
+                        <option key={value} value={value}>
+                          {value}点満点
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleSetting>
           </div>
 
           {history.length > 0 && (
@@ -355,9 +353,10 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                 />
               </div>
             ) : (
-              <textarea
+              <AccentTextarea
                 value={content}
-                onChange={(event) => setContent(event.target.value)}
+                onChange={setContent}
+                language={practiceLanguage}
                 maxLength={2000}
                 rows={8}
                 disabled={pending}

@@ -1,6 +1,24 @@
-import { BLANK, type GrammarQuestion } from "@/lib/shared/learn/grammar-quiz";
+import {
+  BLANK,
+  type GrammarQuestion as Question,
+  type GrammarUnitDef,
+} from "@/lib/shared/learn/grammar-quiz";
 
-// 文法クイズの出題データ。問題は単元ごとにまとめ、units に単元タグ（GRAMMAR_UNITS の id）を付ける。
+// 出題の単元
+export const grammarUnits = [
+  { id: "aux-verb", label: "助動詞の否定", sub: "不想・不用・不会…" },
+  { id: "negation", label: "否定表現", sub: "不・没・别" },
+  { id: "aspect", label: "時相・アスペクト", sub: "了・着・过" },
+  { id: "possibility", label: "可能表現", sub: "能・会・可以" },
+  { id: "complement", label: "方向補語・結果補語", sub: "上来・完・懂…" },
+  { id: "preposition", label: "介詞", sub: "在・对・给…" },
+  { id: "measure-word", label: "量詞", sub: "个・本・张・条…" },
+  { id: "comparison", label: "比較", sub: "比・没有・一样" },
+] as const satisfies readonly GrammarUnitDef[];
+
+type GrammarQuestion = Question<(typeof grammarUnits)[number]["id"]>;
+
+// 文法クイズの出題データ。問題は単元ごとにまとめ、units に単元タグ（grammarUnits の id）を付ける。
 // 複数の単元にまたがる問題は、タグを複数付ければどちらの単元を選んでも出題される
 
 // ── 助動詞の否定 ──
@@ -716,6 +734,152 @@ const prepositionQuestions: GrammarQuestion[] = [
   },
 ];
 
+// ── 量詞 ──
+const measureWordQuestions: GrammarQuestion[] = [
+  {
+    focus: "meaning",
+    id: "mw-meaning-zhang",
+    units: ["measure-word"],
+    prompt: "我买了两张票。",
+    choices: [
+      "チケットを2回買った。",
+      "チケットを2枚買いたい。",
+      "チケットを2枚買った。",
+      "2人分のチケットを買う。",
+    ],
+    answer: "チケットを2枚買った。",
+    explanation:
+      "「张」はチケット・紙・机など平らなものを数える量詞です。「了」があるので買ったことを表します。回数の「2回」なら「买了两次票」と動量詞「次」を使います。",
+  },
+  {
+    focus: "form",
+    id: "mw-form-liangge",
+    units: ["measure-word"],
+    prompt: "私には兄が2人いる。",
+    choices: ["我有二个哥哥。", "我有两哥哥。", "我有两个哥哥。", "我有两本哥哥。"],
+    answer: "我有两个哥哥。",
+    explanation:
+      "数と名詞の間には量詞が必要で、人には「个」（改まった言い方では「位」）を使います。量詞の前の「2」は「二」ではなく「两」です。「本」は本などを数える量詞です。",
+  },
+  {
+    focus: "context",
+    id: "mw-context-bei",
+    units: ["measure-word"],
+    prompt: `A：你要几${BLANK}咖啡？\nB：两杯，谢谢。`,
+    note: "A「コーヒーはいくつ要る？」 B「2杯お願い」",
+    choices: ["本", "张", "杯", "条"],
+    answer: "杯",
+    explanation:
+      "コップやカップに入った飲み物は「杯」で数えます。B が「两杯」と答えているのも手がかりです。「几」（いくつ）の後にも量詞が必要です。",
+  },
+  {
+    focus: "blank",
+    id: "mw-blank-ben",
+    units: ["measure-word"],
+    prompt: `这${BLANK}书很有意思。`,
+    note: "この本は面白い。",
+    choices: ["个", "张", "条", "本"],
+    answer: "本",
+    explanation:
+      "本・雑誌など冊子になったものは「本」で数えます。「这・那」（この・あの）と名詞の間にも量詞が必要です。",
+  },
+  {
+    focus: "blank",
+    id: "mw-blank-zhi",
+    units: ["measure-word"],
+    prompt: `桌子上有一${BLANK}猫。`,
+    note: "机の上に猫が1匹いる。",
+    choices: ["只", "本", "条", "张"],
+    answer: "只",
+    explanation:
+      "猫・鳥などの小動物は「只」で数えます。「条」は犬・魚・蛇のような細長いもの、「张」は平らなもの、「本」は本を数えます。",
+  },
+  {
+    focus: "blank",
+    id: "mw-blank-tiao",
+    units: ["measure-word"],
+    prompt: `我买了一${BLANK}裤子。`,
+    note: "私はズボンを1本買った。",
+    choices: ["件", "张", "条", "双"],
+    answer: "条",
+    explanation:
+      "ズボン・スカート・道・川など細長いものは「条」で数えます。上着やシャツは「件」、靴や箸のように2つで一組のものは「双」です。",
+  },
+];
+
+// ── 比較 ──
+const comparisonQuestions: GrammarQuestion[] = [
+  {
+    focus: "meaning",
+    id: "comp-meaning-meiyou",
+    units: ["comparison"],
+    prompt: "我没有他高。",
+    choices: [
+      "私は彼より背が高い。",
+      "私は彼と同じくらい背が高い。",
+      "彼は私ほど背が高くない。",
+      "私は彼ほど背が高くない。",
+    ],
+    answer: "私は彼ほど背が高くない。",
+    explanation:
+      "「A 没有 B + 形容詞」で「AはBほど〜ではない」という比較の否定です。「比」の文（我比他高＝私は彼より高い）の否定にはふつう「没有」を使います。",
+  },
+  {
+    focus: "form",
+    id: "comp-form-duole",
+    units: ["comparison"],
+    prompt: "今日は昨日よりずっと暑い。",
+    choices: ["今天比昨天很热。", "今天比昨天热多了。", "今天比昨天非常热。", "今天比昨天多热了。"],
+    answer: "今天比昨天热多了。",
+    explanation:
+      "「比」の比較文では、形容詞の前に「很・非常・太」を置けません。差が大きいことは形容詞の後ろに「多了」「得多」を付けて表します（少しなら「一点儿」）。強めるなら「更热」「还热」も使えます。",
+  },
+  {
+    focus: "context",
+    id: "comp-context-yiyang",
+    units: ["comparison"],
+    prompt: `A：你和你姐姐谁高？\nB：我们${BLANK}高。`,
+    note: "A「君とお姉さん、どっちが背が高い？」 B「私たちは…」",
+    choices: ["比", "一样", "没有", "更"],
+    answer: "一样",
+    explanation:
+      "「A 跟（和）B 一样 + 形容詞」で「AとBは同じくらい〜」。ここでは主語の「我们」（私たち）がAとBにあたるので「我们一样高」です。「比」「没有」は比べる相手がないと使えません。",
+  },
+  {
+    focus: "blank",
+    id: "comp-blank-bi",
+    units: ["comparison"],
+    prompt: `我${BLANK}他大三岁。`,
+    note: "私は彼より3歳年上だ。",
+    choices: ["跟", "比", "没有", "和"],
+    answer: "比",
+    explanation:
+      "「A 比 B + 形容詞 + 差」で「AはBより（差の分だけ）〜」。差の「三岁」は形容詞の後ろに置きます。「跟・和」は「一样」と組んで同じであることを表します。",
+  },
+  {
+    focus: "blank",
+    id: "comp-blank-yidianr",
+    units: ["comparison"],
+    prompt: `这件衣服比那件贵一${BLANK}。`,
+    note: "この服はあれより少し高い。",
+    choices: ["下", "点儿", "次", "个"],
+    answer: "点儿",
+    explanation:
+      "比較文で「少し〜」と差が小さいことを表すときは、形容詞の後ろに「一点儿」を付けます。「一下」は動作を「ちょっと〜する」、「一次」は回数を表します。",
+  },
+  {
+    focus: "blank",
+    id: "comp-blank-de-bi",
+    units: ["comparison", "complement"],
+    prompt: `他汉语说得${BLANK}我好。`,
+    note: "彼は私より中国語を話すのが上手だ。",
+    choices: ["跟", "对", "比", "给"],
+    answer: "比",
+    explanation:
+      "様態補語（说得好）を使った比較では、「比 + 相手」を「得」の後ろか動詞の前に置きます（他汉语说得比我好／他汉语比我说得好）。",
+  },
+];
+
 export const grammarQuiz: GrammarQuestion[] = [
   ...auxVerbQuestions,
   ...negationQuestions,
@@ -723,4 +887,6 @@ export const grammarQuiz: GrammarQuestion[] = [
   ...possibilityQuestions,
   ...complementQuestions,
   ...prepositionQuestions,
+  ...measureWordQuestions,
+  ...comparisonQuestions,
 ];

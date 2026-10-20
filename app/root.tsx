@@ -60,7 +60,7 @@ export const meta: Route.MetaFunction = () => [
   { title: "ことりずむ | 多次元単語帳アプリ" },
   {
     name: "description",
-    content: "自分だけの多次元単語帳を作って共有できる、多言語対応の暗記学習アプリ。",
+    content: "オリジナルの多次元単語帳を作って共有できる、多言語対応の語学学習アプリ。",
   },
 ];
 

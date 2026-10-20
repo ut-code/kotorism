@@ -1,4 +1,4 @@
-// 表完成・穴埋め・数字タイピングの演習で、言語ごとに変わる部分（特殊文字・言語名）の設定
+// 表完成・穴埋め・数字タイピング・作文・翻訳の演習で、言語ごとに変わる部分（特殊文字・言語名）の設定
 
 export type PracticeLanguageSlug = "french" | "german" | "spanish";
 
@@ -57,3 +57,10 @@ export const PRACTICE_LANGUAGES: Record<PracticeLanguageSlug, PracticeLanguage> 
     accentName: "アクセント記号（á, é, í, ó, ú, ñ など）",
   },
 };
+
+// 言語の slug から設定を引く。特殊文字の設定がない言語（中国語など）は undefined
+export function getPracticeLanguage(slug: string): PracticeLanguage | undefined {
+  return Object.hasOwn(PRACTICE_LANGUAGES, slug)
+    ? PRACTICE_LANGUAGES[slug as PracticeLanguageSlug]
+    : undefined;
+}

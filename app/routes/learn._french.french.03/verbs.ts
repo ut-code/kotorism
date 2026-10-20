@@ -1,3 +1,4 @@
+import { pickVerbs } from "@/lib/shared/conjugation/shared";
 import type {
   Auxiliary,
   IrregularVerb,
@@ -1096,4 +1097,51 @@ const regularVerbs: VerbEntry[] = [
   },
 ];
 
-export const verbs: VerbEntry[] = [...irregularVerbs, ...regularVerbs];
+const allVerbs: VerbEntry[] = [...irregularVerbs, ...regularVerbs];
+
+// 出題する動詞。第二外国語の初級で最初に覚える基本動詞に絞る（上のデータはすべて活用できるが、ここに無いものは出題しない）
+const PRACTICE_VERB_IDS = [
+  // 不規則動詞
+  "etre",
+  "avoir",
+  "aller",
+  "venir",
+  "faire",
+  "prendre",
+  "comprendre",
+  "apprendre",
+  "pouvoir",
+  "vouloir",
+  "devoir",
+  "savoir",
+  "connaitre",
+  "voir",
+  "dire",
+  "mettre",
+  "partir",
+  "dormir",
+  "boire",
+  "lire",
+  "ecrire",
+  "acheter",
+  // 第1群
+  "parler",
+  "aimer",
+  "chanter",
+  "regarder",
+  "ecouter",
+  "habiter",
+  "travailler",
+  "etudier",
+  // 第2群
+  "finir",
+  "choisir",
+  "reussir",
+  // 第3群（規則）
+  "attendre",
+  "vendre",
+  "repondre",
+  "entendre",
+];
+
+export const verbs: VerbEntry[] = pickVerbs(allVerbs, PRACTICE_VERB_IDS);

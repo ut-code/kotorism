@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { createRandomId } from "@/lib/shared/random-id";
 import type { StudyTimeActivity, StudyTimeReport } from "@/lib/shared/study-time";
 
 // 経過を確かめる間隔
@@ -32,7 +33,7 @@ export function useStudyTimer(activity: StudyTimeActivity | null) {
   useEffect(() => {
     if (!activityKey) return;
     const current = JSON.parse(activityKey) as StudyTimeActivity;
-    const clientId = crypto.randomUUID();
+    const clientId = createRandomId();
 
     let pendingMs = 0;
     let lastTick = Date.now();

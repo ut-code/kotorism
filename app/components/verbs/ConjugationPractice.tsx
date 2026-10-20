@@ -3,13 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckboxPicker } from "@/components/practice/CheckboxPicker";
 import {
   AUDIO_OPTIONS,
-  ChoiceChips,
-  SettingRow,
+  CollapsibleChoice,
+  type ChoiceOption,
   SpeakButton,
 } from "@/components/practice/PracticeControls";
 import { Quiz, QuizEmpty } from "@/components/practice/Quiz";
 import { AccentKeyHint } from "@/components/practice/SpecialCharPalette";
 import { apiPost } from "@/lib/shared/api-client";
+import { conjugationChoices } from "@/lib/shared/conjugation/choices";
 import {
   tenseKey,
   type SixForms,
@@ -42,7 +43,17 @@ interface Question {
   tenseLabel: string;
   person: string;
   answer: string;
+  // 4択のときの選択肢（正解を含む）
+  choices: string[];
 }
+
+type AnswerMode = "choice" | "typing";
+
+// 初学者には綴りを一から書くのは難しいので、4択を初めの答え方にする
+const ANSWER_MODE_OPTIONS: ChoiceOption<AnswerMode>[] = [
+  { value: "choice", label: "4択" },
+  { value: "typing", label: "筆記" },
+];
 
 interface ConjugationPracticeProps<V extends VerbLike, T> {
   verbs: V[];
@@ -51,7 +62,7 @@ interface ConjugationPracticeProps<V extends VerbLike, T> {
   sectionSlug?: string;
 }
 
-// 動詞の活用練習。動詞と時制・法を選び、人称に合わせた活用形を入力する
+// 動詞の活用練習。動詞と時制・法を選び、人称に合わせた活用形を4択で選ぶか入力する
 export function ConjugationPractice<V extends VerbLike, T>({
   verbs,
   language,
@@ -76,6 +87,7 @@ export function ConjugationPractice<V extends VerbLike, T>({
   const [selectedTenseKeys, setSelectedTenseKeys] = useState<Set<string>>(
     () => new Set(tenseOptions.map((t) => tenseKey(t.mood, t.tense))),
   );
+  const [answerMode, setAnswerMode] = useState<AnswerMode>("choice");
   const [audio, setAudio] = useState<"on" | "off">("on");
   const [speaking, setSpeaking] = useState(false);
 
@@ -94,8 +106,17 @@ export function ConjugationPractice<V extends VerbLike, T>({
       if (!selectedVerbIds.has(verb.id)) continue;
       const table = conjugationById.get(verb.id);
       if (!table) continue;
+      const formsByTense = tenseOptions.map((t) => ({
+        key: tenseKey(t.mood, t.tense),
+        forms: formsFor(table, t.mood, t.tense),
+      }));
       for (const t of tenses) {
-        formsFor(table, t.mood, t.tense).forEach((answer, personIndex) => {
+        const key = tenseKey(t.mood, t.tense);
+        const forms = formsFor(table, t.mood, t.tense);
+        forms.forEach((answer, personIndex) => {
+          const samePersonForms = formsByTense
+            .filter((other) => other.key !== key)
+            .map((other) => other.forms[personIndex]);
           questions.push({
             id: `${verb.id}.${t.mood}.${t.tense}.${personIndex}`,
             infinitive: verb.infinitive,
@@ -103,6 +124,7 @@ export function ConjugationPractice<V extends VerbLike, T>({
             tenseLabel: t.label,
             person: persons[personIndex],
             answer,
+            choices: conjugationChoices(answer, forms, samePersonForms),
           });
         });
       }
@@ -133,6 +155,12 @@ export function ConjugationPractice<V extends VerbLike, T>({
       lang={practiceLanguage.lang}
       settings={
         <>
+          <CollapsibleChoice
+            title="答え方"
+            options={ANSWER_MODE_OPTIONS}
+            value={answerMode}
+            onChange={setAnswerMode}
+          />
           <CheckboxPicker
             title="出題する動詞"
             unit="語"
@@ -154,27 +182,31 @@ export function ConjugationPractice<V extends VerbLike, T>({
             onChange={setSelectedTenseKeys}
             labelClassName=""
           />
-          <SettingRow label="音声">
-            <ChoiceChips
-              label="音声読み上げ"
-              options={AUDIO_OPTIONS}
-              value={audio}
-              onChange={setAudio}
-            />
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              答え合わせのときに、正解の活用形を読み上げます。
-            </p>
-          </SettingRow>
+          <CollapsibleChoice
+            title="音声"
+            options={AUDIO_OPTIONS}
+            value={audio}
+            onChange={setAudio}
+            note="答え合わせのときに、正解の活用形を読み上げます。"
+          />
         </>
       }
-      mode={{
-        kind: "typing",
-        accentCycles: practiceLanguage.accentCycles,
-        toolbarChars,
-        hint: <AccentKeyHint language={practiceLanguage} />,
-        placeholder: inputPlaceholder,
-      }}
-      instruction="人称に合わせた活用形を入力してください"
+      mode={
+        answerMode === "choice"
+          ? { kind: "choice", choices: (q) => q.choices }
+          : {
+              kind: "typing",
+              accentCycles: practiceLanguage.accentCycles,
+              toolbarChars,
+              hint: <AccentKeyHint language={practiceLanguage} />,
+              placeholder: inputPlaceholder,
+            }
+      }
+      instruction={
+        answerMode === "choice"
+          ? "人称に合わせた活用形を選んでください"
+          : "人称に合わせた活用形を入力してください"
+      }
       renderPrompt={(q) => (
         <>
           <span className="inline-block rounded-full bg-tealblue-50 px-3 py-1 text-xs font-bold text-tealblue-700 dark:bg-tealblue-950/50 dark:text-tealblue-300">

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { loadNumberItems } from "@/components/practice/data";
-import { ChoiceChips, SettingRow } from "@/components/practice/PracticeControls";
+import { CollapsibleChoice } from "@/components/practice/PracticeControls";
 import { Quiz, QuizEmpty } from "@/components/practice/Quiz";
 import { languageTypingMode } from "@/components/practice/typing-mode";
 import { PRACTICE_LANGUAGES, type PracticeLanguageSlug } from "@/lib/shared/practice-languages";
@@ -39,9 +39,7 @@ export default function NumberTypingPractice({ language }: { language: PracticeL
     <Quiz
       pool={pool}
       settings={
-        <SettingRow label="出題範囲">
-          <ChoiceChips label="出題範囲" options={SCOPES} value={scope} onChange={setScope} />
-        </SettingRow>
+        <CollapsibleChoice title="出題範囲" options={SCOPES} value={scope} onChange={setScope} />
       }
       timer
       lang={lang.lang}

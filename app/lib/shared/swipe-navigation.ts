@@ -20,3 +20,13 @@ export function getSwipeDestination(pathname: string, direction: SwipeDirection)
   const step = direction === "right" ? 1 : -1;
   return SWIPE_PAGES[(index + step + SWIPE_PAGES.length) % SWIPE_PAGES.length];
 }
+
+// ヘッダーの下の ◀▶（SwipeHint）の行き先。3画面に加えて、学習教材・My単語帳の下の階層（/learn/french など）でも、
+// その上の画面と同じ隣のページを返す。フリックは下の階層の操作（暗記カードなど）とぶつかるため getSwipeDestination のまま3画面だけ
+export function getPageSwitcherDestination(
+  pathname: string,
+  direction: SwipeDirection,
+): string | null {
+  const parent = SWIPE_PAGES.find((page) => pathname.startsWith(`${page}/`));
+  return getSwipeDestination(parent ?? pathname, direction);
+}

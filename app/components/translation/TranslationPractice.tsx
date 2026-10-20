@@ -4,8 +4,14 @@ import { useLocation } from "react-router";
 
 import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
+import { AccentTextarea } from "@/components/practice/AccentTextarea";
+import { getPracticeLanguage } from "@/lib/shared/practice-languages";
 import type { SubmitTranslationResult } from "@/lib/server/translation/actions.server";
-import { ChoiceChips, PracticeButton, SettingRow } from "@/components/practice/PracticeControls";
+import {
+  CollapsibleChoice,
+  CollapsibleSetting,
+  PracticeButton,
+} from "@/components/practice/PracticeControls";
 import {
   getTranslationProblem,
   getTranslationProblems,
@@ -50,6 +56,7 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
 export function TranslationPractice({ languageSlug, languageLabel }: TranslationPracticeProps) {
   const problems = getTranslationProblems(languageSlug);
   const topics = useMemo(() => getTranslationTopics(languageSlug), [languageSlug]);
+  const practiceLanguage = getPracticeLanguage(languageSlug);
 
   const [status, setStatus] = useState<"loading" | "guest" | "ready">("loading");
   const [phase, setPhase] = useState<"settings" | "writing" | "result">("settings");
@@ -185,33 +192,35 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
     <div className="mx-auto max-w-2xl space-y-8">
       {phase === "settings" && (
         <>
-          <div className="space-y-5">
-            <SettingRow label="訳す方向">
-              <ChoiceChips
-                label="訳す方向"
-                options={[
-                  { value: "fromJapanese", label: directionLabel("fromJapanese", languageLabel) },
-                  { value: "toJapanese", label: directionLabel("toJapanese", languageLabel) },
-                ]}
-                value={direction}
-                onChange={selectDirection}
-              />
-            </SettingRow>
-            <SettingRow label="題材">
-              <ChoiceChips
-                label="題材"
-                options={[
-                  { value: "preset", label: "問題から選ぶ" },
-                  { value: "custom", label: "自分で用意する" },
-                ]}
-                value={problemSource}
-                onChange={setProblemSource}
-              />
-            </SettingRow>
+          <div className="flex justify-center">
+            <PracticeButton onClick={startWriting} disabled={!canStart}>
+              訳し始める
+            </PracticeButton>
+          </div>
+
+          <div className="space-y-6">
+            <CollapsibleChoice
+              title="訳す方向"
+              options={[
+                { value: "fromJapanese", label: directionLabel("fromJapanese", languageLabel) },
+                { value: "toJapanese", label: directionLabel("toJapanese", languageLabel) },
+              ]}
+              value={direction}
+              onChange={selectDirection}
+            />
+            <CollapsibleChoice
+              title="題材"
+              options={[
+                { value: "preset", label: "問題から選ぶ" },
+                { value: "custom", label: "自分で用意する" },
+              ]}
+              value={problemSource}
+              onChange={setProblemSource}
+            />
             {problemSource === "preset" && (
-              <SettingRow label="文法項目">
-                <ChoiceChips
-                  label="文法項目"
+              <>
+                <CollapsibleChoice
+                  title="文法項目"
                   options={[
                     { value: ALL_TOPICS, label: "すべて" },
                     ...topics.map((t) => ({ value: t, label: t })),
@@ -219,9 +228,52 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                   value={topic}
                   onChange={selectTopic}
                 />
-              </SettingRow>
+                <CollapsibleSetting
+                  title="問題"
+                  summary={
+                    problemsForSelection.find((problem) => problem.id === selectedProblemId)
+                      ?.sourceText ?? "未選択"
+                  }
+                >
+                  <div className="space-y-2">
+                    {problemsForSelection.map((problem) => (
+                      <label
+                        key={problem.id}
+                        className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition-colors ${
+                          selectedProblemId === problem.id
+                            ? "border-tealblue-400 bg-tealblue-50/60 dark:border-tealblue-600 dark:bg-tealblue-900/20"
+                            : "border-zinc-200 bg-white hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="translation-problem"
+                          className="mt-1 h-4 w-4 accent-tealblue-600"
+                          checked={selectedProblemId === problem.id}
+                          onChange={() => setSelectedProblemId(problem.id)}
+                        />
+                        <span className="block">
+                          {topic === ALL_TOPICS && (
+                            <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                              {problem.topic}
+                            </span>
+                          )}
+                          <span className="block text-zinc-800 dark:text-zinc-100">
+                            {problem.sourceText}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                    {problemsForSelection.length === 0 && (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        この文法項目・方向の問題はまだ用意されていません。「自分で用意する」から始めてください。
+                      </p>
+                    )}
+                  </div>
+                </CollapsibleSetting>
+              </>
             )}
-            <SettingRow label="採点の満点">
+            <CollapsibleSetting title="採点の満点" summary={`${scoreMax}点満点`}>
               <select
                 value={scoreMax}
                 onChange={(event) => setScoreMax(Number(event.target.value))}
@@ -233,47 +285,8 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                   </option>
                 ))}
               </select>
-            </SettingRow>
-          </div>
-
-          <section>
-            {problemSource === "preset" ? (
-              <div className="space-y-2">
-                {problemsForSelection.map((problem) => (
-                  <label
-                    key={problem.id}
-                    className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition-colors ${
-                      selectedProblemId === problem.id
-                        ? "border-tealblue-400 bg-tealblue-50/60 dark:border-tealblue-600 dark:bg-tealblue-900/20"
-                        : "border-zinc-200 bg-white hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-900/50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="translation-problem"
-                      className="mt-1 h-4 w-4 accent-tealblue-600"
-                      checked={selectedProblemId === problem.id}
-                      onChange={() => setSelectedProblemId(problem.id)}
-                    />
-                    <span className="block">
-                      {topic === ALL_TOPICS && (
-                        <span className="block text-xs text-zinc-500 dark:text-zinc-400">
-                          {problem.topic}
-                        </span>
-                      )}
-                      <span className="block text-zinc-800 dark:text-zinc-100">
-                        {problem.sourceText}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-                {problemsForSelection.length === 0 && (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    この文法項目・方向の問題はまだ用意されていません。「自分で用意する」から始めてください。
-                  </p>
-                )}
-              </div>
-            ) : (
+            </CollapsibleSetting>
+            {problemSource === "custom" && (
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-200">
                   原文（
@@ -282,9 +295,11 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                     : `${languageLabel}で入力してください`}
                   ）
                 </label>
-                <textarea
+                <AccentTextarea
                   value={customSourceText}
-                  onChange={(event) => setCustomSourceText(event.target.value)}
+                  onChange={setCustomSourceText}
+                  // 外国語 → 日本語のときは、原文を外国語で入力する
+                  language={direction === "toJapanese" ? practiceLanguage : undefined}
                   maxLength={CUSTOM_SOURCE_MAX_LENGTH}
                   rows={3}
                   placeholder={
@@ -299,12 +314,6 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                 </div>
               </div>
             )}
-          </section>
-
-          <div className="flex justify-center">
-            <PracticeButton onClick={startWriting} disabled={!canStart}>
-              訳し始める
-            </PracticeButton>
           </div>
 
           {history.length > 0 && (
@@ -349,9 +358,11 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                 />
               </div>
             ) : (
-              <textarea
+              <AccentTextarea
                 value={content}
-                onChange={(event) => setContent(event.target.value)}
+                onChange={setContent}
+                // 日本語 → 外国語のときは、訳文を外国語で入力する
+                language={activeProblem.direction === "fromJapanese" ? practiceLanguage : undefined}
                 maxLength={500}
                 rows={5}
                 disabled={pending}

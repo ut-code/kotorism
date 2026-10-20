@@ -117,14 +117,31 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
         </div>
       </div>
 
-      {/* 操作ガイド */}
+      {/* 操作ガイド。カードの左右をクリックしたときと同じく、ここをクリックしても前後の面へ回転する */}
       {showHint && (
         <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-500">
-          <span>◀ 左: 戻る</span>
-          <span>|</span>
-          <span>右: 進む ▶</span>
+          <button
+            type="button"
+            onClick={() => setRotationStep((prev) => prev - 1)}
+            className="rounded px-1 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+          >
+            ◀ 左: 戻る
+          </button>
+          <span aria-hidden="true">|</span>
+          <button
+            type="button"
+            onClick={() => setRotationStep((prev) => prev + 1)}
+            className="rounded px-1 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+          >
+            右: 進む ▶
+          </button>
         </div>
       )}
+
+      {/* 回転は見た目でしか分からないため、今どの面を向いているかを読み上げ用に伝える */}
+      <p role="status" className="sr-only">
+        表示中の面: {columnNames[currentIndex] || `${currentIndex + 1}面目`}
+      </p>
     </div>
   );
 };

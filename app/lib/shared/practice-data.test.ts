@@ -92,6 +92,7 @@ describe("parseFillInItems", () => {
         translation: "私は着いた。",
         answer: "suis",
         explanation: "être の現在形",
+        distractors: [],
       },
       {
         id: "q-2",
@@ -100,8 +101,18 @@ describe("parseFillInItems", () => {
         translation: "私たちは話した。",
         answer: "parlions",
         explanation: undefined,
+        distractors: [],
       },
     ]);
+  });
+
+  it("5列目の誤答を「 / 」で区切って読み取る（4択の選択肢に使う）", () => {
+    const source = [
+      "| 例文 (問題文) | 訳・ヒント | 正解 | 解説 | 誤答 |",
+      "| --- | --- | --- | --- | --- |",
+      String.raw`| Je \_ (regarder) un film. | 映画を見た。 | ai regardé | 複合過去 | regardais / regarde / regarderai |`,
+    ].join("\n");
+    expect(parseFillInItems(source)[0].distractors).toEqual(["regardais", "regarde", "regarderai"]);
   });
 });
 
@@ -123,7 +134,42 @@ describe("parseNumberItems", () => {
   });
 });
 
+// 文法クイズ（紛らわしい表現）のセクション番号。フランス語は基本を2つに分けたぶん後ろにずれる
+const FILL_IN_SECTION = { french: "07", spanish: "06" } as const;
+
 describe("教材 MDX からの演習データ読み込み", () => {
+  it.each(["french", "spanish"] as const)(
+    "%s の文法クイズ（紛らわしい表現）は、どの問題にも正解と異なる誤答が3つある",
+    (language) => {
+      const items = loadFillInItems(language, FILL_IN_SECTION[language]);
+      expect(items.length).toBeGreaterThan(0);
+      for (const item of items) {
+        expect(item.distractors, item.sentence).toHaveLength(3);
+        expect(new Set([item.answer, ...item.distractors]).size, item.sentence).toBe(4);
+      }
+    },
+  );
+
+  it.each([
+    ["french", ["複合過去", "c'est", "à と pour", "助動詞", "savoir と connaître"]],
+    ["spanish", ["ser と estar", "線過去", "por と para", "hay と estar"]],
+  ] as const)(
+    "%s の文法クイズ（紛らわしい表現）は、紛らわしい組ごとの出題範囲に8問以上ある",
+    (language, topics) => {
+      const items = loadFillInItems(language, FILL_IN_SECTION[language]);
+      const categories = [...new Set(items.map((item) => item.category))];
+      expect(categories).toHaveLength(topics.length);
+      for (const topic of topics) {
+        const category = categories.find((c) => c.includes(topic));
+        expect(category, topic).toBeDefined();
+        expect(
+          items.filter((item) => item.category === category).length,
+          topic,
+        ).toBeGreaterThanOrEqual(8);
+      }
+    },
+  );
+
   it.each(["french", "german", "spanish"] as const)(
     "%s の表完成・数字タイピングに出題データがある",
     (language) => {
@@ -140,7 +186,7 @@ describe("教材 MDX からの演習データ読み込み", () => {
   it.each(["french", "spanish"] as const)(
     "%s の穴埋め問題を MDX から正しく読み込む",
     (language) => {
-      const fillInItems = loadFillInItems(language, "05");
+      const fillInItems = loadFillInItems(language, FILL_IN_SECTION[language]);
       expect(fillInItems.length).toBeGreaterThan(0);
       expect(
         fillInItems.every(({ sentence, answer }) => sentence.length > 0 && answer.length > 0),
