@@ -1,16 +1,88 @@
+import { useState } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 // 演習の設定・操作に使う共通の部品。どの演習でも見た目と並べ方を揃えるためのもの
 
-// 設定の1項目。PC ではラベルを左、選択肢を右に、スマホではラベルを上に置く
-export function SettingRow({ label, children }: { label: string; children: ReactNode }) {
+// 押すと中身を開閉する設定の見出し（▶ が開くと下を向く）。h3 の中に置く
+export function CollapseToggle({
+  open,
+  onToggle,
+  children,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-      <div className="text-sm font-bold text-zinc-700 sm:w-24 sm:shrink-0 sm:pt-1.5 dark:text-zinc-300">
-        {label}
-      </div>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="group inline-flex items-baseline gap-2 text-left hover:text-tealblue-700 dark:hover:text-tealblue-300"
+    >
+      <span
+        aria-hidden="true"
+        className={`inline-block text-xs text-zinc-400 transition-transform group-hover:text-tealblue-600 dark:text-zinc-500 ${open ? "rotate-90" : ""}`}
+      >
+        ▶
+      </span>
+      {children}
+    </button>
+  );
+}
+
+// 演習の設定の1項目。見出し（項目名と今の値）を押したときだけ中身を開く
+export function CollapsibleSetting({
+  title,
+  summary,
+  children,
+}: {
+  title: string;
+  // 閉じている間も見出しに出す、今の値
+  summary?: ReactNode;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section>
+      <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-100">
+        <CollapseToggle open={open} onToggle={() => setOpen(!open)}>
+          {title}
+          {summary !== undefined && (
+            <span className="line-clamp-1 text-sm font-normal text-zinc-500 dark:text-zinc-400">
+              {summary}
+            </span>
+          )}
+        </CollapseToggle>
+      </h3>
+      {open && <div className="mt-3">{children}</div>}
+    </section>
+  );
+}
+
+// 1つだけ選ぶ設定。閉じている間は今の選択を見出しに出す
+export function CollapsibleChoice<T extends string>({
+  title,
+  options,
+  value,
+  onChange,
+  note,
+}: {
+  title: string;
+  options: ChoiceOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+  // 選択肢の下に出す補足
+  note?: ReactNode;
+}) {
+  return (
+    <CollapsibleSetting
+      title={title}
+      summary={options.find((option) => option.value === value)?.label}
+    >
+      <ChoiceChips label={title} options={options} value={value} onChange={onChange} />
+      {note && <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{note}</p>}
+    </CollapsibleSetting>
   );
 }
 

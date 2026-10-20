@@ -3,11 +3,10 @@ import type { KeyboardEvent } from "react";
 
 import { loadGrammarTables } from "@/components/practice/data";
 import {
-  ChoiceChips,
+  CollapsibleChoice,
   EmptyPractice,
   PracticeButton,
   ScoreSummary,
-  SettingRow,
   type ChoiceOption,
 } from "@/components/practice/PracticeControls";
 import { SpecialCharPalette } from "@/components/practice/SpecialCharPalette";
@@ -185,25 +184,21 @@ export default function TableCompletionPractice({
   return (
     <div>
       <div className="space-y-5">
-        <SettingRow label="出題範囲">
-          <ChoiceChips
-            label="出題範囲"
-            options={[
-              { value: "all", label: "すべて" },
-              ...tables.map((t) => ({ value: t.title, label: t.title })),
-            ]}
-            value={category}
-            onChange={changeCategory}
-          />
-        </SettingRow>
-        <SettingRow label="空欄の割合">
-          <ChoiceChips
-            label="空欄の割合"
-            options={RATIO_OPTIONS}
-            value={ratio}
-            onChange={changeRatio}
-          />
-        </SettingRow>
+        <CollapsibleChoice
+          title="出題範囲"
+          options={[
+            { value: "all", label: "すべて" },
+            ...tables.map((t) => ({ value: t.title, label: t.title })),
+          ]}
+          value={category}
+          onChange={changeCategory}
+        />
+        <CollapsibleChoice
+          title="空欄の割合"
+          options={RATIO_OPTIONS}
+          value={ratio}
+          onChange={changeRatio}
+        />
       </div>
 
       <div ref={contentRef} className="mt-8 scroll-mt-24" />

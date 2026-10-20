@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { CollapsibleChoice } from "@/components/practice/PracticeControls";
 import { apiPost } from "@/lib/shared/api-client";
 import CompareCard, { Glyph } from "./CompareCard";
 import { compareList, type CharacterCompare } from "./compare-data";
@@ -53,13 +54,6 @@ function recordAnswer(correct: boolean) {
   }).catch(() => {});
 }
 
-const pillClass = (active: boolean) =>
-  `rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
-    active
-      ? "bg-tealblue-600 text-white"
-      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-  }`;
-
 export default function HanziQuiz() {
   const [phase, setPhase] = useState<"settings" | "quiz" | "result">("settings");
   const [direction, setDirection] = useState<Direction>("toJapanese");
@@ -81,46 +75,36 @@ export default function HanziQuiz() {
 
   if (phase === "settings") {
     return (
-      <div className="flex flex-col items-center gap-8 rounded-2xl border border-tealblue-200 bg-white p-6 text-center dark:border-tealblue-900/40 dark:bg-zinc-950">
-        <section className="w-full">
-          <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">出題の向き</div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {(Object.keys(DIRECTION_LABELS) as Direction[]).map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setDirection(value)}
-                aria-pressed={direction === value}
-                className={pillClass(direction === value)}
-              >
-                {DIRECTION_LABELS[value].title}
-              </button>
-            ))}
-          </div>
-        </section>
-        <section className="w-full">
-          <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">問題数</div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {ROUND_SIZES.map((size) => (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setRoundSize(size)}
-                aria-pressed={roundSize === size}
-                className={pillClass(roundSize === size)}
-              >
-                {size === 0 ? `全問（${compareList.length}問）` : `${size}問`}
-              </button>
-            ))}
-          </div>
-        </section>
-        <button
-          type="button"
-          onClick={() => start(compareList, roundSize)}
-          className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
-        >
-          クイズを始める
-        </button>
+      <div className="space-y-8 rounded-2xl border border-tealblue-200 bg-white p-6 text-center dark:border-tealblue-900/40 dark:bg-zinc-950">
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => start(compareList, roundSize)}
+            className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+          >
+            クイズを始める
+          </button>
+        </div>
+        <div className="space-y-6">
+          <CollapsibleChoice
+            title="出題の向き"
+            options={(Object.keys(DIRECTION_LABELS) as Direction[]).map((value) => ({
+              value,
+              label: DIRECTION_LABELS[value].title,
+            }))}
+            value={direction}
+            onChange={setDirection}
+          />
+          <CollapsibleChoice
+            title="問題数"
+            options={ROUND_SIZES.map((size) => ({
+              value: String(size),
+              label: size === 0 ? `全問（${compareList.length}問）` : `${size}問`,
+            }))}
+            value={String(roundSize)}
+            onChange={(value) => setRoundSize(Number(value))}
+          />
+        </div>
       </div>
     );
   }

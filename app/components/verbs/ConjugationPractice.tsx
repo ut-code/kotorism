@@ -3,8 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckboxPicker } from "@/components/practice/CheckboxPicker";
 import {
   AUDIO_OPTIONS,
-  ChoiceChips,
-  SettingRow,
+  CollapsibleChoice,
   type ChoiceOption,
   SpeakButton,
 } from "@/components/practice/PracticeControls";
@@ -154,17 +153,14 @@ export function ConjugationPractice<V extends VerbLike, T>({
       emptyMessage="動詞と時制・法を1つ以上選んでください。"
       countOptions={["5", "10", "20"]}
       lang={practiceLanguage.lang}
-      startOnTop
       settings={
         <>
-          <SettingRow label="答え方">
-            <ChoiceChips
-              label="答え方"
-              options={ANSWER_MODE_OPTIONS}
-              value={answerMode}
-              onChange={setAnswerMode}
-            />
-          </SettingRow>
+          <CollapsibleChoice
+            title="答え方"
+            options={ANSWER_MODE_OPTIONS}
+            value={answerMode}
+            onChange={setAnswerMode}
+          />
           <CheckboxPicker
             title="出題する動詞"
             unit="語"
@@ -177,7 +173,6 @@ export function ConjugationPractice<V extends VerbLike, T>({
             }))}
             searchPlaceholder="動詞を検索（原形・意味）"
             labelLang={practiceLanguage.lang}
-            collapsible
           />
           <CheckboxPicker
             title="出題する時制・法"
@@ -186,19 +181,14 @@ export function ConjugationPractice<V extends VerbLike, T>({
             selected={selectedTenseKeys}
             onChange={setSelectedTenseKeys}
             labelClassName=""
-            collapsible
           />
-          <SettingRow label="音声">
-            <ChoiceChips
-              label="音声読み上げ"
-              options={AUDIO_OPTIONS}
-              value={audio}
-              onChange={setAudio}
-            />
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              答え合わせのときに、正解の活用形を読み上げます。
-            </p>
-          </SettingRow>
+          <CollapsibleChoice
+            title="音声"
+            options={AUDIO_OPTIONS}
+            value={audio}
+            onChange={setAudio}
+            note="答え合わせのときに、正解の活用形を読み上げます。"
+          />
         </>
       }
       mode={
