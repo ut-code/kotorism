@@ -39,7 +39,15 @@ export type QuizAnswerMode<Q> =
       // 正誤の判定。省略時は前後の空白・大文字小文字・連続する空白を無視して比べる
       isCorrect?: (given: string, question: Q) => boolean;
     }
-  | { kind: "choice"; choices: (question: Q) => string[] };
+  | {
+      kind: "choice";
+      choices: (question: Q) => string[];
+      // 指定すると、選択肢を押してもすぐには答え合わせせず、preview を呼んで（選択肢の読み上げなど）選択状態にする。
+      // 「答え合わせ」で選んだ選択肢を確定する。答え合わせのあとも、押すたびに preview を呼ぶ
+      preview?: (choice: string, question: Q) => void;
+      // 選択肢の表示。省略時は選択肢の文をそのまま出す（答え合わせまで中身を伏せる、など）
+      label?: (choice: string, index: number, answered: boolean) => ReactNode;
+    };
 
 // 問題ごとに変えられる設定（固定の値か、問題から決める関数）
 type PerQuestion<Q, T> = T | ((question: Q) => T);
@@ -225,6 +233,21 @@ export function Quiz<Q extends QuizQuestion>({
 
   const choose = (choice: string) => record(judge(choice) ? "correct" : "wrong", choice);
 
+  // 選んでから確定する選択式（mode.preview あり）では、選択肢を押すと preview して選択状態にするだけ
+  const preview = mode.kind === "choice" ? mode.preview : undefined;
+  const pickChoice = (choice: string) => {
+    if (!question) return;
+    if (!preview) {
+      choose(choice);
+      return;
+    }
+    preview(choice, question);
+    if (!current) changeAnswer(choice);
+  };
+  const submitChoice = () => {
+    if (!current && answer) choose(answer);
+  };
+
   // 制限時間のカウントダウン（答え合わせ中・結果画面では止める）
   useEffect(() => {
     if (phase !== "playing" || current || timeLeft === null) return;
@@ -242,17 +265,23 @@ export function Quiz<Q extends QuizQuestion>({
   }, [phase, current, timeLeft]);
 
   // キーボード操作: 答え合わせ後は入力欄の外でも Enter で次へ。選択式は 1〜9 キーで選択肢を選ぶ
+  // （選んでから確定する選択式では、Enter で選んだ選択肢を確定する）
   // （入力欄・ボタン上の Enter はそれぞれの操作に任せる）
   useEffect(() => {
     if (phase !== "playing" || !question) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.isComposing || e.target instanceof HTMLInputElement) return;
-      if (e.key === "Enter" && current && !(e.target instanceof HTMLButtonElement)) {
-        e.preventDefault();
-        goNext();
-      } else if (mode.kind === "choice" && !current && /^[1-9]$/.test(e.key)) {
+      if (e.key === "Enter" && !(e.target instanceof HTMLButtonElement)) {
+        if (current) {
+          e.preventDefault();
+          goNext();
+        } else if (preview && answer) {
+          e.preventDefault();
+          submitChoice();
+        }
+      } else if (mode.kind === "choice" && (!current || preview) && /^[1-9]$/.test(e.key)) {
         const choice = mode.choices(question)[Number(e.key) - 1];
-        if (choice !== undefined) choose(choice);
+        if (choice !== undefined) pickChoice(choice);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -345,7 +374,10 @@ export function Quiz<Q extends QuizQuestion>({
                 choices={mode.choices(question)}
                 answer={question.answer}
                 chosen={current ? current.given : undefined}
-                onChoose={choose}
+                selected={preview && !current ? answer : undefined}
+                previewable={!!preview}
+                label={mode.label}
+                onChoose={pickChoice}
               />
             )}
           </div>
@@ -373,6 +405,11 @@ export function Quiz<Q extends QuizQuestion>({
               <>
                 {mode.kind === "typing" && (
                   <PracticeButton onClick={submitTyping} disabled={!answer.trim()}>
+                    答え合わせ
+                  </PracticeButton>
+                )}
+                {preview && (
+                  <PracticeButton onClick={submitChoice} disabled={!answer}>
                     答え合わせ
                   </PracticeButton>
                 )}
@@ -408,17 +445,25 @@ export function Quiz<Q extends QuizQuestion>({
   );
 }
 
-// 選択式の選択肢。答え合わせ後は正解を緑、選んだ不正解を赤にし、記号でも示す
+// 選択式の選択肢。答え合わせ後は正解を緑、選んだ不正解を赤にし、記号でも示す。
+// previewable のときは、答え合わせの前に選んだ選択肢（selected）を示し、答え合わせ後も押せる（聞き比べ用）
 function ChoiceList({
   choices,
   answer,
   chosen,
+  selected,
+  previewable = false,
+  label,
   onChoose,
 }: {
   choices: string[];
   answer: string;
   // 答え合わせ後に選んだ選択肢（パス・時間切れは null）。未回答なら undefined
   chosen: string | null | undefined;
+  // 答え合わせ前に選んでいる選択肢（選んでから確定する選択式のみ）
+  selected?: string;
+  previewable?: boolean;
+  label?: (choice: string, index: number, answered: boolean) => ReactNode;
   onChoose: (choice: string) => void;
 }) {
   const answered = chosen !== undefined;
@@ -432,15 +477,18 @@ function ChoiceList({
             key={choice}
             type="button"
             onClick={() => onChoose(choice)}
-            disabled={answered}
+            disabled={answered && !previewable}
+            aria-pressed={previewable && !answered ? choice === selected : undefined}
             className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 text-left text-base text-zinc-800 transition-colors dark:text-zinc-100 ${
-              !answered
-                ? "border-zinc-200 hover:border-tealblue-300 hover:bg-tealblue-50 dark:border-zinc-700 dark:hover:border-tealblue-600 dark:hover:bg-tealblue-950/30"
-                : isAnswer
-                  ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40"
-                  : isWrongPick
-                    ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40"
-                    : "border-zinc-200 opacity-60 dark:border-zinc-700"
+              !answered && choice === selected
+                ? "border-tealblue-500 bg-tealblue-50 dark:border-tealblue-400 dark:bg-tealblue-950/40"
+                : !answered
+                  ? "border-zinc-200 hover:border-tealblue-300 hover:bg-tealblue-50 dark:border-zinc-700 dark:hover:border-tealblue-600 dark:hover:bg-tealblue-950/30"
+                  : isAnswer
+                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40"
+                    : isWrongPick
+                      ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40"
+                      : "border-zinc-200 opacity-60 dark:border-zinc-700"
             }`}
           >
             <span className="w-5 shrink-0 font-bold text-zinc-400 dark:text-zinc-500">
@@ -452,11 +500,32 @@ function ChoiceList({
                 i + 1
               )}
             </span>
-            <span>{choice}</span>
+            <span className="flex-1">{label ? label(choice, i, answered) : choice}</span>
+            {previewable && <SpeakerIcon />}
           </button>
         );
       })}
     </div>
+  );
+}
+
+// 押すと読み上げる選択肢に付けるスピーカーの印
+function SpeakerIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      className="mt-0.5 h-5 w-5 shrink-0 text-zinc-400 dark:text-zinc-500"
+    >
+      <path d="M3 8h3l4-3v10l-4-3H3z" fill="currentColor" />
+      <path
+        d="M13 7.5a3.5 3.5 0 0 1 0 5M15 5.5a6.5 6.5 0 0 1 0 9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
