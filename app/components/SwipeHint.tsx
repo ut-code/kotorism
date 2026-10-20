@@ -3,7 +3,6 @@ import { useLocation } from "react-router";
 import Link from "@/components/Link";
 import {
   SWIPE_PAGE_LABELS,
-  getSwipeDestination,
   getPageSwitcherDestination,
   type SwipeDirection,
 } from "@/lib/shared/swipe-navigation";
