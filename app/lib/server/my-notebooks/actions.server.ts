@@ -13,6 +13,7 @@ import {
   parseDuplicateChoice,
   parseMove,
   parseNewNotebookTitle,
+  parseNotebookLanguage,
   parseNotebookTitle,
   parseStarCount,
 } from "@/lib/shared/notebook-schema";
@@ -197,6 +198,19 @@ export async function renameNotebook(
   }
 
   await prisma.notebook.update({ where: { id: notebookId }, data: { title: newTitle } });
+  return {};
+}
+
+// 単語帳の言語（単語を入力するときの補助に使う）を変える。作成者のみ実行可能
+export async function updateNotebookLanguage(
+  notebookId: string,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+  await requireNotebookRole(notebookId, user.id, "owner");
+  const language = parseNotebookLanguage(formData.get("language"));
+  if (!language.success) return { error: language.error };
+  await prisma.notebook.update({ where: { id: notebookId }, data: { language: language.data } });
   return {};
 }
 

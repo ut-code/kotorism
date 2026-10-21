@@ -5,6 +5,7 @@ import type { FormState } from "@/lib/shared/form-state";
 import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 import { headDividerClassName } from "./CardRow";
 import { caretAtEdge, focusInput } from "./caret";
+import { useAssistField } from "./InputAssist";
 
 const initialState: FormState = {};
 
@@ -43,8 +44,11 @@ export default function InlineAddCardRow({
   const [values, setValues] = useState<Record<string, string>>({});
   const headRef = useRef<HTMLInputElement>(null);
   const fetcher = useFetcher<FormState>();
+  const assistField = useAssistField();
   const state = fetcher.data ?? initialState;
-  const pending = fetcher.state !== "idle";
+  // 保存中（送信中）だけを待つ。保存が済んで表を読み直している間（loading）は入力欄がもう空なので、
+  // 続けて Enter を押したら次の単語として送る（待つと、すぐ打った単語の Enter が捨てられる）
+  const pending = fetcher.state === "submitting";
 
   // 追加に成功したら入力欄を空にして、見出し語の欄から続けて入力できるようにする
   const [prevState, setPrevState] = useState(state);
@@ -128,9 +132,10 @@ export default function InlineAddCardRow({
             onKeyDown={handleKeyDown}
             maxLength={CARD_HEAD_MAX_LENGTH}
             className={inputClassName}
+            {...assistField(0, headColumn)}
           />
         </td>
-        {bodyColumns.map((column) => (
+        {bodyColumns.map((column, columnIndex) => (
           <td key={column} className="px-1.5 py-2 sm:px-4 align-top">
             <input
               aria-label={column}
@@ -140,6 +145,7 @@ export default function InlineAddCardRow({
               onKeyDown={handleKeyDown}
               maxLength={CARD_VALUE_MAX_LENGTH}
               className={inputClassName}
+              {...assistField(columnIndex + 1, column)}
             />
           </td>
         ))}

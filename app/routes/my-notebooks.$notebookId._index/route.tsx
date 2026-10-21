@@ -8,6 +8,8 @@ import { requireUser } from "@/lib/server/session.server";
 import { recordNotebookView } from "@/lib/server/recent-activity.server";
 import { getNotebookRole } from "@/lib/server/notebook-access.server";
 import { notFound } from "@/lib/server/http.server";
+import InputAssist from "./InputAssist";
+import NotebookLanguageSelect from "./NotebookLanguageSelect";
 import NotebookTable from "./NotebookTable";
 import NotebookTitle from "./NotebookTitle";
 import ImportCardsForm from "@/components/my-notebooks/ImportCardsForm";
@@ -17,6 +19,7 @@ import ShareManager from "@/components/my-notebooks/ShareManager";
 import { normalizeCardData } from "@/lib/shared/card-data";
 import type { FormState } from "@/lib/shared/form-state";
 import { normalizeColumns } from "@/lib/shared/notebook-columns";
+import { normalizeNotebookLanguage } from "@/lib/shared/notebook-language";
 import {
   addNotebookColumn,
   addStar,
@@ -38,6 +41,7 @@ import {
   toggleStar,
   updateCard,
   updateCards,
+  updateNotebookLanguage,
 } from "@/lib/server/my-notebooks/actions.server";
 import {
   createInvite,
@@ -100,6 +104,8 @@ export async function action({ request, params }: Route.ActionArgs) {
         return deleteNotebook(notebookId);
       case "renameNotebook":
         return renameNotebook(notebookId, formData);
+      case "updateLanguage":
+        return updateNotebookLanguage(notebookId, formData);
       case "createInvite":
         return createInvite(notebookId);
       case "revokeInvite":
@@ -187,6 +193,7 @@ export async function loader({ params }: Route.LoaderArgs) {
       id: notebook.id,
       title: notebook.title,
       isPublic: notebook.isPublic,
+      language: normalizeNotebookLanguage(notebook.language),
       cardCount: notebook.cards.length,
       // 共同編集者として開いたときに「〇〇さんから共有」と出す、作成者の名前
       ownerName: notebook.user.username ?? notebook.user.name,
@@ -237,6 +244,11 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div>
             <NotebookTitle notebookId={notebook.id} title={notebook.title} canEdit={isOwner} />
+            <NotebookLanguageSelect
+              notebookId={notebook.id}
+              language={notebook.language}
+              canEdit={isOwner}
+            />
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
               {notebook.cardCount}語
               {!isOwner && (
@@ -340,12 +352,15 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
           </p>
         )}
 
-        <NotebookTable
-          notebookId={notebook.id}
-          columns={columns}
-          cards={cards}
-          bulkEditFormId={editingAll ? BULK_EDIT_FORM_ID : undefined}
-        />
+        {/* 単語帳の言語に合わせた、表の入力欄の入力補助（アクセント記号・ピンイン） */}
+        <InputAssist notebookId={notebook.id} language={notebook.language}>
+          <NotebookTable
+            notebookId={notebook.id}
+            columns={columns}
+            cards={cards}
+            bulkEditFormId={editingAll ? BULK_EDIT_FORM_ID : undefined}
+          />
+        </InputAssist>
       </div>
     </main>
   );

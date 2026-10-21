@@ -20,6 +20,7 @@ import { starColorFor } from "@/lib/shared/star-colors";
 import { displayedStarCount } from "@/lib/shared/star-progress";
 import type { CardData } from "@/lib/shared/card-data";
 import DraggableTr from "./DraggableTr";
+import { useAssistField } from "./InputAssist";
 
 // 表全体の編集中の入力欄（編集中に足した新しい行の入力欄でも使う）
 export const editInputClassName =
@@ -87,6 +88,7 @@ export default function CardRow({
     );
   }
   const deleteFetcher = useFetcher();
+  const assistField = useAssistField();
   // どれかの組の行を長押ししている間は、この単語の行すべてに色を付ける（DraggableTr の data-card-pressed）
   const [pressed, setPressed] = useState(false);
   // 表全体の編集中の、各組の入力中の値とマスの結合（右端の＋で足した空の組も含める）。
@@ -209,6 +211,7 @@ export default function CardRow({
                   defaultValue={card.data.head}
                   maxLength={CARD_HEAD_MAX_LENGTH}
                   className={editInputClassName}
+                  {...assistField(0, headColumn)}
                 />
                 {starControls}
               </td>
@@ -234,6 +237,7 @@ export default function CardRow({
                       autoFocus={rowIndex >= card.data.rows.length && columnIndex === 0}
                       maxLength={CARD_VALUE_MAX_LENGTH}
                       className="min-w-0 flex-1 bg-transparent py-1 text-sm outline-none"
+                      {...assistField(columnIndex + 1, column)}
                     />
                     {/* 結合された組にも同じ値を送るための隠し入力 */}
                     {Array.from({ length: span - 1 }, (_, k) => rowIndex + 1 + k).map(

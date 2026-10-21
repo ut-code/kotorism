@@ -114,8 +114,10 @@ test.describe("長押ししたまま動かして並べ替える", () => {
     const transparent = "rgba(0, 0, 0, 0)";
     expect(await backgrounds()).toEqual([transparent, transparent]);
 
-    // 2つ目の組の行を、動かさずに長押しする
-    const box = (await table.getByRole("cell", { name: "trois fois", exact: true }).boundingBox())!;
+    // 2つ目の組の行を、動かさずに長押しする（表の上の欄が増えても押せるよう、画面内へスクロールしてから）
+    const secondRowCell = table.getByRole("cell", { name: "trois fois", exact: true });
+    await secondRowCell.scrollIntoViewIfNeeded();
+    const box = (await secondRowCell.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.waitForTimeout(600);

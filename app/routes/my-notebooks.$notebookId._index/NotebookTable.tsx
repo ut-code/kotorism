@@ -11,6 +11,7 @@ import CardRow, { editInputClassName, headDividerClassName } from "./CardRow";
 import ColumnHeaderCell from "./ColumnHeaderCell";
 import InlineAddCardRow from "./InlineAddCardRow";
 import InlineAddColumnHeader from "./InlineAddColumnHeader";
+import { useAssistField } from "./InputAssist";
 
 type Card = { id: string; data: CardData; starred: boolean; starCount: number; viewCount: number };
 
@@ -318,6 +319,7 @@ function NewBulkRow({
 }) {
   const [headColumn, ...bodyColumns] = columns;
   const field = (name: string) => bulkCardFieldName(id, name);
+  const assistField = useAssistField();
   return (
     <tr className="border-t border-black/[.06] bg-coral-50/40 dark:border-white/[.1] dark:bg-coral-950/10">
       <td className={`px-1.5 py-2 align-top sm:px-4 ${headDividerClassName}`}>
@@ -330,6 +332,7 @@ function NewBulkRow({
           placeholder={headColumn}
           maxLength={CARD_HEAD_MAX_LENGTH}
           className={editInputClassName}
+          {...assistField(0, headColumn)}
         />
       </td>
       {bodyColumns.map((column, columnIndex) => (
@@ -342,6 +345,7 @@ function NewBulkRow({
             placeholder={column}
             maxLength={CARD_VALUE_MAX_LENGTH}
             className={editInputClassName}
+            {...assistField(columnIndex + 1, column)}
           />
         </td>
       ))}

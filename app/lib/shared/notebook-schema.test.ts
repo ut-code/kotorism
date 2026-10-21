@@ -11,6 +11,7 @@ import {
   parseColumnName,
   parseMove,
   parseDuplicateChoice,
+  parseNotebookLanguage,
   parseNotebookTitle,
   parseNewNotebookTitle,
   DEFAULT_NOTEBOOK_TITLE,
@@ -105,5 +106,18 @@ describe("parseDuplicateChoice", () => {
     expect(parseDuplicateChoice("date")).toEqual({ success: true, data: "date" });
     expect(parseDuplicateChoice(null)).toEqual({ success: true, data: undefined });
     expect(parseDuplicateChoice("other").success).toBe(false);
+  });
+});
+
+describe("parseNotebookLanguage", () => {
+  it("4言語はそのまま、空（指定なし）は null にする", () => {
+    expect(parseNotebookLanguage("chinese")).toEqual({ success: true, data: "chinese" });
+    expect(parseNotebookLanguage("")).toEqual({ success: true, data: null });
+  });
+
+  it("それ以外の値は拒否する", () => {
+    for (const input of ["english", null, 1]) {
+      expect(parseNotebookLanguage(input).success).toBe(false);
+    }
   });
 });
