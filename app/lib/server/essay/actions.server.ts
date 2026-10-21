@@ -5,6 +5,7 @@ import { getLanguage } from "@/lib/shared/learn/languages";
 import { getEssayTopic } from "../../shared/essay/topics";
 import { EssayGradingError, gradeEssay } from "../../shared/essay/grading";
 import { toEssaySubmissionDTO } from "../../shared/essay/dto";
+import { parseSubmitEssayInput } from "../../shared/essay/schema";
 import { countEssayLength, getEssayLengthUnit } from "../../shared/essay/length";
 import { recordStudyEvent } from "@/lib/server/study-events.server";
 import {
@@ -14,7 +15,7 @@ import {
   ESSAY_LENGTH_OPTIONS,
   type EssayCriteriaMax,
   type EssaySubmissionDTO,
-  type EssayTopicSource,
+  type SubmitEssayResult,
 } from "../../shared/essay/types";
 
 const CONTENT_MAX_LENGTH = 2000;
@@ -40,21 +41,6 @@ export async function getEssayHistory(
   return { isLoggedIn: true, submissions: rows.map(toEssaySubmissionDTO) };
 }
 
-export interface SubmitEssayInput {
-  language: string;
-  topicSource: EssayTopicSource;
-  // topicSource: "preset" のとき使う（app/lib/shared/essay/topics.tsのid）
-  topicId?: string;
-  // topicSource: "custom" のとき使う（ユーザーが自由に入力したお題文）
-  customTopicPrompt?: string;
-  // topicSource: "custom" のとき使う（ESSAY_LENGTH_OPTIONSのいずれか）
-  customTargetWordCount?: number;
-  content: string;
-  criteriaMax: EssayCriteriaMax;
-}
-
-export type SubmitEssayResult = { error: string } | { submission: EssaySubmissionDTO };
-
 function validateCriteriaMax(criteriaMax: EssayCriteriaMax): string | null {
   for (const { key, label } of ESSAY_CRITERIA) {
     const value = criteriaMax[key];
@@ -66,8 +52,16 @@ function validateCriteriaMax(criteriaMax: EssayCriteriaMax): string | null {
 }
 
 // 作文を提出し、AI（OpenRouterの無料モデル）による添削結果を取得してDBに保存する
-export async function submitEssay(input: SubmitEssayInput): Promise<SubmitEssayResult> {
+// input は API が request.json() の結果をそのまま渡してくるので、型を信用せず先に検証する。
+// そうしないと、型の崩れた入力で .trim() などが落ちて 500 になる
+export async function submitEssay(rawInput: unknown): Promise<SubmitEssayResult> {
   const user = await requireUser();
+
+  const parsed = parseSubmitEssayInput(rawInput);
+  if (!parsed.success) {
+    return { error: parsed.error };
+  }
+  const input = parsed.data;
 
   const language = getLanguage(input.language);
   if (!language) {

@@ -57,3 +57,6 @@ export interface EssaySubmissionDTO {
   model: string;
   createdAt: string;
 }
+
+// 作文の提出 API(/api/essay)の応答。失敗時は画面に出せる文言を error に入れる
+export type SubmitEssayResult = { error: string } | { submission: EssaySubmissionDTO };

@@ -5,12 +5,13 @@ import { getLanguage } from "@/lib/shared/learn/languages";
 import { getTranslationProblem } from "../../shared/translation/problems";
 import { gradeTranslation, TranslationGradingError } from "../../shared/translation/grading";
 import { toTranslationSubmissionDTO } from "../../shared/translation/dto";
+import { parseSubmitTranslationInput } from "../../shared/translation/schema";
 import { recordStudyEvent } from "@/lib/server/study-events.server";
 import {
   CUSTOM_SOURCE_MAX_LENGTH,
   TRANSLATION_SCORE_OPTIONS,
+  type SubmitTranslationResult,
   type TranslationDirection,
-  type TranslationProblemSource,
   type TranslationSubmissionDTO,
 } from "../../shared/translation/types";
 
@@ -36,27 +37,17 @@ export async function getTranslationHistory(
   return { isLoggedIn: true, submissions: rows.map(toTranslationSubmissionDTO) };
 }
 
-export interface SubmitTranslationInput {
-  language: string;
-  problemSource: TranslationProblemSource;
-  // problemSource: "preset" のとき使う（app/lib/shared/translation/problems.tsのid）
-  problemId?: string;
-  // problemSource: "custom" のとき使う（設定画面で先に選ばせた訳す方向）
-  direction?: TranslationDirection;
-  // problemSource: "custom" のとき使う（ユーザーが自由に入力した原文）
-  customSourceText?: string;
-  content: string;
-  // 満点（TRANSLATION_SCORE_OPTIONSのいずれか）
-  scoreMax: number;
-}
-
-export type SubmitTranslationResult = { error: string } | { submission: TranslationSubmissionDTO };
-
 // 訳文を提出し、AI（OpenRouterの無料モデル）による添削結果を取得してDBに保存する
-export async function submitTranslation(
-  input: SubmitTranslationInput,
-): Promise<SubmitTranslationResult> {
+// input は API が request.json() の結果をそのまま渡してくるので、型を信用せず先に検証する。
+// そうしないと、型の崩れた入力で .trim() などが落ちて 500 になる
+export async function submitTranslation(rawInput: unknown): Promise<SubmitTranslationResult> {
   const user = await requireUser();
+
+  const parsed = parseSubmitTranslationInput(rawInput);
+  if (!parsed.success) {
+    return { error: parsed.error };
+  }
+  const input = parsed.data;
 
   const language = getLanguage(input.language);
   if (!language) {

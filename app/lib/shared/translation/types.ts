@@ -43,3 +43,6 @@ export interface TranslationSubmissionDTO {
   model: string;
   createdAt: string;
 }
+
+// 翻訳の提出 API(/api/translation)の応答。失敗時は画面に出せる文言を error に入れる
+export type SubmitTranslationResult = { error: string } | { submission: TranslationSubmissionDTO };
