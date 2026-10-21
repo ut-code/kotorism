@@ -1,10 +1,10 @@
-import NumberTypingPractice from "@/components/practice/NumberTypingPractice";
+import NumberTimePractice from "@/components/practice/NumberTimePractice";
 
-export const title = "数字タイピング演習";
+export const title = "数字・時間表現の演習";
 export const description =
-  "表示された数字を、ドイツ語のつづりで入力しましょう。出題範囲・問題数・制限時間を選べます。";
+  "数字と時刻（7:30 など）を、ドイツ語でどう言うか練習しましょう。4択か入力で答えます。出題範囲・問題数・制限時間を選べます。";
 
-<NumberTypingPractice language="german" />
+<NumberTimePractice language="german" section="07" />
 
 {/* 出題データ定義テーブル (display:none) */}
 
@@ -65,5 +65,26 @@ export const description =
 | 92  | zweiundneunzig   |
 | 99  | neunundneunzig   |
 | 100 | hundert          |
+
+### 時刻
+
+| 時刻  | 言い方                                         | 補足        |
+| ----- | ---------------------------------------------- | ----------- |
+| 1:00  | ein Uhr / eins                                 |             |
+| 1:30  | halb zwei / ein Uhr dreißig                    |             |
+| 2:00  | zwei Uhr / zwei                                |             |
+| 3:05  | fünf nach drei / drei Uhr fünf                 |             |
+| 4:10  | zehn nach vier / vier Uhr zehn                 |             |
+| 5:15  | Viertel nach fünf / fünf Uhr fünfzehn          |             |
+| 6:20  | zwanzig nach sechs / sechs Uhr zwanzig         |             |
+| 7:30  | halb acht / sieben Uhr dreißig                 |             |
+| 8:40  | zwanzig vor neun / acht Uhr vierzig            | 9時20分前   |
+| 9:45  | Viertel vor zehn / neun Uhr fünfundvierzig     | 10時15分前  |
+| 10:50 | zehn vor elf / zehn Uhr fünfzig                | 11時10分前  |
+| 12:00 | zwölf Uhr / Mittag                             | 正午        |
+| 0:00  | Mitternacht / null Uhr                         | 真夜中      |
+| 14:00 | vierzehn Uhr / zwei Uhr nachmittags            | 午後2時     |
+| 18:30 | achtzehn Uhr dreißig / halb sieben             | 午後6時半   |
+| 21:15 | einundzwanzig Uhr fünfzehn / Viertel nach neun | 午後9時15分 |
 
 </div>

@@ -1,5 +1,5 @@
 // ↑ / ↓ キーでアルファベットをアクセント記号付きの文字へ切り替えるための共通処理。
-// 動詞の活用（AccentInput）、表完成・穴埋め・数字タイピングの演習、作文・翻訳の入力欄（AccentTextarea）で使う
+// 動詞の活用（AccentInput）、表完成・穴埋め・数字・時間表現の演習、作文・翻訳の入力欄（AccentTextarea）で使う
 
 export type AccentIndex = Map<string, { cycle: string[]; index: number }>;
 

@@ -15,7 +15,7 @@ import {
 } from "@/components/practice/QuizParts";
 import { AccentInput } from "@/components/verbs/AccentInput";
 
-// 1問ずつ出題する演習（穴埋め・数字タイピング・動詞の活用・ピンイン・選択クイズ）の共通部品。
+// 1問ずつ出題する演習（穴埋め・数字・時間表現・動詞の活用・ピンイン・選択クイズ）の共通部品。
 // 「設定 → 練習を始める → 出題中 → 結果」の流れと、問題数・制限時間・パス・間違えた問題の再挑戦を受け持つ。
 // 出題対象の選び方など演習ごとの設定は呼び出し側が settings に描き、選ばれた問題を pool で渡す
 
@@ -53,7 +53,7 @@ export type QuizAnswerMode<Q> =
 type PerQuestion<Q, T> = T | ((question: Q) => T);
 
 export type CountOption = "5" | "10" | "20" | "all";
-type TimerOption = "off" | "15" | "30" | "45";
+export type TimerOption = "off" | "15" | "30" | "45";
 
 const COUNT_LABELS: Record<CountOption, string> = {
   "5": "5問",
@@ -92,6 +92,7 @@ export function Quiz<Q extends QuizQuestion>({
   countOptions = ["5", "10", "20", "all"],
   defaultCount = "10",
   timer = false,
+  defaultTimer = "15",
   lang,
   mode: modeOption,
   instruction,
@@ -112,6 +113,8 @@ export function Quiz<Q extends QuizQuestion>({
   defaultCount?: CountOption;
   // 1問ごとの制限時間を選べるようにするか
   timer?: boolean;
+  // 制限時間の初期値。選ぶまでは、これが変わると制限時間も変わる（答え方に合わせる、など）
+  defaultTimer?: TimerOption;
   // 答えの言語（HTML の lang 属性）
   lang: string;
   // 答え方。関数にすると問題ごとに答え方を変えられる（選択式と入力式を混ぜる、など）
@@ -133,7 +136,8 @@ export function Quiz<Q extends QuizQuestion>({
   const [count, setCount] = useState<CountOption>(
     countOptions.includes(defaultCount) ? defaultCount : countOptions[0],
   );
-  const [timerOption, setTimerOption] = useState<TimerOption>(timer ? "15" : "off");
+  const [chosenTimer, setChosenTimer] = useState<TimerOption | null>(null);
+  const timerOption = timer ? (chosenTimer ?? defaultTimer) : "off";
 
   const [questions, setQuestions] = useState<Q[]>([]);
   const [index, setIndex] = useState(0);
@@ -319,7 +323,7 @@ export function Quiz<Q extends QuizQuestion>({
                 title="制限時間"
                 options={TIMER_OPTIONS}
                 value={timerOption}
-                onChange={setTimerOption}
+                onChange={setChosenTimer}
                 note="1問あたりの時間です。"
               />
             )}
