@@ -38,6 +38,7 @@ import {
   toggleStar,
   updateCard,
   updateCards,
+  updateNotebookLanguage,
 } from "./actions.server";
 
 vi.mock("@/lib/server/session.server", () => ({ requireUser: vi.fn() }));
@@ -644,5 +645,35 @@ describe("入力の検証", () => {
         })
       ).starCount,
     ).toBe(MAX_STAR_COUNT);
+  });
+});
+
+describe("updateNotebookLanguage", () => {
+  const languageOf = async () =>
+    (await prisma.notebook.findUniqueOrThrow({ where: { id: notebook.id } })).language;
+
+  it("作成者は言語を選べ、空にすると指定なしに戻る", async () => {
+    loginAs(owner);
+    expect(await updateNotebookLanguage(notebook.id, form({ language: "french" }))).toEqual({});
+    expect(await languageOf()).toBe("french");
+    expect(await updateNotebookLanguage(notebook.id, form({ language: "" }))).toEqual({});
+    expect(await languageOf()).toBeNull();
+  });
+
+  it("4言語以外は保存しない", async () => {
+    loginAs(owner);
+    const state = await updateNotebookLanguage(notebook.id, form({ language: "english" }));
+    expect(state.error).toBeTruthy();
+    expect(await languageOf()).toBeNull();
+  });
+
+  it("共同編集者・ほかの人は変えられない", async () => {
+    for (const user of [editor, stranger]) {
+      loginAs(user);
+      await expect(
+        updateNotebookLanguage(notebook.id, form({ language: "chinese" })),
+      ).rejects.toThrow();
+    }
+    expect(await languageOf()).toBeNull();
   });
 });

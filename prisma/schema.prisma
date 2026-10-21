@@ -26,6 +26,8 @@ model Notebook {
   listPosition Int              @default(0)
   // 作成者が「学習済み」にしたか。My単語帳の一覧で、学習済みは一番下にまとめてグレーで並べる
   studied      Boolean          @default(false)
+  // 単語の入力補助に使う言語（"french" / "german" / "spanish" / "chinese"）。null は指定なし（補助を出さない）
+  language     String?
   userId       String
   user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime         @default(now())

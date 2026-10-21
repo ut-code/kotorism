@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { NOTEBOOK_LANGUAGES, type NotebookLanguage } from "./notebook-language";
 import { parseWith, type ParseResult } from "./validation";
 
 // 単語帳まわりの入力の上限。フォームの maxLength と、サーバー側の検証の両方で使う
@@ -49,6 +50,13 @@ export const parseCardHead = (input: unknown): ParseResult<string> =>
   parseWith(cardHeadSchema, input);
 export const parseCardValue = (input: unknown): ParseResult<string> =>
   parseWith(cardValueSchema, input);
+
+// 単語帳の言語。空は指定なし（null）
+const notebookLanguageSchema = z
+  .union([z.enum(NOTEBOOK_LANGUAGES), z.literal("")], { error: "言語の指定が正しくありません。" })
+  .transform((language) => language || null);
+export const parseNotebookLanguage = (input: unknown): ParseResult<NotebookLanguage | null> =>
+  parseWith(notebookLanguageSchema, input);
 
 // 表の行（単語）・列の並べ替え。from 番目を、動かす前の並びでの insertAt 番目の間へ動かす（lib/shared/reorder.ts）。
 // 範囲（項目の数）はサーバー側で、実際の行・列の数と照らし合わせて確かめる
