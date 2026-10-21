@@ -7,7 +7,7 @@ import { bulkCardFieldName } from "@/lib/shared/bulk-edit";
 import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 import { insertionIndex, moveToInsertionPoint } from "@/lib/shared/reorder";
 import { caretAtEdge, focusInput } from "./caret";
-import CardRow, { editInputClassName } from "./CardRow";
+import CardRow, { editInputClassName, headDividerClassName } from "./CardRow";
 import ColumnHeaderCell from "./ColumnHeaderCell";
 import InlineAddCardRow from "./InlineAddCardRow";
 import InlineAddColumnHeader from "./InlineAddColumnHeader";
@@ -205,9 +205,7 @@ export default function NotebookTable({
       <table className="w-full border-collapse text-left">
         <thead className="bg-zinc-50 dark:bg-zinc-900">
           <tr>
-            {/* 左端は★（付け外し・回数・暗記モードで見た回数）の列 */}
-            <th className="px-1.5 py-3 sm:px-4" aria-label="★" />
-            {/* 列見出しは columns の並び順そのまま表示する */}
+            {/* 列見出しは columns の並び順そのまま表示する。★（付け外し・回数・暗記モードで見た回数）は見出し語の下に置く */}
             {displayedColumns.map((column, index) => (
               <ColumnHeaderCell
                 key={column}
@@ -232,7 +230,7 @@ export default function NotebookTable({
           {displayedCards.length === 0 && !adding && !editing ? (
             <tr>
               <td
-                colSpan={displayedColumns.length + 2}
+                colSpan={displayedColumns.length + 1}
                 className="px-1.5 py-6 text-center text-sm text-zinc-500 sm:px-4 dark:text-zinc-500"
               >
                 まだ単語がありません。表の下の＋から追加してください。
@@ -267,7 +265,7 @@ export default function NotebookTable({
               ))}
               {/* 編集中の＋。押すと空の行を足し、「保存」でほかの変更とまとめて保存する */}
               <tr className="border-t border-black/[.06] dark:border-white/[.1]">
-                <td colSpan={displayedColumns.length + 2} className="p-0">
+                <td colSpan={displayedColumns.length + 1} className="p-0">
                   <button
                     type="button"
                     onClick={() => addNewRow(0)}
@@ -322,8 +320,7 @@ function NewBulkRow({
   const field = (name: string) => bulkCardFieldName(id, name);
   return (
     <tr className="border-t border-black/[.06] bg-coral-50/40 dark:border-white/[.1] dark:bg-coral-950/10">
-      <td className="px-1.5 py-2 sm:px-4" />
-      <td className="px-1.5 py-2 align-top sm:px-4">
+      <td className={`px-1.5 py-2 align-top sm:px-4 ${headDividerClassName}`}>
         <input type="hidden" name="newCardId" value={id} form={bulkEditFormId} />
         <input
           form={bulkEditFormId}

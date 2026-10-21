@@ -28,11 +28,10 @@ async function createNotebookWithColumns(page: Page, baseURL: string, title: str
 const headers = (table: Locator) =>
   table.locator("thead th").evaluateAll((ths) => ths.map((th) => th.textContent?.trim() ?? ""));
 const heads = (table: Locator) =>
-  table
-    .locator("tbody tr")
-    .evaluateAll((rows) =>
-      rows.map((row) => row.querySelectorAll("td")[1]?.textContent?.trim() ?? "").filter(Boolean),
-    );
+  table.locator("tbody tr").evaluateAll((rows) =>
+    // 見出し語のマス（行の左端）は、見出し語を名前（aria-label）に持つ。下に★などがあるため文字そのものは使わない
+    rows.map((row) => row.querySelector("td")?.getAttribute("aria-label") ?? "").filter(Boolean),
+  );
 
 // マウスで長押ししたまま、target の中心へ動かして離す
 async function longPressDrag(page: Page, source: Locator, target: { x: number; y: number }) {
@@ -95,6 +94,39 @@ test.describe("列の名前の変更", () => {
 });
 
 test.describe("長押ししたまま動かして並べ替える", () => {
+  test("組が複数ある単語は、どの組の行を長押ししても、その単語の行すべてに色が付く", async ({
+    page,
+    baseURL,
+  }) => {
+    const table = await createNotebookWithColumns(page, baseURL!, "e2e 用の長押しで色が付く単語帳");
+    // 見出し語を空けて追加すると、いちばん下の単語（trois）の2つ目の組になる
+    const created = await page.request.post(new URL(page.url()).pathname, {
+      form: { intent: "createCard", head: "", "row:0:意味": "三", "row:0:例文": "trois fois" },
+      headers: { Origin: baseURL! },
+    });
+    expect(created.ok()).toBe(true);
+    await page.reload();
+
+    const cardRows = table.locator('tbody tr[data-card-index="2"]');
+    await expect(cardRows).toHaveCount(2);
+    const backgrounds = () =>
+      cardRows.evaluateAll((rows) => rows.map((row) => getComputedStyle(row).backgroundColor));
+    const transparent = "rgba(0, 0, 0, 0)";
+    expect(await backgrounds()).toEqual([transparent, transparent]);
+
+    // 2つ目の組の行を、動かさずに長押しする
+    const box = (await table.getByRole("cell", { name: "trois fois", exact: true }).boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(600);
+    const pressed = await backgrounds();
+    expect(pressed[0]).not.toBe(transparent);
+    expect(pressed[1]).toBe(pressed[0]);
+    // 離すと色が消える
+    await page.mouse.up();
+    await expect.poll(backgrounds).toEqual([transparent, transparent]);
+  });
+
   test("行（単語）を長押ししたまま下へ動かすと、並びが変わって保存される", async ({
     page,
     baseURL,
@@ -120,7 +152,7 @@ test.describe("長押ししたまま動かして並べ替える", () => {
     baseURL,
   }) => {
     const table = await createNotebookWithColumns(page, baseURL!, "e2e 用の列を並べ替える単語帳");
-    expect((await headers(table)).slice(1, 4)).toEqual(["見出し語", "意味", "例文"]);
+    expect((await headers(table)).slice(0, 3)).toEqual(["見出し語", "意味", "例文"]);
 
     // 「例文」の列を、「意味」の列の左へ
     const meaning = (await table
@@ -131,14 +163,14 @@ test.describe("長押ししたまま動かして並べ替える", () => {
       y: meaning.y + meaning.height / 2,
     });
     await expect
-      .poll(async () => (await headers(table)).slice(1, 4))
+      .poll(async () => (await headers(table)).slice(0, 3))
       .toEqual(["見出し語", "例文", "意味"]);
     // 列の値も一緒に動く（見出し語の右隣が例文）
     const firstRow = table.locator("tbody tr").first().locator("td");
-    await expect(firstRow.nth(2)).toHaveText("un chat");
+    await expect(firstRow.nth(1)).toHaveText("un chat");
     await page.reload();
     await expect
-      .poll(async () => (await headers(page.getByRole("table").first())).slice(1, 4))
+      .poll(async () => (await headers(page.getByRole("table").first())).slice(0, 3))
       .toEqual(["見出し語", "例文", "意味"]);
   });
 

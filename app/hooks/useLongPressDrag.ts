@@ -12,6 +12,8 @@ export type Point = { x: number; y: number };
 export type LongPressDragHandlers = {
   // 長押しして、動かさずに離したとき（スマホで列名を変えるときなど）
   onLongPress?: () => void;
+  // 長押しになったとき（true）・長押しが終わったとき（false）。複数の行にまたがる単語を、まとめて色付けするときなど
+  onPressChange?: (pressed: boolean) => void;
   // 長押ししたまま動かし始めたとき・動かしている間・離したとき（並べ替え）
   onDragStart?: (point: Point) => void;
   onDragMove?: (point: Point) => void;
@@ -64,6 +66,7 @@ export function useLongPressDrag(
     function reset() {
       clearTimeout(timer);
       start = null;
+      if (pressed) handlersRef.current.onPressChange?.(false);
       pressed = false;
       dragging = false;
       element!.removeAttribute("data-long-pressed");
@@ -75,6 +78,7 @@ export function useLongPressDrag(
         pressed = true;
         // 長押しになったことを見た目で伝える（CSS の [data-long-pressed]）
         element!.setAttribute("data-long-pressed", "");
+        handlersRef.current.onPressChange?.(true);
         navigator.vibrate?.(10);
       }, LONG_PRESS_MS);
     }
