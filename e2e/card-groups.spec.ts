@@ -102,3 +102,82 @@ test("まとめて編集で表の下に足した行の見出し語が空なら�
     "2",
   );
 });
+
+// 「品詞」の列を足し、品詞が「名詞」で続く多義語を入れた単語帳を作る
+async function createNotebookWithPolysemy(page: Page, baseURL: string, title: string) {
+  await createNotebook(page, title);
+  const notebookUrl = new URL(page.url()).pathname;
+  const post = (form: Record<string, string>) =>
+    page.request.post(notebookUrl, { form, headers: { Origin: baseURL } });
+  expect((await post({ intent: "addColumn", name: "品詞" })).ok()).toBe(true);
+  const created = await post({
+    intent: "createCard",
+    head: "cost",
+    "row:0:意味": "値段が～である",
+    "row:0:品詞": "動詞",
+    "row:1:意味": "犠牲",
+    "row:1:品詞": "名詞",
+    "row:2:意味": "費用",
+    "row:2:品詞": "名詞",
+  });
+  expect(created.ok()).toBe(true);
+  await page.reload();
+  // ページ下の「単語を追加」フォームの中にも表があるため、単語帳の表（最初の表）に絞る
+  return page.getByRole("table").first();
+}
+
+test("まとめて編集で、結合しているマスを分割すると、いちばん下の組のマスが別の入力欄になる", async ({
+  page,
+  baseURL,
+}) => {
+  const table = await createNotebookWithPolysemy(page, baseURL!, "e2e 用のマスを分割する単語帳");
+  await expect(table.getByRole("cell", { name: "名詞", exact: true })).toHaveAttribute(
+    "rowspan",
+    "2",
+  );
+
+  await page.getByRole("button", { name: "表を編集" }).click();
+  // 編集中も、同じ値が続く「名詞」のマスは結合した1つの入力欄になっている
+  const partOfSpeech = table.getByRole("textbox", { name: "品詞" });
+  await expect(partOfSpeech).toHaveCount(2);
+
+  await table.getByRole("button", { name: "「品詞」の結合を分割" }).click();
+  await expect(partOfSpeech).toHaveCount(3);
+  // 切り離したマスは空欄から入力し直す
+  await expect(partOfSpeech.nth(2)).toHaveValue("");
+  await partOfSpeech.nth(2).fill("名詞（複数形）");
+  await page.getByRole("button", { name: "保存" }).click();
+  // 編集中は入力欄のマスも同じ文字の cell として見つかるため、保存が済んで表示に戻るのを待つ
+  await expect(page.getByRole("button", { name: "表を編集" })).toBeVisible();
+
+  await expect(table.getByRole("cell", { name: "名詞", exact: true })).toHaveAttribute(
+    "rowspan",
+    "1",
+  );
+  await expect(table.getByRole("cell", { name: "名詞（複数形）", exact: true })).toBeVisible();
+});
+
+test("まとめて編集で、マスを下の組と結合すると、結合した組すべてに同じ値を保存する", async ({
+  page,
+  baseURL,
+}) => {
+  const table = await createNotebookWithPolysemy(page, baseURL!, "e2e 用のマスを結合する単語帳");
+
+  await page.getByRole("button", { name: "表を編集" }).click();
+  // 下の組のマスに別の値が入っているときは、上のマスの値にそろえてよいか確認する
+  page.once("dialog", (dialog) => dialog.accept());
+  await table.getByRole("button", { name: "「意味」を下の組と結合" }).nth(1).click();
+  const meaning = table.getByRole("textbox", { name: "意味" });
+  await expect(meaning).toHaveCount(2);
+  await meaning.nth(1).fill("費用・犠牲");
+  await page.getByRole("button", { name: "保存" }).click();
+  // 編集中は入力欄のマスも同じ文字の cell として見つかるため、保存が済んで表示に戻るのを待つ
+  await expect(page.getByRole("button", { name: "表を編集" })).toBeVisible();
+
+  await expect(table.getByRole("cell", { name: "費用・犠牲", exact: true })).toHaveAttribute(
+    "rowspan",
+    "2",
+  );
+  await expect(table.getByRole("cell", { name: "犠牲", exact: true })).toHaveCount(0);
+  await expect(table.getByRole("cell", { name: "費用", exact: true })).toHaveCount(0);
+});

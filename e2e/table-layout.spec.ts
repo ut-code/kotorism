@@ -80,7 +80,8 @@ test.describe("画面幅が狭いとき", () => {
       table.getByRole("cell", { name: text, exact: true }).evaluate((cell) => {
         const lineHeight = parseFloat(getComputedStyle(cell).lineHeight);
         const range = document.createRange();
-        range.selectNodeContents(cell);
+        // 見出し語のマスは下に★などの行があるため、見出し語の文字（最初の要素）だけを測る
+        range.selectNodeContents(cell.firstElementChild ?? cell);
         return Math.round(range.getBoundingClientRect().height / lineHeight);
       });
     expect(await lineCount("ありがとう")).toBe(1);

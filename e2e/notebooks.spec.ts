@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 import { createNotebook } from "./helpers";
 
@@ -57,7 +57,7 @@ test("他人の単語帳の共有URLは、存在しなければ 404", async ({ p
   expect(response?.status()).toBe(404);
 });
 
-test("単語帳の表では、★（ブックマーク）を表の左端の列に表示し、そこから★をつけられる", async ({
+test("単語帳の表では、★（ブックマーク）を見出し語の下に表示し、そこから★をつけられる", async ({
   page,
   baseURL,
 }) => {
@@ -70,20 +70,57 @@ test("単語帳の表では、★（ブックマーク）を表の左端の列�
   expect(created.ok()).toBe(true);
   await page.reload();
 
-  const table = page.getByRole("table");
-  // 見出し行の左端は★の列
-  await expect(table.locator("thead th").first()).toHaveAttribute("aria-label", "★");
-  // 単語の行の左端のセルに★のボタンがあり、見出し語はその右隣
+  const table = page.getByRole("table").first();
+  // 見出し行の左端は見出し語の列（★だけの列は無い）
+  await expect(table.locator("thead th").first()).toHaveText("見出し語");
+  // 単語の行の左端のセルが見出し語で、★のボタンは見出し語の下にある
   const row = table.locator("tbody tr").first();
-  await expect(row.locator("td").first().getByRole("button", { name: "★をつける" })).toBeVisible();
-  await expect(row.locator("td").nth(1)).toHaveText("merci");
+  const head = row.locator("td").first();
+  await expect(head).toHaveAccessibleName("merci");
+  const word = await head.getByText("merci", { exact: true }).boundingBox();
+  const star = await head.getByRole("button", { name: "★をつける" }).boundingBox();
+  expect(star!.y).toBeGreaterThanOrEqual(word!.y + word!.height);
 
-  await row.getByRole("button", { name: "★をつける" }).click();
-  await expect(
-    row.locator("td").first().getByRole("button", { name: "★の回数を増やす" }),
-  ).toBeVisible();
+  await head.getByRole("button", { name: "★をつける" }).click();
+  await expect(head.getByRole("button", { name: "★の回数を増やす" })).toBeVisible();
   // 削除は右端の列に残る（編集は表の上の「表を編集」からまとめて行う）
   await expect(row.locator("td").last().getByRole("button", { name: "削除" })).toBeVisible();
+});
+
+test("見出し語の列の右に区切り線を引く（表示中・編集中・単語の追加中とも）", async ({
+  page,
+  baseURL,
+}) => {
+  await createNotebook(page, "e2e 用の見出し語の区切り線の単語帳");
+  const notebookUrl = new URL(page.url()).pathname;
+  const created = await page.request.post(notebookUrl, {
+    form: { intent: "createCard", head: "merci", "row:0:意味": "ありがとう" },
+    headers: { Origin: baseURL! },
+  });
+  expect(created.ok()).toBe(true);
+  await page.reload();
+  const table = page.getByRole("table").first();
+  // 右に線が引かれているマス（border-right が1px以上）
+  const hasRightLine = (cell: Locator) =>
+    cell.evaluate((el) => parseFloat(getComputedStyle(el).borderRightWidth) >= 1);
+
+  expect(await hasRightLine(table.getByRole("columnheader", { name: "見出し語" }))).toBe(true);
+  expect(await hasRightLine(table.getByRole("cell", { name: "merci", exact: true }))).toBe(true);
+  // 線は見出し語の列だけで、ほかの列の間には引かない
+  expect(await hasRightLine(table.getByRole("cell", { name: "ありがとう", exact: true }))).toBe(
+    false,
+  );
+
+  // 単語の追加中の行
+  await table.getByRole("button", { name: "表に単語を追加" }).click();
+  const addingHead = table.getByRole("textbox", { name: "見出し語" });
+  expect(await hasRightLine(addingHead.locator("xpath=ancestor::td[1]"))).toBe(true);
+  await page.keyboard.press("Escape");
+
+  // 編集中の行
+  await page.getByRole("button", { name: "表を編集" }).click();
+  const editingHead = table.getByRole("textbox", { name: "見出し語" }).first();
+  expect(await hasRightLine(editingHead.locator("xpath=ancestor::td[1]"))).toBe(true);
 });
 
 test.describe("スマホ幅の単語帳ページ", () => {

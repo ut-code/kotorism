@@ -4,6 +4,7 @@ import { useFetcher } from "react-router";
 import { useLongPressDrag, type LongPressDragHandlers } from "@/hooks/useLongPressDrag";
 import type { FormState } from "@/lib/shared/form-state";
 import { COLUMN_NAME_MAX_LENGTH } from "@/lib/shared/notebook-schema";
+import { headDividerClassName } from "./CardRow";
 
 const noFormState: FormState = {};
 
@@ -93,8 +94,8 @@ export default function ColumnHeaderCell({
           : "ダブルクリック（スマホでは長押し）で名前を変更、長押ししたまま動かすと並べ替え"
       }
       className={`min-w-[4.5rem] px-1.5 py-3 text-sm font-semibold text-zinc-700 select-none [-webkit-touch-callout:none] data-[long-pressed]:bg-coral-50 sm:px-4 dark:text-zinc-300 dark:data-[long-pressed]:bg-coral-950/30 ${
-        isDragSource ? "opacity-40" : ""
-      }`}
+        isHeadColumn ? headDividerClassName : ""
+      } ${isDragSource ? "opacity-40" : ""}`}
     >
       {renaming ? (
         <div className="flex flex-col items-start gap-1">

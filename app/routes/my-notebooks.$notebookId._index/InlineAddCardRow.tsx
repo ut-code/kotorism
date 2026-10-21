@@ -3,6 +3,7 @@ import { useFetcher } from "react-router";
 
 import type { FormState } from "@/lib/shared/form-state";
 import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
+import { headDividerClassName } from "./CardRow";
 import { caretAtEdge, focusInput } from "./caret";
 
 const initialState: FormState = {};
@@ -53,8 +54,8 @@ export default function InlineAddCardRow({
   }
 
   const [headColumn, ...bodyColumns] = columns;
-  // ★の列 + 見出し語 + 列 + 操作の列
-  const columnCount = columns.length + 2;
+  // 見出し語 + 列 + 操作の列
+  const columnCount = columns.length + 1;
 
   // 入力中の単語があれば追加して次の空の行へ、何も入力していなければ見出し語の欄へ戻るだけ（↓・＋）
   const isBlank = Object.values(values).every((value) => value.trim() === "");
@@ -116,8 +117,7 @@ export default function InlineAddCardRow({
   return (
     <>
       <tr className="border-t border-black/[.06] bg-coral-50/40 dark:border-white/[.1] dark:bg-coral-950/10">
-        <td className="px-1.5 py-2 sm:px-4" />
-        <td className="px-1.5 py-2 sm:px-4 align-top">
+        <td className={`px-1.5 py-2 sm:px-4 align-top ${headDividerClassName}`}>
           <input
             ref={headRef}
             autoFocus

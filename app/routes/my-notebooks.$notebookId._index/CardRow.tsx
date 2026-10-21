@@ -7,6 +7,14 @@ import StarIcon from "@/components/StarIcon";
 import StarCountEditor from "@/components/StarCountEditor";
 import { useStarColors } from "@/hooks/useStarColors";
 import { bulkCardFieldName } from "@/lib/shared/bulk-edit";
+import {
+  expandMergedValues,
+  initialMergedUp,
+  mergeSpans,
+  mergeWithNext,
+  splitLast,
+  type MergedUp,
+} from "@/lib/shared/card-groups";
 import { CARD_HEAD_MAX_LENGTH, CARD_VALUE_MAX_LENGTH } from "@/lib/shared/notebook-schema";
 import { starColorFor } from "@/lib/shared/star-colors";
 import { displayedStarCount } from "@/lib/shared/star-progress";
@@ -17,19 +25,13 @@ import DraggableTr from "./DraggableTr";
 export const editInputClassName =
   "w-full min-w-16 rounded border border-black/[.1] bg-transparent px-2 py-1 text-sm outline-none focus:border-black/[.3] dark:border-white/[.15] dark:focus:border-white/[.4]";
 
-// Excelの結合セルのように、ある列で連続する組（行）の値が同じであればまとめてrowSpanで
-// 1つのセルにする。先頭行以外はnull（描画しない）を返し、代わりに直前のセルのrowSpanを伸ばす。
-// 空文字同士は結合しない（未入力のセルが1つの大きな空欄に見えて紛らわしいのを避けるため）
-function computeRowSpans(values: string[]): number[] {
-  const spans = values.map(() => 1);
-  for (let i = values.length - 1; i > 0; i -= 1) {
-    if (values[i] !== "" && values[i] === values[i - 1]) {
-      spans[i - 1] += spans[i];
-      spans[i] = 0;
-    }
-  }
-  return spans;
-}
+// 見出し語の列と、それより後ろの列を区切る線（表の見出し・表示中・編集中・追加中の見出し語のマスに引く）
+export const headDividerClassName = "border-r border-black/[.1] dark:border-white/[.15]";
+
+// 表全体の編集中の、組のマスの枠。入力欄と結合・分割のボタンを1つの枠に収め、どのマスも同じ高さにする。
+// 結合したマスでは、結合した組の高さいっぱいに伸ばす（h-full）
+const editCellClassName =
+  "flex h-full w-full min-w-16 items-center gap-1 rounded border border-black/[.1] px-2 focus-within:border-black/[.3] dark:border-white/[.15] dark:focus-within:border-white/[.4]";
 
 export default function CardRow({
   index,
@@ -85,69 +87,106 @@ export default function CardRow({
     );
   }
   const deleteFetcher = useFetcher();
-  // 表全体の編集中に、この単語へ足した空の組の数（右端の＋）。保存で送り、編集を終えたら消す
-  const [addedRows, setAddedRows] = useState(0);
-  if (!bulkEditFormId && addedRows > 0) setAddedRows(0);
+  // どれかの組の行を長押ししている間は、この単語の行すべてに色を付ける（DraggableTr の data-card-pressed）
+  const [pressed, setPressed] = useState(false);
+  // 表全体の編集中の、各組の入力中の値とマスの結合（右端の＋で足した空の組も含める）。
+  // 編集を始めたときの値から、同じ値が続くマスを結合済みとして始め（表示中の結合と同じ見た目）、編集を終えたら消す
+  const [editState, setEditState] = useState<{
+    rows: CardData["rows"];
+    mergedUp: MergedUp[];
+  } | null>(null);
+  if (!bulkEditFormId && editState !== null) setEditState(null);
 
   // ★を付けた回数に応じた色。0回（未使用）ならundefinedになりニュートラル表示にする
   const { colors: starColors } = useStarColors();
   const starColor = starColorFor(displayedCount, starColors);
 
-  // 見出し語1件につき、rows（組）の件数ぶん<tr>を並べる。★・見出し語・操作のセルは全組にまたがらせる
+  // 見出し語1件につき、rows（組）の件数ぶん<tr>を並べる。見出し語（下に★）・操作のセルは全組にまたがらせる
   const rowCount = card.data.rows.length;
 
-  // 表の左端の★の列。押すたびに回数を+1し、次の色の★を即座に見せる（handleAddStar）。
+  // 見出し語の下に置く★と、暗記モードで見た回数。★は押すたびに回数を+1し、次の色の★を即座に見せる（handleAddStar）。
   // ★を外すときは、隣の回数（StarCountEditor）から0にリセットする
-  // rowSpan: この単語の組の数（表全体の編集中は、＋で足した組も含める）
-  const starCell = (rowSpan: number) => (
-    <td rowSpan={rowSpan} className="px-1.5 py-3 sm:px-4 align-top whitespace-nowrap">
-      <span className="inline-flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-4">
-        <span className="inline-flex items-center gap-0.5" title="★を付けた回数">
-          <button
-            type="button"
-            onClick={handleAddStar}
-            aria-label={displayedStarred ? "★の回数を増やす" : "★をつける"}
-            style={starColor ? { color: starColor } : undefined}
-            className={
-              starColor
-                ? "flex transition-opacity hover:opacity-75"
-                : "flex text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
-            }
-          >
-            <StarIcon filled={displayedStarred} className="h-4 w-4" />
-          </button>
-          <StarCountEditor
-            cardId={card.id}
-            notebookId={notebookId}
-            starCount={displayedCount}
-            color={starColor}
-          />
-        </span>
-        {/* 目アイコンは暗記モード（/study, /review）でこのカードが表示された累計回数。
-            ★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
-        <span
-          aria-label="暗記モードで表示した回数"
-          title="暗記モードで見た回数"
-          className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-400 dark:text-zinc-600"
+  const starControls = (
+    <span className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
+      <span className="inline-flex items-center gap-0.5" title="★を付けた回数">
+        <button
+          type="button"
+          onClick={handleAddStar}
+          aria-label={displayedStarred ? "★の回数を増やす" : "★をつける"}
+          style={starColor ? { color: starColor } : undefined}
+          className={
+            starColor
+              ? "flex transition-opacity hover:opacity-75"
+              : "flex text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
+          }
         >
-          <EyeIcon className="h-4 w-4" />
-          {card.viewCount}
-        </span>
+          <StarIcon filled={displayedStarred} className="h-4 w-4" />
+        </button>
+        <StarCountEditor
+          cardId={card.id}
+          notebookId={notebookId}
+          starCount={displayedCount}
+          color={starColor}
+        />
       </span>
-    </td>
+      {/* 目アイコンは暗記モード（/study, /review）でこのカードが表示された累計回数。
+          ★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
+      <span
+        aria-label="暗記モードで表示した回数"
+        title="暗記モードで見た回数"
+        className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-400 dark:text-zinc-600"
+      >
+        <EyeIcon className="h-4 w-4" />
+        {card.viewCount}
+      </span>
+    </span>
   );
 
   if (bulkEditFormId) {
     // 表全体の編集中。見出し語と、各組・各列の値をすべて入力欄にする。入力欄は表の外にあるフォームに
     // form 属性で結び付け、単語のidを前に付けた名前（bulkCardFieldName）でまとめて送る。
-    // 結合セル（同じ値が続く組）は、編集中は結合を解いて1組ずつの入力欄にする。
+    // 本文の各列は Excel の結合セルのように、列ごとに下の組のマスと結合（⬇ 結合）・分割（✂ 分割）できる。
+    // 結合したマスは1つの入力欄に1回入力するだけで、結合した組すべてに同じ値を隠し入力で送る
+    // （サーバー側は結合を知らずに、1組ずつ入力したときと同じ読み取り方をする）。
     // 右端の＋でこの単語に空の組を足せ、組のマスを全部空にして保存するとその組を消す（compactRows）
     const field = (name: string) => bulkCardFieldName(card.id, name);
-    const editRows = [
-      ...card.data.rows,
-      ...Array.from({ length: addedRows }, (): Record<string, string> => ({})),
-    ];
+    const current = editState ?? {
+      rows: card.data.rows,
+      mergedUp: initialMergedUp(card.data.rows, bodyColumns),
+    };
+    const editRows = expandMergedValues(current.rows, current.mergedUp, bodyColumns);
     const editRowCount = editRows.length;
+    const editSpansByColumn = bodyColumns.map((column) => mergeSpans(current.mergedUp, column));
+    const updateEdit = (update: (state: typeof current) => typeof current) =>
+      setEditState((prev) => update(prev ?? current));
+    const updateValue = (rowIndex: number, column: string, value: string) =>
+      updateEdit((state) => ({
+        ...state,
+        rows: state.rows.map((row, i) => (i === rowIndex ? { ...row, [column]: value } : row)),
+      }));
+    // 先頭が start の結合に、すぐ下の組のマスを結合する。
+    // 下のマスに別の値が入っていれば、上のマスの値にそろえて消えてしまうため確認する
+    const mergeCell = (start: number, column: string) => {
+      const below = editRows[start + editSpansByColumn[bodyColumns.indexOf(column)][start]];
+      const existing = below?.[column] ?? "";
+      if (
+        existing !== "" &&
+        existing !== (editRows[start][column] ?? "") &&
+        !window.confirm(`結合すると「${existing}」は上のマスの値にそろえられます。よろしいですか？`)
+      ) {
+        return;
+      }
+      updateEdit((state) => ({ ...state, mergedUp: mergeWithNext(state.mergedUp, start, column) }));
+    };
+    // 先頭が start の結合から、いちばん下の組のマスを切り離す。切り離したマスは空欄から入力し直す
+    // （同じ値のままだと、保存して表示に戻ったときにまた結合して見えるため）
+    const splitCell = (start: number, column: string) => {
+      const last = start + editSpansByColumn[bodyColumns.indexOf(column)][start] - 1;
+      updateEdit((state) => ({
+        rows: state.rows.map((row, i) => (i === last ? { ...row, [column]: "" } : row)),
+        mergedUp: splitLast(state.mergedUp, start, column),
+      }));
+    };
     return (
       <>
         {editRows.map((row, rowIndex) => (
@@ -156,9 +195,11 @@ export default function CardRow({
             data-card-index={index}
             className="border-t border-black/[.06] dark:border-white/[.1]"
           >
-            {rowIndex === 0 && starCell(editRowCount)}
             {rowIndex === 0 && (
-              <td rowSpan={editRowCount} className="px-1.5 py-2 sm:px-4 align-top">
+              <td
+                rowSpan={editRowCount}
+                className={`px-1.5 py-2 sm:px-4 align-top ${headDividerClassName}`}
+              >
                 <input type="hidden" name="cardId" value={card.id} form={bulkEditFormId} />
                 <input
                   form={bulkEditFormId}
@@ -169,28 +210,79 @@ export default function CardRow({
                   maxLength={CARD_HEAD_MAX_LENGTH}
                   className={editInputClassName}
                 />
+                {starControls}
               </td>
             )}
-            {bodyColumns.map((column, columnIndex) => (
-              <td key={column} className="px-1.5 py-2 sm:px-4 align-top">
-                <input
-                  form={bulkEditFormId}
-                  name={field(`row:${rowIndex}:${column}`)}
-                  data-grid-col={columnIndex + 1}
-                  aria-label={column}
-                  defaultValue={row[column] ?? ""}
-                  // ＋で足した組は、最初の欄から入力を始められるようにする
-                  autoFocus={rowIndex >= card.data.rows.length && columnIndex === 0}
-                  maxLength={CARD_VALUE_MAX_LENGTH}
-                  className={editInputClassName}
-                />
-              </td>
-            ))}
+            {bodyColumns.map((column, columnIndex) => {
+              const span = editSpansByColumn[columnIndex][rowIndex];
+              // 上の組のマスに結合されたマスは描画しない（値は結合の先頭のマスの隠し入力で送る）
+              if (span === 0) return null;
+              const hasBelow = rowIndex + span < editRowCount;
+              return (
+                // h-px: 中の枠（h-full）を、結合した組の高さいっぱいに伸ばすため（表のマスは高さを決めないと % が効かない）。
+                // どのマスも同じ高さの枠にしておくことで、結合したマスの上端・下端が、ほかの列の最初と最後の組の枠とそろう
+                <td key={column} rowSpan={span} className="h-px px-1.5 py-2 sm:px-4 align-top">
+                  <div className={editCellClassName}>
+                    <input
+                      form={bulkEditFormId}
+                      name={field(`row:${rowIndex}:${column}`)}
+                      data-grid-col={columnIndex + 1}
+                      aria-label={column}
+                      value={row[column] ?? ""}
+                      onChange={(event) => updateValue(rowIndex, column, event.target.value)}
+                      // ＋で足した組は、最初の欄から入力を始められるようにする
+                      autoFocus={rowIndex >= card.data.rows.length && columnIndex === 0}
+                      maxLength={CARD_VALUE_MAX_LENGTH}
+                      className="min-w-0 flex-1 bg-transparent py-1 text-sm outline-none"
+                    />
+                    {/* 結合された組にも同じ値を送るための隠し入力 */}
+                    {Array.from({ length: span - 1 }, (_, k) => rowIndex + 1 + k).map(
+                      (mergedIndex) => (
+                        <input
+                          key={mergedIndex}
+                          type="hidden"
+                          form={bulkEditFormId}
+                          name={field(`row:${mergedIndex}:${column}`)}
+                          value={row[column] ?? ""}
+                        />
+                      ),
+                    )}
+                    {span > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => splitCell(rowIndex, column)}
+                        aria-label={`「${column}」の結合を分割`}
+                        title="結合を分割（いちばん下の組のマスを切り離す）"
+                        className="shrink-0 text-xs text-coral-600 transition-colors hover:text-coral-800 dark:text-coral-400 dark:hover:text-coral-200"
+                      >
+                        ✂
+                      </button>
+                    )}
+                    {hasBelow && (
+                      <button
+                        type="button"
+                        onClick={() => mergeCell(rowIndex, column)}
+                        aria-label={`「${column}」を下の組と結合`}
+                        title="下の組と結合（1回の入力で、結合した組すべてに同じ値を保存する）"
+                        className="shrink-0 text-xs text-zinc-400 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+                      >
+                        ⬇
+                      </button>
+                    )}
+                  </div>
+                </td>
+              );
+            })}
             {rowIndex === 0 && (
               <td rowSpan={editRowCount} className="px-1.5 py-2 sm:px-4 text-right align-top">
                 <button
                   type="button"
-                  onClick={() => setAddedRows((count) => count + 1)}
+                  onClick={() =>
+                    updateEdit((state) => ({
+                      rows: [...state.rows, {}],
+                      mergedUp: [...state.mergedUp, ...initialMergedUp([{}], bodyColumns)],
+                    }))
+                  }
                   aria-label={`「${card.data.head}」に組を追加`}
                   title="組（意味など）を追加"
                   className="px-1 text-lg leading-none text-zinc-400 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
@@ -206,9 +298,10 @@ export default function CardRow({
   }
 
   // 本文の各列は、列ごとに連続して同じ値が続く区間だけをrowSpanでまとめる（Excelの結合セルと同じ）
-  const bodySpansByColumn = bodyColumns.map((column) =>
-    computeRowSpans(card.data.rows.map((row) => row[column] ?? "")),
-  );
+  // 空のマス同士は結合しない（未入力のマスが1つの大きな空欄に見えて紛らわしいのを避けるため）。
+  // 編集を始めたときの結合（initialMergedUp）と同じ基準にして、編集を開いても見た目が変わらないようにする
+  const viewMergedUp = initialMergedUp(card.data.rows, bodyColumns);
+  const bodySpansByColumn = bodyColumns.map((column) => mergeSpans(viewMergedUp, column));
 
   return (
     <>
@@ -217,17 +310,22 @@ export default function CardRow({
         <DraggableTr
           key={rowIndex}
           data-card-index={index}
-          drag={drag}
+          drag={drag && { ...drag, onPressChange: setPressed }}
           dragDisabled={dragDisabled}
+          data-card-pressed={pressed ? "" : undefined}
           className={`border-t border-black/[.06] dark:border-white/[.1] ${isDragSource ? "opacity-40" : ""}`}
         >
-          {rowIndex === 0 && starCell(rowCount)}
           {rowIndex === 0 && (
+            // マスの名前（読み上げ）は見出し語にし、下の★などの文字を含めない
             <td
               rowSpan={rowCount}
-              className="px-1.5 py-3 sm:px-4 min-w-[4.5rem] align-top text-sm font-medium [overflow-wrap:anywhere] text-zinc-900 dark:text-zinc-100"
+              aria-label={card.data.head}
+              className={`px-1.5 py-3 sm:px-4 min-w-[4.5rem] align-top ${headDividerClassName}`}
             >
-              {card.data.head}
+              <span className="block text-sm font-medium [overflow-wrap:anywhere] text-zinc-900 dark:text-zinc-100">
+                {card.data.head}
+              </span>
+              {starControls}
             </td>
           )}
           {bodyColumns.map((column, columnIndex) => {
