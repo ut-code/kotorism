@@ -1,10 +1,10 @@
-import NumberTypingPractice from "@/components/practice/NumberTypingPractice";
+import NumberTimePractice from "@/components/practice/NumberTimePractice";
 
-export const title = "数字タイピング演習";
+export const title = "数字・時間表現の演習";
 export const description =
-  "表示された数字を、フランス語のつづりで入力しましょう。出題範囲・問題数・制限時間を選べます。";
+  "数字と時刻（7:30 など）を、フランス語でどう言うか練習しましょう。4択か入力で答えます。出題範囲・問題数・制限時間を選べます。";
 
-<NumberTypingPractice language="french" />
+<NumberTimePractice language="french" section="08" />
 
 {/* 出題データ定義テーブル (display:none) */}
 
@@ -65,5 +65,27 @@ export const description =
 | 92  | quatre-vingt-douze    |
 | 99  | quatre-vingt-dix-neuf |
 | 100 | cent                  |
+
+### 時刻
+
+| 時刻  | 言い方                                                    | 補足        |
+| ----- | --------------------------------------------------------- | ----------- |
+| 1:00  | une heure                                                 |             |
+| 1:30  | une heure et demie                                        |             |
+| 2:00  | deux heures                                               |             |
+| 3:05  | trois heures cinq                                         |             |
+| 4:10  | quatre heures dix                                         |             |
+| 5:15  | cinq heures et quart / cinq heures quinze                 |             |
+| 6:20  | six heures vingt                                          |             |
+| 7:30  | sept heures et demie / sept heures trente                 |             |
+| 8:40  | neuf heures moins vingt / huit heures quarante            | 9時20分前   |
+| 9:45  | dix heures moins le quart / neuf heures quarante-cinq     | 10時15分前  |
+| 10:50 | onze heures moins dix / dix heures cinquante              | 11時10分前  |
+| 12:00 | midi / douze heures                                       | 正午        |
+| 12:30 | midi et demi / douze heures trente                        | 昼の12時半  |
+| 0:00  | minuit                                                    | 真夜中      |
+| 14:00 | quatorze heures / deux heures de l'après-midi             | 午後2時     |
+| 18:30 | dix-huit heures trente / six heures et demie du soir      | 午後6時半   |
+| 21:15 | vingt et une heures quinze / neuf heures et quart du soir | 午後9時15分 |
 
 </div>

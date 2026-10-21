@@ -17,6 +17,9 @@ export type FillInItem = {
 
 export type NumberItem = { num: number; spelling: string };
 
+// 時刻の言い方。answers の先頭が正解、残りは別の言い方
+export type TimeItem = { time: string; answers: string[]; note: string };
+
 // "| a | b |" の行をセルの配列にする。表の行でなければ null
 function tableCells(line: string): string[] | null {
   const trimmed = line.trim();
@@ -100,7 +103,7 @@ export function parseFillInItems(source: string): FillInItem[] {
   return items;
 }
 
-// 数字タイピング: 複数のセクション本文から「数字 | つづり」の行を集める
+// 数字・時間表現: 複数のセクション本文から「数字 | つづり」の行を集める
 export function parseNumberItems(sources: string[]): NumberItem[] {
   const items: NumberItem[] = [];
   for (const source of sources) {
@@ -112,6 +115,21 @@ export function parseNumberItems(sources: string[]): NumberItem[] {
         items.push({ num: Number(num), spelling });
       }
     }
+  }
+  return items;
+}
+
+// 時刻: 「時刻 | 言い方 | 補足」の行を集める。言い方が複数あれば「 / 」で区切る
+export function parseTimeItems(source: string): TimeItem[] {
+  const items: TimeItem[] = [];
+  for (const line of source.split("\n")) {
+    const cells = tableCells(line);
+    if (!cells || cells.length < 2 || !/^\d{1,2}:\d{2}$/.test(cells[0])) continue;
+    const answers = cells[1]
+      .split(" / ")
+      .map((a) => a.trim())
+      .filter(Boolean);
+    if (answers.length > 0) items.push({ time: cells[0], answers, note: cells[2] ?? "" });
   }
   return items;
 }

@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { loadFillInItems, loadGrammarTables, loadNumberItems } from "@/components/practice/data";
-import { parseFillInItems, parseGrammarTables, parseNumberItems } from "./practice-data";
+import {
+  loadFillInItems,
+  loadGrammarTables,
+  loadNumberItems,
+  loadTimeItems,
+} from "@/components/practice/data";
+import {
+  parseFillInItems,
+  parseGrammarTables,
+  parseNumberItems,
+  parseTimeItems,
+} from "./practice-data";
 
 describe("parseGrammarTables", () => {
   it("見出しごとに表を分け、連続する同じセルを結合し、Markdown エスケープを外す", () => {
@@ -116,6 +126,25 @@ describe("parseFillInItems", () => {
   });
 });
 
+describe("parseTimeItems", () => {
+  it("「時刻 | 言い方 | 補足」の行を読み、言い方は「 / 」で分ける", () => {
+    expect(
+      parseTimeItems(
+        [
+          "| 時刻 | 言い方 | 補足 |",
+          "| --- | --- | --- |",
+          "| 7:30 | sept heures et demie / sept heures trente | |",
+          "| 12:00 | midi | 正午 |",
+          "| 7 | sept | |",
+        ].join("\n"),
+      ),
+    ).toEqual([
+      { time: "7:30", answers: ["sept heures et demie", "sept heures trente"], note: "" },
+      { time: "12:00", answers: ["midi"], note: "正午" },
+    ]);
+  });
+});
+
 describe("parseNumberItems", () => {
   it("数字とつづりの行だけを読み、見出し・ハイフン・非数字の行を除外する", () => {
     expect(
@@ -170,8 +199,20 @@ describe("教材 MDX からの演習データ読み込み", () => {
     },
   );
 
+  it.each([
+    ["french", "08"],
+    ["german", "07"],
+    ["spanish", "07"],
+  ] as const)("%s の数字・時間表現の演習に、時刻の問題が12問以上ある", (language, section) => {
+    const items = loadTimeItems(language, section);
+    expect(items.length).toBeGreaterThanOrEqual(12);
+    // 4択の正解どうしが重ならないよう、時刻も正解の言い方も重複させない
+    expect(new Set(items.map((item) => item.time)).size).toBe(items.length);
+    expect(new Set(items.map((item) => item.answers[0])).size).toBe(items.length);
+  });
+
   it.each(["french", "german", "spanish"] as const)(
-    "%s の表完成・数字タイピングに出題データがある",
+    "%s の表完成・数字・時間表現の演習に出題データがある",
     (language) => {
       expect(loadGrammarTables(language, "04").length).toBeGreaterThan(0);
 

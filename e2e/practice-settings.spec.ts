@@ -9,7 +9,7 @@ const PRACTICES: {
 }[] = [
   { name: "動詞の活用", path: "/learn/french/03", start: "練習を始める" },
   { name: "穴埋め", path: "/learn/french/07", start: "練習を始める" },
-  { name: "数字タイピング", path: "/learn/french/08", start: "練習を始める" },
+  { name: "数字・時間表現", path: "/learn/french/08", start: "練習を始める" },
   { name: "ピンイン", path: "/learn/chinese/03", start: "練習を始める" },
   { name: "中国語の文法クイズ", path: "/learn/chinese/05", start: "練習を始める" },
   { name: "フランス語の文法クイズ（基本1）", path: "/learn/french/05", start: "練習を始める" },

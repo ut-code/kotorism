@@ -1,10 +1,10 @@
-import NumberTypingPractice from "@/components/practice/NumberTypingPractice";
+import NumberTimePractice from "@/components/practice/NumberTimePractice";
 
-export const title = "数字タイピング演習";
+export const title = "数字・時間表現の演習";
 export const description =
-  "表示された数字を、スペイン語のつづりで入力しましょう。出題範囲・問題数・制限時間を選べます。";
+  "数字と時刻（7:30 など）を、スペイン語でどう言うか練習しましょう。4択か入力で答えます。出題範囲・問題数・制限時間を選べます。";
 
-<NumberTypingPractice language="spanish" />
+<NumberTimePractice language="spanish" section="07" />
 
 {/* 出題データ定義テーブル (display:none) */}
 
@@ -47,5 +47,26 @@ export const description =
 | 80  | ochenta      |
 | 90  | noventa      |
 | 100 | cien         |
+
+### 時刻
+
+| 時刻  | 言い方                                                  | 補足        |
+| ----- | ------------------------------------------------------- | ----------- |
+| 1:00  | la una                                                  |             |
+| 1:30  | la una y media / la una y treinta                       |             |
+| 2:00  | las dos                                                 |             |
+| 3:05  | las tres y cinco                                        |             |
+| 4:10  | las cuatro y diez                                       |             |
+| 5:15  | las cinco y cuarto / las cinco y quince                 |             |
+| 6:20  | las seis y veinte                                       |             |
+| 7:30  | las siete y media / las siete y treinta                 |             |
+| 8:40  | las nueve menos veinte / las ocho y cuarenta            | 9時20分前   |
+| 9:45  | las diez menos cuarto / las nueve y cuarenta y cinco    | 10時15分前  |
+| 10:50 | las once menos diez / las diez y cincuenta              | 11時10分前  |
+| 12:00 | el mediodía / las doce                                  | 正午        |
+| 0:00  | la medianoche / las doce                                | 真夜中      |
+| 14:00 | las dos de la tarde / las catorce                       | 午後2時     |
+| 18:30 | las seis y media de la tarde / las dieciocho y treinta  | 午後6時半   |
+| 21:15 | las nueve y cuarto de la noche / las veintiuna y quince | 午後9時15分 |
 
 </div>

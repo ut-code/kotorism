@@ -6,6 +6,8 @@ import type { PracticeLanguage } from "@/lib/shared/practice-languages";
 export function languageTypingMode<Q extends QuizQuestion>(
   language: PracticeLanguage,
   placeholder: string,
+  // 正誤の判定（省略時は Quiz の既定の比べ方）
+  isCorrect?: (given: string, question: Q) => boolean,
 ): QuizAnswerMode<Q> {
   return {
     kind: "typing",
@@ -13,5 +15,6 @@ export function languageTypingMode<Q extends QuizQuestion>(
     toolbarChars: language.specialChars,
     hint: <AccentKeyHint language={language} />,
     placeholder,
+    isCorrect,
   };
 }
