@@ -63,7 +63,15 @@ jobs:
       - run: npm test
 
   e2e:
+    name: e2e (${{ matrix.shard }}/3)
     runs-on: ubuntu-24.04
+    # テストを3つのジョブに分けて並列に走らせ、待ち時間を縮める。
+    # シャードごとにビルドと SQLite の DB が別になるので、テスト同士が DB を取り合わない。
+    # そのかわり npm ci などのセットアップが3回走り、実行時間の合計は少し増える
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -75,4 +83,4 @@ jobs:
       - run: npm ci
 
       # ubuntu-24.04 のランナーには Chrome が入っている。playwright.config.ts は channel: "chrome" を使う
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
