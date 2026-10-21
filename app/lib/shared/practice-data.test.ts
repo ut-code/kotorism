@@ -11,6 +11,7 @@ import {
   parseGrammarTables,
   parseNumberItems,
   parseTimeItems,
+  splitLabel,
 } from "./practice-data";
 
 describe("parseGrammarTables", () => {
@@ -235,4 +236,19 @@ describe("教材 MDX からの演習データ読み込み", () => {
       expect(fillInItems.some(({ sentence }) => sentence.includes("\\_"))).toBe(false);
     },
   );
+});
+
+describe("splitLabel", () => {
+  it("末尾の「 (…)」を補足として分ける", () => {
+    expect(splitLabel("1格 (〜は)")).toEqual({ main: "1格", sub: "〜は" });
+    expect(splitLabel("彼の (彼女の・あなたの)")).toEqual({
+      main: "彼の",
+      sub: "彼女の・あなたの",
+    });
+  });
+
+  it("補足が無ければそのまま返す", () => {
+    expect(splitLabel("男性")).toEqual({ main: "男性", sub: "" });
+    expect(splitLabel("(なし)")).toEqual({ main: "(なし)", sub: "" });
+  });
 });

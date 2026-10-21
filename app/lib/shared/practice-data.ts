@@ -52,6 +52,12 @@ function mergeAdjacentCells(cells: string[]): GrammarTableCell[] {
   return merged;
 }
 
+// 表の見出し「1格 (〜は)」を本体と補足に分ける。補足は小さく2行目に出す（見出しが途中で折り返さないように）
+export function splitLabel(label: string): { main: string; sub: string } {
+  const match = /^(.+?)\s+\((.+)\)$/.exec(label);
+  return match ? { main: match[1], sub: match[2] } : { main: label, sub: "" };
+}
+
 // 表完成: 見出し（###）ごとに1つの表。表の1行目が列見出し、各行の1列目が行見出し
 export function parseGrammarTables(source: string): GrammarTable[] {
   const tables: GrammarTable[] = [];
