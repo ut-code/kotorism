@@ -7,7 +7,6 @@ import { AccentTextarea } from "@/components/practice/AccentTextarea";
 import { CollapsibleChoice, CollapsibleSetting } from "@/components/practice/PracticeControls";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
 import { getPracticeLanguage } from "@/lib/shared/practice-languages";
-import type { SubmitEssayResult } from "@/lib/server/essay/actions.server";
 import { getEssayTopics } from "@/lib/shared/essay/topics";
 import {
   countEssayLength,
@@ -26,6 +25,7 @@ import {
   type EssayFeedback,
   type EssaySubmissionDTO,
   type EssayTopicSource,
+  type SubmitEssayResult,
 } from "@/lib/shared/essay/types";
 
 interface ResolvedTopic {

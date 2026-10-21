@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/server/session.server";
+import { parseAcknowledgeStreak } from "@/lib/shared/study-streak-schema";
 import { acknowledgeCelebration } from "@/lib/server/study-events.server";
 import type { Route } from "./+types/route";
 
@@ -7,10 +8,8 @@ import type { Route } from "./+types/route";
 export async function action({ request }: Route.ActionArgs) {
   const user = await requireUser();
   const formData = await request.formData();
-  const milestone = Number(formData.get("milestone"));
-  if (formData.get("intent") !== "acknowledge" || !Number.isInteger(milestone) || milestone <= 0) {
-    return new Response("Bad Request", { status: 400 });
-  }
-  await acknowledgeCelebration(user.id, milestone);
+  const parsed = parseAcknowledgeStreak(formData);
+  if (!parsed.success) return new Response("Bad Request", { status: 400 });
+  await acknowledgeCelebration(user.id, parsed.data.milestone);
   return {};
 }

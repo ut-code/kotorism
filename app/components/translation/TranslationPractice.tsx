@@ -6,7 +6,6 @@ import { ChineseImeInput } from "@/components/chinese/ChineseImeInput";
 import { apiGet, apiPost } from "@/lib/shared/api-client";
 import { AccentTextarea } from "@/components/practice/AccentTextarea";
 import { getPracticeLanguage } from "@/lib/shared/practice-languages";
-import type { SubmitTranslationResult } from "@/lib/server/translation/actions.server";
 import {
   CollapsibleChoice,
   CollapsibleSetting,
@@ -23,6 +22,7 @@ import {
   TRANSLATION_SCORE_OPTIONS,
   type TranslationDirection,
   type TranslationProblemSource,
+  type SubmitTranslationResult,
   type TranslationSubmissionDTO,
 } from "@/lib/shared/translation/types";
 
