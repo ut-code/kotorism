@@ -11,6 +11,7 @@ import {
 } from "@/components/practice/PracticeControls";
 import { SpecialCharPalette } from "@/components/practice/SpecialCharPalette";
 import { buildAccentIndex, cycleAccent } from "@/lib/shared/accent";
+import { splitLabel } from "@/lib/shared/practice-data";
 import { PRACTICE_LANGUAGES, type PracticeLanguageSlug } from "@/lib/shared/practice-languages";
 
 type BlankRatio = "25" | "50" | "75" | "100";
@@ -34,6 +35,21 @@ function shuffle<T>(array: T[]): T[] {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+// 表の見出し。「1格 (〜は)」の補足は小さく2行目に出し、日本語が語の途中で折り返さないようにする
+function Label({ text }: { text: string }) {
+  const { main, sub } = splitLabel(text);
+  return (
+    <>
+      <span className="block whitespace-nowrap">{main}</span>
+      {sub && (
+        <span className="block whitespace-nowrap text-xs font-normal text-zinc-500 dark:text-zinc-400">
+          {sub}
+        </span>
+      )}
+    </>
+  );
 }
 
 // 表完成演習。文法表の一部のセルを空欄にし、埋めて答え合わせする。
@@ -214,7 +230,7 @@ export default function TableCompletionPractice({
                 ← 表は横にスクロールできます →
               </p>
               <div className="mt-3 overflow-x-auto">
-                <table className="w-full min-w-[600px] border-collapse text-left text-base">
+                <table className="w-full border-collapse text-left text-base">
                   <thead>
                     <tr className="bg-zinc-100/80 dark:bg-zinc-900">
                       {table.headers.map((h, i) => (
@@ -222,7 +238,7 @@ export default function TableCompletionPractice({
                           key={i}
                           className="border border-zinc-200 p-2.5 font-bold text-zinc-800 sm:p-3 dark:border-zinc-800 dark:text-zinc-200"
                         >
-                          {h}
+                          <Label text={h} />
                         </th>
                       ))}
                     </tr>
@@ -234,7 +250,7 @@ export default function TableCompletionPractice({
                           scope="row"
                           className="border border-zinc-200 bg-zinc-50/50 p-2.5 font-bold text-zinc-900 sm:p-3 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-100"
                         >
-                          {row.label}
+                          <Label text={row.label} />
                         </th>
                         {row.cells.map((cell, c) => {
                           const key = cellKey(t, r, c);
@@ -244,7 +260,7 @@ export default function TableCompletionPractice({
                                 key={c}
                                 colSpan={cell.colSpan}
                                 lang={lang.lang}
-                                className="border border-zinc-200 px-4 py-2.5 font-semibold text-zinc-800 dark:border-zinc-800 dark:text-zinc-200"
+                                className="border border-zinc-200 px-4 py-2.5 font-semibold whitespace-nowrap text-zinc-800 dark:border-zinc-800 dark:text-zinc-200"
                               >
                                 {cell.value}
                               </td>
@@ -278,7 +294,7 @@ export default function TableCompletionPractice({
                                 onFocus={() => setActiveKey(key)}
                                 onChange={(e) => setAnswer(key, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(e, key)}
-                                className={`w-full rounded-xl border-2 px-3 py-2 text-base font-semibold outline-none transition-colors ${
+                                className={`w-full min-w-24 rounded-xl border-2 px-3 py-2 text-base font-semibold outline-none transition-colors ${
                                   correct
                                     ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
                                     : wrong
@@ -292,7 +308,7 @@ export default function TableCompletionPractice({
                                 </span>
                               )}
                               {wrong && (
-                                <span className="mt-1 block text-xs font-bold text-rose-700 dark:text-rose-400">
+                                <span className="mt-1 block text-xs font-bold whitespace-nowrap text-rose-700 dark:text-rose-400">
                                   ✕ 正解: <span lang={lang.lang}>{cell.value}</span>
                                 </span>
                               )}

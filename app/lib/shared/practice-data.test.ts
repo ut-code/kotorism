@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { loadFillInItems, loadGrammarTables, loadNumberItems } from "@/components/practice/data";
-import { parseFillInItems, parseGrammarTables, parseNumberItems } from "./practice-data";
+import {
+  parseFillInItems,
+  parseGrammarTables,
+  parseNumberItems,
+  splitLabel,
+} from "./practice-data";
 
 describe("parseGrammarTables", () => {
   it("見出しごとに表を分け、連続する同じセルを結合し、Markdown エスケープを外す", () => {
@@ -194,4 +199,19 @@ describe("教材 MDX からの演習データ読み込み", () => {
       expect(fillInItems.some(({ sentence }) => sentence.includes("\\_"))).toBe(false);
     },
   );
+});
+
+describe("splitLabel", () => {
+  it("末尾の「 (…)」を補足として分ける", () => {
+    expect(splitLabel("1格 (〜は)")).toEqual({ main: "1格", sub: "〜は" });
+    expect(splitLabel("彼の (彼女の・あなたの)")).toEqual({
+      main: "彼の",
+      sub: "彼女の・あなたの",
+    });
+  });
+
+  it("補足が無ければそのまま返す", () => {
+    expect(splitLabel("男性")).toEqual({ main: "男性", sub: "" });
+    expect(splitLabel("(なし)")).toEqual({ main: "(なし)", sub: "" });
+  });
 });
