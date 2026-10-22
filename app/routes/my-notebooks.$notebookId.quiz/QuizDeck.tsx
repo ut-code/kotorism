@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFetcher } from "react-router";
 
-import { SpeakButton } from "@/components/practice/PracticeControls";
+import { AUDIO_OPTIONS, SpeakButton } from "@/components/practice/PracticeControls";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
 import { chineseQuizSupport, quizHint } from "@/lib/shared/notebook-quiz";
 import { speak } from "@/lib/shared/speech";
@@ -97,6 +97,7 @@ export default function QuizDeck({
   const [mistakes, setMistakes] = useState<Question[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
   const [speaking, setSpeaking] = useState(false);
+  const [audio, setAudio] = useState<"on" | "off">("on");
   // 中国語テンプレートの列のまま拼音を答えるときだけ、意味を出し、答え合わせで発音を読み上げる
   const chinese = chineseQuizSupport(columns, column);
 
@@ -168,6 +169,32 @@ export default function QuizDeck({
           </div>
         </section>
 
+        {/* 読み上げが起こりうる（中国語テンプレートで拼音を答える）ときだけ選べる */}
+        {chinese && (
+          <section className="w-full">
+            <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
+              答え合わせの読み上げ
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {AUDIO_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setAudio(option.value)}
+                  aria-pressed={audio === option.value}
+                  className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
+                    audio === option.value
+                      ? "bg-coral-500 text-white"
+                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         <button
           type="button"
           onClick={() =>
@@ -238,9 +265,11 @@ export default function QuizDeck({
   const answered = selected !== null;
   const isLast = index + 1 >= questions.length;
 
+  // 読み上げは、中国語テンプレートで拼音を答えていて、設定で「読み上げる」を選んだときだけ
+  const speech = audio === "on" ? chinese : null;
   const speakHead = () => {
-    if (!chinese) return;
-    const started = speak(question.head, chinese.speechLang, {
+    if (!speech) return;
+    const started = speak(question.head, speech.speechLang, {
       onEnd: () => setSpeaking(false),
       onError: () => setSpeaking(false),
     });
@@ -323,7 +352,7 @@ export default function QuizDeck({
               不正解 — 正解は「{question.answer}」
             </div>
           )}
-          {chinese && <SpeakButton speaking={speaking} onClick={speakHead} />}
+          {speech && <SpeakButton speaking={speaking} onClick={speakHead} />}
           <button
             type="button"
             onClick={next}
