@@ -18,8 +18,9 @@ export async function loader({ request }: { request: Request }) {
     フランス語: ["exemple", "例", "un exemple"],
     スペイン語: ["ejemplo", "例", "el ejemplo"],
   };
-  const templateLanguage: TemplateLanguage =
-    Object.hasOwn(NOTEBOOK_TEMPLATE_COLUMNS, language) ? (language as TemplateLanguage) : "英語";
+  const templateLanguage: TemplateLanguage = Object.hasOwn(NOTEBOOK_TEMPLATE_COLUMNS, language)
+    ? (language as TemplateLanguage)
+    : "英語";
   // 6列分の幅を取り、空いた列は空欄にする
   const pad = (values: readonly string[]) =>
     Array.from({ length: COLUMN_COUNT }, (_, i) => values[i] ?? "");
