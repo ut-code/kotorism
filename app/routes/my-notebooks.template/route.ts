@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
 
+import { attachmentContentDisposition } from "@/lib/shared/content-disposition";
+
 export async function loader({ request }: { request: Request }) {
   const { searchParams } = new URL(request.url);
   const filename = searchParams.get("filename") || "単語帳テンプレート";
@@ -126,7 +128,7 @@ export async function loader({ request }: { request: Request }) {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Content-Disposition": attachmentContentDisposition(fileName),
     },
   });
 }
