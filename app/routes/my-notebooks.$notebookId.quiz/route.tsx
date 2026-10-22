@@ -25,10 +25,24 @@ export async function loader({ params }: Route.LoaderArgs) {
     include: { cards: { orderBy: { position: "asc" } } },
   });
 
+  // ★はユーザーごとに独立しているため、自分の進捗だけを取得してカードにマージする
+  const progressRows = await prisma.cardProgress.findMany({
+    where: { userId: user.id, card: { notebookId } },
+    select: { cardId: true, starred: true, starCount: true },
+  });
+  const progressByCardId = new Map(progressRows.map((progress) => [progress.cardId, progress]));
+
   const columns = normalizeColumns(notebook.columns);
   const cards = notebook.cards.map((card) => {
     const data = normalizeCardData(card.data);
-    return { id: card.id, head: data.head, rows: data.rows };
+    const progress = progressByCardId.get(card.id);
+    return {
+      id: card.id,
+      head: data.head,
+      rows: data.rows,
+      starred: progress?.starred ?? false,
+      starCount: progress?.starCount ?? 0,
+    };
   });
 
   return {

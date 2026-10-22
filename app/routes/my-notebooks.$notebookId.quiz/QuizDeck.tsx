@@ -2,16 +2,28 @@ import { useState } from "react";
 import { useFetcher } from "react-router";
 
 import { AUDIO_OPTIONS, SpeakButton } from "@/components/practice/PracticeControls";
+import { useStarColors } from "@/hooks/useStarColors";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
 import type { NotebookLanguage } from "@/lib/shared/notebook-language";
-import { quizHint, quizSupport } from "@/lib/shared/notebook-quiz";
+import {
+  quizHint,
+  quizSupport,
+  quizTargetCards,
+  toggleQuizStar,
+  type QuizStar,
+  type QuizTarget,
+} from "@/lib/shared/notebook-quiz";
 import { speak } from "@/lib/shared/speech";
+import { starColorFor } from "@/lib/shared/star-colors";
 
 type QuizCard = {
   id: string;
   head: string;
   // 見出し語1件につく「組」の並び。同じ添字の値同士が列をまたいで対応する
   rows: Record<string, string>[];
+  // 自分がこの単語に★をつけているか・★をつけた累計回数
+  starred: boolean;
+  starCount: number;
 };
 
 type Question = {
@@ -41,16 +53,18 @@ function shuffle<T>(items: T[]): T[] {
   return result;
 }
 
-// 見出し語1件につき、選んだ列に値のある組を1問ずつ出題の元にする（同じ見出し語・同じ正解は1問にまとめる）
+// targets の見出し語1件につき、選んだ列に値のある組を1問ずつ出題の元にする（同じ見出し語・同じ正解は1問にまとめる）。
+// 誤答の選択肢は、出題しない単語も含めた単語帳全体（cards）から選ぶ
 function buildQuestions(
   cards: QuizCard[],
+  targets: QuizCard[],
   column: string,
   roundSize: number,
   hintColumn: string | null,
   rubyColumn: string | null,
 ): Question[] {
   const pairs: Omit<Question, "choices">[] = [];
-  for (const card of cards) {
+  for (const card of targets) {
     const answers = new Set(card.rows.map((row) => row[column]).filter(Boolean));
     for (const answer of answers) {
       const hint = hintColumn ? quizHint(card.rows, column, answer, hintColumn) : "";
@@ -58,7 +72,9 @@ function buildQuestions(
       pairs.push({ cardId: card.id, head: card.head, answer, hint, ruby });
     }
   }
-  const allAnswers = [...new Set(pairs.map((pair) => pair.answer))];
+  const allAnswers = [
+    ...new Set(cards.flatMap((card) => card.rows.map((row) => row[column])).filter(Boolean)),
+  ];
 
   const picked = shuffle(pairs).slice(0, roundSize > 0 ? roundSize : pairs.length);
   return picked.map((pair) => {
@@ -105,6 +121,19 @@ export default function QuizDeck({
   const [correctCount, setCorrectCount] = useState(0);
   const [speaking, setSpeaking] = useState(false);
   const [audio, setAudio] = useState<"on" | "off">("on");
+  const [target, setTarget] = useState<QuizTarget>("all");
+  // ★はクイズ中に付け外ししても、サーバーの往復を待たずに切り替える。
+  // ページを開いている間はここが正で、付け外しはそのつど toggleStar で保存する
+  const starFetcher = useFetcher();
+  const [stars, setStars] = useState<Record<string, QuizStar>>(() =>
+    Object.fromEntries(
+      cards.map((card) => [card.id, { starred: card.starred, starCount: card.starCount }]),
+    ),
+  );
+  const { colors: starColors } = useStarColors();
+  const starredCount = quizTargetCards(cards, "starred", stars).length;
+  // ★つきの単語が無くなったら、★つきのみは選べないので「すべて」に戻す
+  const effectiveTarget: QuizTarget = starredCount > 0 ? target : "all";
   // テンプレートの列のまま意味・拼音を答えるときだけ、見出し語を読み上げる
   // （意味では単語を出したとき、拼音では答え合わせで。中国語では、意味なら拼音を、拼音なら意味を出す）
   const support = quizSupport(columns, column, language);
@@ -174,6 +203,30 @@ export default function QuizDeck({
         </section>
 
         <section className="w-full">
+          <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
+            出題する単語
+          </div>
+          <div className="flex flex-wrap justify-center gap-2">
+            {(["all", "starred"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTarget(value)}
+                disabled={value === "starred" && starredCount === 0}
+                aria-pressed={effectiveTarget === value}
+                className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  effectiveTarget === value
+                    ? "bg-coral-500 text-white"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                }`}
+              >
+                {value === "all" ? "すべて" : `★つきのみ（${starredCount}語）`}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="w-full">
           <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">問題数</div>
           <div className="flex flex-wrap justify-center gap-2">
             {ROUND_SIZES.map((size) => (
@@ -226,6 +279,7 @@ export default function QuizDeck({
             start(
               buildQuestions(
                 cards,
+                quizTargetCards(cards, effectiveTarget, stars),
                 column,
                 roundSize,
                 support?.hintColumn ?? null,
@@ -310,6 +364,16 @@ export default function QuizDeck({
     else setMistakes((prev) => [...prev, question]);
   };
 
+  const star = stars[question.cardId] ?? { starred: false, starCount: 0 };
+  const starColor = starColorFor(star.starCount, starColors);
+  const toggleStar = () => {
+    setStars((prev) => ({ ...prev, [question.cardId]: toggleQuizStar(star) }));
+    starFetcher.submit(
+      { intent: "toggleStar", cardId: question.cardId },
+      { method: "post", action: `/my-notebooks/${notebookId}` },
+    );
+  };
+
   const next = () => {
     if (isLast) {
       setPhase("result");
@@ -388,13 +452,31 @@ export default function QuizDeck({
           {speech?.speakOn === "answer" && (
             <SpeakButton speaking={speaking} onClick={() => speakHead(question.head)} />
           )}
-          <button
-            type="button"
-            onClick={next}
-            className="rounded-full bg-coral-500 px-8 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
-          >
-            {isLast ? "結果を見る" : "次の問題へ"}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* 覚えにくい単語に★をつけておき、あとで★つきの単語だけを出題できるようにする。
+                色は暗記学習モードの★と同じく、★をつけた回数で変える */}
+            <button
+              type="button"
+              onClick={toggleStar}
+              aria-label={star.starred ? "★を外す" : "★をつける"}
+              aria-pressed={star.starred}
+              style={starColor ? { color: starColor } : undefined}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-2xl transition-colors dark:border-zinc-700 ${
+                starColor
+                  ? "hover:opacity-75"
+                  : "text-zinc-300 hover:text-zinc-400 dark:text-zinc-600 dark:hover:text-zinc-500"
+              }`}
+            >
+              {star.starred ? "★" : "☆"}
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              className="rounded-full bg-coral-500 px-8 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
+            >
+              {isLast ? "結果を見る" : "次の問題へ"}
+            </button>
+          </div>
         </div>
       )}
     </div>
