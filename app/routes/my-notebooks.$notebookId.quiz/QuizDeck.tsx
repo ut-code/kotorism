@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useFetcher } from "react-router";
 
+import { AUDIO_OPTIONS, SpeakButton } from "@/components/practice/PracticeControls";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
+import { chineseQuizSupport, quizHint } from "@/lib/shared/notebook-quiz";
+import { speak } from "@/lib/shared/speech";
 
 type QuizCard = {
   id: string;
@@ -17,6 +20,8 @@ type Question = {
   head: string;
   // 正解（選んだ列の値）
   answer: string;
+  // 正解と同じ組の、ヒントの列の値（中国語テンプレートで拼音を答えるときの意味）。無ければ空文字
+  hint: string;
   // 正解を含む選択肢（表示順にシャッフル済み）
   choices: string[];
 };
@@ -34,22 +39,30 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 // 見出し語1件につき、選んだ列に値のある組を1問ずつ出題の元にする（同じ見出し語・同じ正解は1問にまとめる）
-function buildQuestions(cards: QuizCard[], column: string, roundSize: number): Question[] {
-  const pairs: { cardId: string; head: string; answer: string }[] = [];
+function buildQuestions(
+  cards: QuizCard[],
+  column: string,
+  roundSize: number,
+  hintColumn: string | null,
+): Question[] {
+  const pairs: { cardId: string; head: string; answer: string; hint: string }[] = [];
   for (const card of cards) {
     const answers = new Set(card.rows.map((row) => row[column]).filter(Boolean));
-    for (const answer of answers) pairs.push({ cardId: card.id, head: card.head, answer });
+    for (const answer of answers) {
+      const hint = hintColumn ? quizHint(card.rows, column, answer, hintColumn) : "";
+      pairs.push({ cardId: card.id, head: card.head, answer, hint });
+    }
   }
   const allAnswers = [...new Set(pairs.map((pair) => pair.answer))];
 
   const picked = shuffle(pairs).slice(0, roundSize > 0 ? roundSize : pairs.length);
-  return picked.map(({ cardId, head, answer }) => {
+  return picked.map(({ cardId, head, answer, hint }) => {
     // 誤答の選択肢は、正解とは別の値の中からランダムに選ぶ
     const wrong = shuffle(allAnswers.filter((value) => value !== answer)).slice(
       0,
       CHOICE_COUNT - 1,
     );
-    return { cardId, head, answer, choices: shuffle([answer, ...wrong]) };
+    return { cardId, head, answer, hint, choices: shuffle([answer, ...wrong]) };
   });
 }
 
@@ -83,6 +96,10 @@ export default function QuizDeck({
   const [selected, setSelected] = useState<string | null>(null);
   const [mistakes, setMistakes] = useState<Question[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
+  const [speaking, setSpeaking] = useState(false);
+  const [audio, setAudio] = useState<"on" | "off">("on");
+  // 中国語テンプレートの列のまま拼音を答えるときだけ、意味を出し、答え合わせで発音を読み上げる
+  const chinese = chineseQuizSupport(columns, column);
 
   // 問題に答えている間（設定画面・結果画面以外）の学習時間を記録する
   useStudyTimer(phase === "quiz" ? { kind: "deck", deckId: notebookId, mode: "quiz" } : null);
@@ -152,9 +169,37 @@ export default function QuizDeck({
           </div>
         </section>
 
+        {/* 読み上げが起こりうる（中国語テンプレートで拼音を答える）ときだけ選べる */}
+        {chinese && (
+          <section className="w-full">
+            <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
+              答え合わせの読み上げ
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {AUDIO_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setAudio(option.value)}
+                  aria-pressed={audio === option.value}
+                  className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
+                    audio === option.value
+                      ? "bg-coral-500 text-white"
+                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         <button
           type="button"
-          onClick={() => start(buildQuestions(cards, column, roundSize))}
+          onClick={() =>
+            start(buildQuestions(cards, column, roundSize, chinese?.hintColumn ?? null))
+          }
           className="rounded-full bg-coral-500 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-coral-600"
         >
           クイズを始める
@@ -220,9 +265,21 @@ export default function QuizDeck({
   const answered = selected !== null;
   const isLast = index + 1 >= questions.length;
 
+  // 読み上げは、中国語テンプレートで拼音を答えていて、設定で「読み上げる」を選んだときだけ
+  const speech = audio === "on" ? chinese : null;
+  const speakHead = () => {
+    if (!speech) return;
+    const started = speak(question.head, speech.speechLang, {
+      onEnd: () => setSpeaking(false),
+      onError: () => setSpeaking(false),
+    });
+    setSpeaking(started);
+  };
+
   const choose = (choice: string) => {
     if (answered) return;
     setSelected(choice);
+    speakHead();
     answerFetcher.submit(
       { intent: "recordQuizAnswer", cardId: question.cardId },
       { method: "post", action: `/my-notebooks/${notebookId}` },
@@ -252,9 +309,14 @@ export default function QuizDeck({
       <div className="mt-6 text-xs text-zinc-400 dark:text-zinc-500">
         {headColumn} → {column}
       </div>
-      <div className="mt-1 text-3xl font-bold text-zinc-800 dark:text-zinc-100">
+      <div data-quiz-head className="mt-1 text-3xl font-bold text-zinc-800 dark:text-zinc-100">
         {question.head}
       </div>
+      {chinese && question.hint && (
+        <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          {chinese.hintColumn}：{question.hint}
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-2">
         {question.choices.map((choice) => {
@@ -290,6 +352,7 @@ export default function QuizDeck({
               不正解 — 正解は「{question.answer}」
             </div>
           )}
+          {speech && <SpeakButton speaking={speaking} onClick={speakHead} />}
           <button
             type="button"
             onClick={next}

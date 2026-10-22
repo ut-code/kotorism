@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 
 import { attachmentContentDisposition } from "@/lib/shared/content-disposition";
+import { CHINESE_TEMPLATE_COLUMNS } from "@/lib/shared/notebook-quiz";
 
 export async function loader({ request }: { request: Request }) {
   const { searchParams } = new URL(request.url);
@@ -52,10 +53,11 @@ export async function loader({ request }: { request: Request }) {
       col5_2: "",
       col6_2: "",
     },
+    // クイズの補助（app/lib/shared/notebook-quiz.ts）は、この1行目のままの単語帳に付く
     中国語: {
-      col1: "単語",
-      col2: "意味",
-      col3: "拼音",
+      col1: CHINESE_TEMPLATE_COLUMNS[0],
+      col2: CHINESE_TEMPLATE_COLUMNS[1],
+      col3: CHINESE_TEMPLATE_COLUMNS[2],
       col4: "",
       col5: "",
       col6: "",

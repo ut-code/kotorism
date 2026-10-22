@@ -5,7 +5,11 @@ import { requireUser } from "@/lib/server/session.server";
 import { requireNotebookRole } from "@/lib/server/notebook-access.server";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/shared/excel";
 import { normalizeCardData, type CardData } from "@/lib/shared/card-data";
-import { normalizeColumns } from "@/lib/shared/notebook-columns";
+import {
+  DEFAULT_HEAD_COLUMN,
+  mergeImportedColumns,
+  normalizeColumns,
+} from "@/lib/shared/notebook-columns";
 import {
   parseCardHead,
   parseCardValue,
@@ -111,13 +115,9 @@ export async function importCardsFromExcel(
     throw error;
   }
 
-  // 見出し語列（1列目）は名前が違っても無視してよい（Card.dataではheadという固定フィールドで
-  // 扱われ、列名に依存しないため）。2列目以降だけを既存の列名リストに突き合わせる
-  const excelBodyColumns = parsed.columns.slice(1);
-  const newColumns = [...existingColumns];
-  for (const name of excelBodyColumns) {
-    if (!newColumns.includes(name)) newColumns.push(name);
-  }
+  // 見出し語列（1列目）の値はCard.dataのheadという固定フィールドで扱われ、列名に依存しないため、
+  // 列名は既定のままなら書き換えるだけでよい。2列目以降は既存の列名リストに突き合わせる
+  const newColumns = mergeImportedColumns(existingColumns, parsed.columns);
 
   // 追加するカードは既存カードの最大positionの続きから採番する
   const last = await prisma.card.aggregate({
@@ -157,7 +157,7 @@ export async function createBlankNotebook(formData: FormData): Promise<FormState
     data: {
       title: title.data,
       userId: user.id,
-      columns: ["見出し語", "意味"],
+      columns: [DEFAULT_HEAD_COLUMN, "意味"],
       listPosition: (top._min.listPosition ?? 1) - 1,
     },
   });
