@@ -23,6 +23,8 @@ type Question = {
   answer: string;
   // 正解と同じ組の、ヒントの列の値（中国語のテンプレートで拼音を答えるときの意味）。無ければ空文字
   hint: string;
+  // 正解と同じ組の、見出し語の上に出す列の値（中国語のテンプレートで意味を答えるときの拼音）。無ければ空文字
+  ruby: string;
   // 正解を含む選択肢（表示順にシャッフル済み）
   choices: string[];
 };
@@ -45,25 +47,27 @@ function buildQuestions(
   column: string,
   roundSize: number,
   hintColumn: string | null,
+  rubyColumn: string | null,
 ): Question[] {
-  const pairs: { cardId: string; head: string; answer: string; hint: string }[] = [];
+  const pairs: Omit<Question, "choices">[] = [];
   for (const card of cards) {
     const answers = new Set(card.rows.map((row) => row[column]).filter(Boolean));
     for (const answer of answers) {
       const hint = hintColumn ? quizHint(card.rows, column, answer, hintColumn) : "";
-      pairs.push({ cardId: card.id, head: card.head, answer, hint });
+      const ruby = rubyColumn ? quizHint(card.rows, column, answer, rubyColumn) : "";
+      pairs.push({ cardId: card.id, head: card.head, answer, hint, ruby });
     }
   }
   const allAnswers = [...new Set(pairs.map((pair) => pair.answer))];
 
   const picked = shuffle(pairs).slice(0, roundSize > 0 ? roundSize : pairs.length);
-  return picked.map(({ cardId, head, answer, hint }) => {
+  return picked.map((pair) => {
     // 誤答の選択肢は、正解とは別の値の中からランダムに選ぶ
-    const wrong = shuffle(allAnswers.filter((value) => value !== answer)).slice(
+    const wrong = shuffle(allAnswers.filter((value) => value !== pair.answer)).slice(
       0,
       CHOICE_COUNT - 1,
     );
-    return { cardId, head, answer, hint, choices: shuffle([answer, ...wrong]) };
+    return { ...pair, choices: shuffle([pair.answer, ...wrong]) };
   });
 }
 
@@ -101,8 +105,25 @@ export default function QuizDeck({
   const [correctCount, setCorrectCount] = useState(0);
   const [speaking, setSpeaking] = useState(false);
   const [audio, setAudio] = useState<"on" | "off">("on");
-  // テンプレートの列のまま意味・拼音を答えるときだけ、答え合わせで見出し語を読み上げる（拼音では意味も出す）
+  // テンプレートの列のまま意味・拼音を答えるときだけ、見出し語を読み上げる
+  // （意味では単語を出したとき、拼音では答え合わせで。中国語では、意味なら拼音を、拼音なら意味を出す）
   const support = quizSupport(columns, column, language);
+  // 読み上げは、補助の付く列を答えていて、設定で「読み上げる」を選んだときだけ
+  const speech = audio === "on" ? support : null;
+
+  const speakHead = (head: string) => {
+    if (!speech) return;
+    const started = speak(head, speech.speechLang, {
+      onEnd: () => setSpeaking(false),
+      onError: () => setSpeaking(false),
+    });
+    setSpeaking(started);
+  };
+
+  // 意味を答えるときは、単語を出したとき（選択肢を選ぶ前）に読み上げる
+  const showQuestion = (question: Question | undefined) => {
+    if (question && speech?.speakOn === "question") speakHead(question.head);
+  };
 
   // 問題に答えている間（設定画面・結果画面以外）の学習時間を記録する
   useStudyTimer(phase === "quiz" ? { kind: "deck", deckId: notebookId, mode: "quiz" } : null);
@@ -114,6 +135,7 @@ export default function QuizDeck({
     setMistakes([]);
     setCorrectCount(0);
     setPhase("quiz");
+    showQuestion(list[0]);
   };
 
   if (quizColumns.length === 0) {
@@ -176,7 +198,7 @@ export default function QuizDeck({
         {support && (
           <section className="w-full">
             <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
-              答え合わせの読み上げ
+              {support.speakOn === "question" ? "出題時の読み上げ" : "答え合わせの読み上げ"}
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               {AUDIO_OPTIONS.map((option) => (
@@ -201,7 +223,15 @@ export default function QuizDeck({
         <button
           type="button"
           onClick={() =>
-            start(buildQuestions(cards, column, roundSize, support?.hintColumn ?? null))
+            start(
+              buildQuestions(
+                cards,
+                column,
+                roundSize,
+                support?.hintColumn ?? null,
+                support?.rubyColumn ?? null,
+              ),
+            )
           }
           className="rounded-full bg-coral-500 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-coral-600"
         >
@@ -268,21 +298,10 @@ export default function QuizDeck({
   const answered = selected !== null;
   const isLast = index + 1 >= questions.length;
 
-  // 読み上げは、補助の付く列を答えていて、設定で「読み上げる」を選んだときだけ
-  const speech = audio === "on" ? support : null;
-  const speakHead = () => {
-    if (!speech) return;
-    const started = speak(question.head, speech.speechLang, {
-      onEnd: () => setSpeaking(false),
-      onError: () => setSpeaking(false),
-    });
-    setSpeaking(started);
-  };
-
   const choose = (choice: string) => {
     if (answered) return;
     setSelected(choice);
-    speakHead();
+    if (speech?.speakOn === "answer") speakHead(question.head);
     answerFetcher.submit(
       { intent: "recordQuizAnswer", cardId: question.cardId },
       { method: "post", action: `/my-notebooks/${notebookId}` },
@@ -297,6 +316,7 @@ export default function QuizDeck({
     } else {
       setIndex((i) => i + 1);
       setSelected(null);
+      showQuestion(questions[index + 1]);
     }
   };
 
@@ -312,9 +332,19 @@ export default function QuizDeck({
       <div className="mt-6 text-xs text-zinc-400 dark:text-zinc-500">
         {headColumn} → {column}
       </div>
+      {question.ruby && (
+        <div data-quiz-ruby className="mt-1 text-base text-zinc-500 dark:text-zinc-400">
+          {question.ruby}
+        </div>
+      )}
       <div data-quiz-head className="mt-1 text-3xl font-bold text-zinc-800 dark:text-zinc-100">
         {question.head}
       </div>
+      {speech?.speakOn === "question" && (
+        <div className="mt-3">
+          <SpeakButton speaking={speaking} onClick={() => speakHead(question.head)} />
+        </div>
+      )}
       {support?.hintColumn && question.hint && (
         <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
           {support.hintColumn}：{question.hint}
@@ -355,7 +385,9 @@ export default function QuizDeck({
               不正解 — 正解は「{question.answer}」
             </div>
           )}
-          {speech && <SpeakButton speaking={speaking} onClick={speakHead} />}
+          {speech?.speakOn === "answer" && (
+            <SpeakButton speaking={speaking} onClick={() => speakHead(question.head)} />
+          )}
           <button
             type="button"
             onClick={next}

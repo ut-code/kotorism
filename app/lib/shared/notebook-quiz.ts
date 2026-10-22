@@ -1,6 +1,6 @@
 // My単語帳のクイズで、Excelテンプレート（/my-notebooks/template?language=...）の列のまま
-// 使っている単語帳にだけ付ける補助。答え合わせで見出し語を読み上げて発音を聞かせ、
-// 中国語で拼音を答えるときは意味をヒントとして出す
+// 使っている単語帳にだけ付ける補助。見出し語を読み上げて発音を聞かせ、
+// 中国語で拼音を答えるときは意味をヒントとして出し、意味を答えるときは拼音を見出し語の上に出す
 
 import type { NotebookLanguage } from "@/lib/shared/notebook-language";
 
@@ -32,10 +32,14 @@ const NOTEBOOK_LANGUAGE_TEMPLATES: Record<NotebookLanguage, TemplateLanguage> = 
 };
 
 export type QuizSupport = {
-  // 正解と同じ組から出すヒントの列。出さなければ null
+  // 正解と同じ組から、見出し語の下にヒントとして出す列。出さなければ null
   hintColumn: string | null;
-  // 答え合わせで見出し語を読み上げる言語
+  // 正解と同じ組から、見出し語の上に（読みとして）出す列。出さなければ null
+  rubyColumn: string | null;
+  // 見出し語を読み上げる言語
   speechLang: string;
+  // 見出し語を読み上げるタイミング。出題したとき（question）か、答え合わせ（answer）か
+  speakOn: "question" | "answer";
 };
 
 const startsWith = (columns: readonly string[], prefix: readonly string[]) =>
@@ -53,7 +57,9 @@ function templateLanguageOf(columns: readonly string[]): TemplateLanguage | null
 }
 
 // テンプレートの形式の単語帳で、意味（全言語）か拼音（中国語）を答えるときだけ補助を返す。
-// 意味を答えるときの読み上げの言語は、単語帳の言語を選んでいればそれ、無ければテンプレートの列から決める
+// 拼音を答えるときは、読み上げると答えが分かってしまうので答え合わせで読み上げる。
+// 意味を答えるときは出題したときに読み上げ、その言語は、単語帳の言語を選んでいればそれ、
+// 無ければテンプレートの列から決める
 export function quizSupport(
   columns: readonly string[],
   answerColumn: string,
@@ -63,14 +69,26 @@ export function quizSupport(
 
   if (answerColumn === pinyin) {
     if (!startsWith(columns, NOTEBOOK_TEMPLATE_COLUMNS.中国語)) return null;
-    return { hintColumn: meaning, speechLang: SPEECH_LANGS.中国語 };
+    return {
+      hintColumn: meaning,
+      rubyColumn: null,
+      speechLang: SPEECH_LANGS.中国語,
+      speakOn: "answer",
+    };
   }
 
   if (answerColumn === meaning) {
     if (!startsWith(columns, NOTEBOOK_TEMPLATE_COLUMNS.英語)) return null;
     const template = language ? NOTEBOOK_LANGUAGE_TEMPLATES[language] : templateLanguageOf(columns);
     if (!template) return null;
-    return { hintColumn: null, speechLang: SPEECH_LANGS[template] };
+    const hasPinyin =
+      template === "中国語" && startsWith(columns, NOTEBOOK_TEMPLATE_COLUMNS.中国語);
+    return {
+      hintColumn: null,
+      rubyColumn: hasPinyin ? pinyin : null,
+      speechLang: SPEECH_LANGS[template],
+      speakOn: "question",
+    };
   }
 
   return null;

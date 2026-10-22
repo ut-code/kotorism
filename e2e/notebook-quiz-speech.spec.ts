@@ -219,7 +219,7 @@ for (const { language, notebookLanguage, words, lang } of [
   { language: "フランス語", notebookLanguage: "french", words: FRENCH_WORDS, lang: "fr-FR" },
   { language: "英語", notebookLanguage: null, words: ENGLISH_WORDS, lang: "en-US" },
 ]) {
-  test(`${language}のテンプレートの単語帳で意味を答えると、答え合わせで見出し語を${lang}で読み上げる`, async ({
+  test(`${language}のテンプレートの単語帳で意味を答えると、単語が出たときに見出し語を${lang}で読み上げる`, async ({
     page,
     baseURL,
   }) => {
@@ -240,15 +240,69 @@ for (const { language, notebookLanguage, words, lang } of [
     await openQuizSettings(page, notebookUrl, "意味");
     await startQuiz(page);
 
-    const [head, meaning] = await currentWord(page, words);
-    // 意味を答えるので、意味のヒントは出さない
-    await expect(page.getByText(/^意味：/)).toHaveCount(0);
-    await page.getByRole("button", { name: meaning, exact: true }).click();
-    await expect(page.getByText("正解！")).toBeVisible();
-    await expect.poll(() => spoken(page)).toEqual([`${lang}:${head}`]);
-    await expect(page.getByRole("button", { name: "発音を聞く" })).toBeVisible();
+    const heads: string[] = [];
+    for (let i = 0; i < words.length; i += 1) {
+      const [head, meaning] = await currentWord(page, words);
+      heads.push(`${lang}:${head}`);
+      // 選択肢を選ぶ前に読み上げ、聞き直せる
+      await expect.poll(() => spoken(page)).toEqual(heads);
+      await expect(page.getByRole("button", { name: "発音を聞く" })).toBeVisible();
+      // 意味を答えるので、意味のヒントは出さない
+      await expect(page.getByText(/^意味：/)).toHaveCount(0);
+
+      await page.getByRole("button", { name: meaning, exact: true }).click();
+      await expect(page.getByText("正解！")).toBeVisible();
+      // 答え合わせでは読み上げ直さない
+      await page.waitForTimeout(200);
+      expect(await spoken(page)).toEqual(heads);
+      await page.getByRole("button", { name: /次の問題へ|結果を見る/ }).click();
+    }
+    await expect(page.getByText("全問正解です！")).toBeVisible();
   });
 }
+
+test("中国語のテンプレートの単語帳で意味を答えると、見出し語の上に拼音を出す", async ({
+  page,
+  baseURL,
+}) => {
+  const notebookUrl = await createTemplateNotebook(
+    page,
+    baseURL!,
+    "e2e 用の中国語の拼音つきクイズ",
+  );
+  await openQuizSettings(page, notebookUrl, "意味");
+  await startQuiz(page);
+
+  const [, , pinyin] = await currentWord(page);
+  await expect(page.locator("[data-quiz-ruby]")).toHaveText(pinyin);
+});
+
+test("拼音を答えるときは、見出し語の上に拼音を出さない", async ({ page, baseURL }) => {
+  const notebookUrl = await createTemplateNotebook(page, baseURL!, "e2e 用の拼音を答えるクイズ");
+  await openQuizSettings(page, notebookUrl);
+  await startQuiz(page);
+
+  await expect(page.locator("[data-quiz-head]")).toBeVisible();
+  await expect(page.locator("[data-quiz-ruby]")).toHaveCount(0);
+});
+
+test("ドイツ語のテンプレートの単語帳で意味を答えるときは、見出し語の上に何も出さない", async ({
+  page,
+  baseURL,
+}) => {
+  const notebookUrl = await createTemplateNotebook(
+    page,
+    baseURL!,
+    "e2e 用のドイツ語の意味のクイズ",
+    "ドイツ語",
+    GERMAN_WORDS,
+  );
+  await openQuizSettings(page, notebookUrl, "意味");
+  await startQuiz(page);
+
+  await expect(page.locator("[data-quiz-head]")).toBeVisible();
+  await expect(page.locator("[data-quiz-ruby]")).toHaveCount(0);
+});
 
 test("1行目がテンプレートと違う単語帳では、意味も読み上げも、読み上げの選択も出さない", async ({
   page,
