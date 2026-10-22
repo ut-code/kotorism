@@ -6,7 +6,12 @@ const { 英語, ドイツ語, 中国語, フランス語, スペイン語 } = NO
 
 describe("quizSupport: 拼音を答えるとき", () => {
   it("中国語のテンプレートの列なら、意味をヒントにし、見出し語を中国語で読み上げる", () => {
-    expect(quizSupport(中国語, "拼音", null)).toEqual({ hintColumn: "意味", speechLang: "zh-CN" });
+    expect(quizSupport(中国語, "拼音", null)).toEqual({
+      hintColumn: "意味",
+      rubyColumn: null,
+      speechLang: "zh-CN",
+      speakOn: "answer",
+    });
   });
 
   it("テンプレートの後ろに列を足していても使える", () => {
@@ -20,10 +25,31 @@ describe("quizSupport: 拼音を答えるとき", () => {
 });
 
 describe("quizSupport: 意味を答えるとき", () => {
-  it("テンプレートの列から言語を決めて見出し語を読み上げる（ヒントは出さない）", () => {
-    expect(quizSupport(英語, "意味", null)).toEqual({ hintColumn: null, speechLang: "en-US" });
+  it("テンプレートの列から言語を決めて、出題したときに見出し語を読み上げる（ヒントは出さない）", () => {
+    expect(quizSupport(英語, "意味", null)).toEqual({
+      hintColumn: null,
+      rubyColumn: null,
+      speechLang: "en-US",
+      speakOn: "question",
+    });
     expect(quizSupport(ドイツ語, "意味", null)?.speechLang).toBe("de-DE");
     expect(quizSupport(中国語, "意味", null)?.speechLang).toBe("zh-CN");
+  });
+
+  it("中国語のテンプレートなら、拼音を見出し語の上に出す", () => {
+    expect(quizSupport(中国語, "意味", null)?.rubyColumn).toBe("拼音");
+    expect(quizSupport(中国語, "意味", "chinese")?.rubyColumn).toBe("拼音");
+  });
+
+  it("中国語でも拼音の列が無ければ、見出し語の上には何も出さない", () => {
+    expect(quizSupport(英語, "意味", "chinese")).toMatchObject({
+      rubyColumn: null,
+      speechLang: "zh-CN",
+    });
+  });
+
+  it("中国語以外では、見出し語の上には何も出さない", () => {
+    expect(quizSupport(ドイツ語, "意味", null)?.rubyColumn).toBeNull();
   });
 
   it("単語帳の言語を選んでいれば、その言語で読み上げる", () => {
