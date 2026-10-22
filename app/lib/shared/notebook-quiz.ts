@@ -107,3 +107,25 @@ export function quizHint(
     .filter(Boolean);
   return [...new Set(hints)].join("、");
 }
+
+// クイズ中に付け外しする★（自分の CardProgress の starred / starCount）
+export type QuizStar = { starred: boolean; starCount: number };
+
+// ★の付け外し。サーバーの toggleStar と同じく、つけるたびに回数を1増やし、外しても回数は残す
+export function toggleQuizStar(star: QuizStar): QuizStar {
+  return star.starred
+    ? { starred: false, starCount: star.starCount }
+    : { starred: true, starCount: star.starCount + 1 };
+}
+
+// 出題する単語。すべて（all）か、★のついた単語だけ（starred）か
+export type QuizTarget = "all" | "starred";
+
+export function quizTargetCards<T extends { id: string }>(
+  cards: T[],
+  target: QuizTarget,
+  stars: Record<string, QuizStar>,
+): T[] {
+  if (target === "all") return cards;
+  return cards.filter((card) => stars[card.id]?.starred);
+}

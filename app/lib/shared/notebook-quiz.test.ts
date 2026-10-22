@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { NOTEBOOK_TEMPLATE_COLUMNS, quizHint, quizSupport } from "./notebook-quiz";
+import {
+  NOTEBOOK_TEMPLATE_COLUMNS,
+  quizHint,
+  quizSupport,
+  quizTargetCards,
+  toggleQuizStar,
+} from "./notebook-quiz";
 
 const { 英語, ドイツ語, 中国語, フランス語, スペイン語 } = NOTEBOOK_TEMPLATE_COLUMNS;
 
@@ -84,5 +90,41 @@ describe("quizHint", () => {
 
   it("ヒントの値が無ければ空文字", () => {
     expect(quizHint([{ 拼音: "lìzi" }], "拼音", "lìzi", "意味")).toBe("");
+  });
+});
+
+describe("toggleQuizStar", () => {
+  it("★が無ければ★をつけ、つけた回数を1増やす", () => {
+    expect(toggleQuizStar({ starred: false, starCount: 0 })).toEqual({
+      starred: true,
+      starCount: 1,
+    });
+    expect(toggleQuizStar({ starred: false, starCount: 2 })).toEqual({
+      starred: true,
+      starCount: 3,
+    });
+  });
+
+  it("★があれば外す（つけた回数はそのまま）", () => {
+    expect(toggleQuizStar({ starred: true, starCount: 2 })).toEqual({
+      starred: false,
+      starCount: 2,
+    });
+  });
+});
+
+describe("quizTargetCards", () => {
+  const cards = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  const stars = {
+    a: { starred: true, starCount: 1 },
+    b: { starred: false, starCount: 1 },
+  };
+
+  it("すべてなら、全ての単語を出題する", () => {
+    expect(quizTargetCards(cards, "all", stars)).toEqual(cards);
+  });
+
+  it("★つきなら、いま★のついた単語だけを出題する", () => {
+    expect(quizTargetCards(cards, "starred", stars)).toEqual([{ id: "a" }]);
   });
 });
