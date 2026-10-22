@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/server/session.server";
 import { getNotebookRole } from "@/lib/server/notebook-access.server";
 import { normalizeCardData } from "@/lib/shared/card-data";
 import { normalizeColumns } from "@/lib/shared/notebook-columns";
+import { normalizeNotebookLanguage } from "@/lib/shared/notebook-language";
 import QuizDeck from "./QuizDeck";
 import type { Route } from "./+types/route";
 
@@ -30,7 +31,15 @@ export async function loader({ params }: Route.LoaderArgs) {
     return { id: card.id, head: data.head, rows: data.rows };
   });
 
-  return { notebook: { id: notebook.id, title: notebook.title }, columns, cards };
+  return {
+    notebook: {
+      id: notebook.id,
+      title: notebook.title,
+      language: normalizeNotebookLanguage(notebook.language),
+    },
+    columns,
+    cards,
+  };
 }
 
 export default function QuizPage({ loaderData }: Route.ComponentProps) {
@@ -44,7 +53,12 @@ export default function QuizPage({ loaderData }: Route.ComponentProps) {
       <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">クイズ</p>
 
       <div className="mt-8 w-full max-w-xl">
-        <QuizDeck notebookId={notebook.id} columns={columns} cards={cards} />
+        <QuizDeck
+          notebookId={notebook.id}
+          language={notebook.language}
+          columns={columns}
+          cards={cards}
+        />
       </div>
 
       <Link

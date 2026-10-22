@@ -1,126 +1,38 @@
 import ExcelJS from "exceljs";
 
 import { attachmentContentDisposition } from "@/lib/shared/content-disposition";
-import { CHINESE_TEMPLATE_COLUMNS } from "@/lib/shared/notebook-quiz";
+import { NOTEBOOK_TEMPLATE_COLUMNS, type TemplateLanguage } from "@/lib/shared/notebook-quiz";
+
+const COLUMN_COUNT = 6;
 
 export async function loader({ request }: { request: Request }) {
   const { searchParams } = new URL(request.url);
   const filename = searchParams.get("filename") || "単語帳テンプレート";
   const language = searchParams.get("language") || "英語";
 
-  const languageMap: Record<
-    string,
-    {
-      col1: string;
-      col2: string;
-      col3: string;
-      col4: string;
-      col5: string;
-      col6: string;
-      col1_2: string;
-      col2_2: string;
-      col3_2: string;
-      col4_2: string;
-      col5_2: string;
-      col6_2: string;
-    }
-  > = {
-    英語: {
-      col1: "単語",
-      col2: "意味",
-      col3: "",
-      col4: "",
-      col5: "",
-      col6: "",
-      col1_2: "example",
-      col2_2: "例",
-      col3_2: "",
-      col4_2: "",
-      col5_2: "",
-      col6_2: "",
-    },
-    ドイツ語: {
-      col1: "単語",
-      col2: "意味",
-      col3: "性",
-      col4: "複数形",
-      col5: "格・前置詞",
-      col6: "",
-      col1_2: "Beispiel",
-      col2_2: "例",
-      col3_2: "das Beispiel",
-      col4_2: "die Beispiele",
-      col5_2: "",
-      col6_2: "",
-    },
-    // クイズの補助（app/lib/shared/notebook-quiz.ts）は、この1行目のままの単語帳に付く
-    中国語: {
-      col1: CHINESE_TEMPLATE_COLUMNS[0],
-      col2: CHINESE_TEMPLATE_COLUMNS[1],
-      col3: CHINESE_TEMPLATE_COLUMNS[2],
-      col4: "",
-      col5: "",
-      col6: "",
-      col1_2: "例子",
-      col2_2: "例",
-      col3_2: "lìzi",
-      col4_2: "",
-      col5_2: "",
-      col6_2: "",
-    },
-    フランス語: {
-      col1: "単語",
-      col2: "意味",
-      col3: "性",
-      col4: "格・前置詞",
-      col5: "",
-      col6: "",
-      col1_2: "exemple",
-      col2_2: "例",
-      col3_2: "un exemple",
-      col4_2: "",
-      col5_2: "",
-      col6_2: "",
-    },
-    スペイン語: {
-      col1: "単語",
-      col2: "意味",
-      col3: "性",
-      col4: "格・前置詞",
-      col5: "",
-      col6: "",
-      col1_2: "ejemplo",
-      col2_2: "例",
-      col3_2: "el ejemplo",
-      col4_2: "",
-      col5_2: "",
-      col6_2: "",
-    },
+  // 1行目（列名）はクイズの補助（app/lib/shared/notebook-quiz.ts）と共有し、2行目に記入例を置く
+  const examples: Record<TemplateLanguage, string[]> = {
+    英語: ["example", "例"],
+    ドイツ語: ["Beispiel", "例", "das Beispiel", "die Beispiele"],
+    中国語: ["例子", "例", "lìzi"],
+    フランス語: ["exemple", "例", "un exemple"],
+    スペイン語: ["ejemplo", "例", "el ejemplo"],
   };
-
-  const template = languageMap[language] ?? languageMap["英語"];
+  const templateLanguage: TemplateLanguage = Object.hasOwn(NOTEBOOK_TEMPLATE_COLUMNS, language)
+    ? (language as TemplateLanguage)
+    : "英語";
+  // 6列分の幅を取り、空いた列は空欄にする
+  const pad = (values: readonly string[]) =>
+    Array.from({ length: COLUMN_COUNT }, (_, i) => values[i] ?? "");
+  const header = pad(NOTEBOOK_TEMPLATE_COLUMNS[templateLanguage]);
 
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Sheet1");
 
-  worksheet.columns = [
-    { header: template.col1, key: "col1", width: 20 },
-    { header: template.col2, key: "col2", width: 20 },
-    { header: template.col3, key: "col3", width: 20 },
-    { header: template.col4, key: "col4", width: 20 },
-    { header: template.col5, key: "col5", width: 20 },
-    { header: template.col6, key: "col6", width: 20 },
-  ];
+  worksheet.columns = header.map((name, i) => ({ header: name, key: `col${i + 1}`, width: 20 }));
 
-  worksheet.addRow([
-    template.col1_2,
-    template.col2_2,
-    template.col3_2,
-    template.col4_2,
-    template.col5_2,
-    template.col6_2,
-  ]);
-  worksheet.addRow(["", "", "", "", "", ""]);
+  worksheet.addRow(pad(examples[templateLanguage]));
+  worksheet.addRow(pad([]));
 
   const fileName = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`;
 
