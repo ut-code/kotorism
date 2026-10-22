@@ -3,7 +3,8 @@ import { useFetcher } from "react-router";
 
 import { AUDIO_OPTIONS, SpeakButton } from "@/components/practice/PracticeControls";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
-import { chineseQuizSupport, quizHint } from "@/lib/shared/notebook-quiz";
+import type { NotebookLanguage } from "@/lib/shared/notebook-language";
+import { quizHint, quizSupport } from "@/lib/shared/notebook-quiz";
 import { speak } from "@/lib/shared/speech";
 
 type QuizCard = {
@@ -20,7 +21,7 @@ type Question = {
   head: string;
   // 正解（選んだ列の値）
   answer: string;
-  // 正解と同じ組の、ヒントの列の値（中国語テンプレートで拼音を答えるときの意味）。無ければ空文字
+  // 正解と同じ組の、ヒントの列の値（中国語のテンプレートで拼音を答えるときの意味）。無ければ空文字
   hint: string;
   // 正解を含む選択肢（表示順にシャッフル済み）
   choices: string[];
@@ -68,10 +69,12 @@ function buildQuestions(
 
 export default function QuizDeck({
   notebookId,
+  language,
   columns,
   cards,
 }: {
   notebookId: string;
+  language: NotebookLanguage | null;
   columns: string[];
   cards: QuizCard[];
 }) {
@@ -98,8 +101,8 @@ export default function QuizDeck({
   const [correctCount, setCorrectCount] = useState(0);
   const [speaking, setSpeaking] = useState(false);
   const [audio, setAudio] = useState<"on" | "off">("on");
-  // 中国語テンプレートの列のまま拼音を答えるときだけ、意味を出し、答え合わせで発音を読み上げる
-  const chinese = chineseQuizSupport(columns, column);
+  // テンプレートの列のまま意味・拼音を答えるときだけ、答え合わせで見出し語を読み上げる（拼音では意味も出す）
+  const support = quizSupport(columns, column, language);
 
   // 問題に答えている間（設定画面・結果画面以外）の学習時間を記録する
   useStudyTimer(phase === "quiz" ? { kind: "deck", deckId: notebookId, mode: "quiz" } : null);
@@ -169,8 +172,8 @@ export default function QuizDeck({
           </div>
         </section>
 
-        {/* 読み上げが起こりうる（中国語テンプレートで拼音を答える）ときだけ選べる */}
-        {chinese && (
+        {/* 読み上げが起こりうる（テンプレートの単語帳で意味・拼音を答える）ときだけ選べる */}
+        {support && (
           <section className="w-full">
             <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
               答え合わせの読み上げ
@@ -198,7 +201,7 @@ export default function QuizDeck({
         <button
           type="button"
           onClick={() =>
-            start(buildQuestions(cards, column, roundSize, chinese?.hintColumn ?? null))
+            start(buildQuestions(cards, column, roundSize, support?.hintColumn ?? null))
           }
           className="rounded-full bg-coral-500 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-coral-600"
         >
@@ -265,8 +268,8 @@ export default function QuizDeck({
   const answered = selected !== null;
   const isLast = index + 1 >= questions.length;
 
-  // 読み上げは、中国語テンプレートで拼音を答えていて、設定で「読み上げる」を選んだときだけ
-  const speech = audio === "on" ? chinese : null;
+  // 読み上げは、補助の付く列を答えていて、設定で「読み上げる」を選んだときだけ
+  const speech = audio === "on" ? support : null;
   const speakHead = () => {
     if (!speech) return;
     const started = speak(question.head, speech.speechLang, {
@@ -312,9 +315,9 @@ export default function QuizDeck({
       <div data-quiz-head className="mt-1 text-3xl font-bold text-zinc-800 dark:text-zinc-100">
         {question.head}
       </div>
-      {chinese && question.hint && (
+      {support?.hintColumn && question.hint && (
         <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          {chinese.hintColumn}：{question.hint}
+          {support.hintColumn}：{question.hint}
         </div>
       )}
 

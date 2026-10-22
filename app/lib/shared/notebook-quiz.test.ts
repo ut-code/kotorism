@@ -1,27 +1,47 @@
 import { describe, expect, it } from "vitest";
 
-import { chineseQuizSupport, quizHint } from "./notebook-quiz";
+import { NOTEBOOK_TEMPLATE_COLUMNS, quizHint, quizSupport } from "./notebook-quiz";
 
-describe("chineseQuizSupport", () => {
-  it("中国語のテンプレートの列で拼音を答えるとき、意味の列をヒントにし、見出し語を中国語で読み上げる", () => {
-    expect(chineseQuizSupport(["単語", "意味", "拼音"], "拼音")).toEqual({
-      hintColumn: "意味",
-      speechLang: "zh-CN",
-    });
+const { 英語, ドイツ語, 中国語, フランス語, スペイン語 } = NOTEBOOK_TEMPLATE_COLUMNS;
+
+describe("quizSupport: 拼音を答えるとき", () => {
+  it("中国語のテンプレートの列なら、意味をヒントにし、見出し語を中国語で読み上げる", () => {
+    expect(quizSupport(中国語, "拼音", null)).toEqual({ hintColumn: "意味", speechLang: "zh-CN" });
   });
 
   it("テンプレートの後ろに列を足していても使える", () => {
-    expect(chineseQuizSupport(["単語", "意味", "拼音", "例文"], "拼音")).not.toBeNull();
+    expect(quizSupport([...中国語, "例文"], "拼音", null)).not.toBeNull();
   });
 
-  it("拼音以外を答えるときは使わない", () => {
-    expect(chineseQuizSupport(["単語", "意味", "拼音"], "意味")).toBeNull();
+  it("1行目が中国語のテンプレートと違う単語帳では使わない", () => {
+    expect(quizSupport(["見出し語", "意味", "拼音"], "拼音", "chinese")).toBeNull();
+    expect(quizSupport(["単語", "拼音", "意味"], "拼音", "chinese")).toBeNull();
+  });
+});
+
+describe("quizSupport: 意味を答えるとき", () => {
+  it("テンプレートの列から言語を決めて見出し語を読み上げる（ヒントは出さない）", () => {
+    expect(quizSupport(英語, "意味", null)).toEqual({ hintColumn: null, speechLang: "en-US" });
+    expect(quizSupport(ドイツ語, "意味", null)?.speechLang).toBe("de-DE");
+    expect(quizSupport(中国語, "意味", null)?.speechLang).toBe("zh-CN");
   });
 
-  it("1行目がテンプレートと違う単語帳では使わない", () => {
-    expect(chineseQuizSupport(["見出し語", "意味", "拼音"], "拼音")).toBeNull();
-    expect(chineseQuizSupport(["単語", "拼音", "意味"], "拼音")).toBeNull();
-    expect(chineseQuizSupport(["単語", "意味"], "意味")).toBeNull();
+  it("単語帳の言語を選んでいれば、その言語で読み上げる", () => {
+    expect(quizSupport(フランス語, "意味", "french")?.speechLang).toBe("fr-FR");
+    expect(quizSupport(スペイン語, "意味", "spanish")?.speechLang).toBe("es-ES");
+    expect(quizSupport(英語, "意味", "german")?.speechLang).toBe("de-DE");
+  });
+
+  it("フランス語とスペイン語のテンプレートは列が同じなので、言語を選んでいなければ読み上げない", () => {
+    expect(quizSupport(フランス語, "意味", null)).toBeNull();
+  });
+
+  it("1行目が「単語・意味」で始まらない単語帳では使わない", () => {
+    expect(quizSupport(["見出し語", "意味"], "意味", "french")).toBeNull();
+  });
+
+  it("意味・拼音以外の列を答えるときは使わない", () => {
+    expect(quizSupport(ドイツ語, "性", "german")).toBeNull();
   });
 });
 

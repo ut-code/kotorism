@@ -46,26 +46,48 @@ const headers = (page: Page) =>
     .locator("thead th")
     .evaluateAll((ths) => ths.map((th) => th.textContent?.trim() ?? ""));
 
-// アプリで作った単語帳に、中国語のExcelテンプレートをそのまま使って WORDS を取り込む。単語帳のパスを返す
-async function createTemplateNotebook(page: Page, baseURL: string, title: string) {
+const GERMAN_WORDS = [
+  ["Hund", "犬", "der Hund", "die Hunde"],
+  ["Katze", "猫", "die Katze", "die Katzen"],
+  ["Haus", "家", "das Haus", "die Häuser"],
+];
+const FRENCH_WORDS = [
+  ["chat", "猫", "le chat"],
+  ["chien", "犬", "le chien"],
+  ["maison", "家", "la maison"],
+];
+const ENGLISH_WORDS = [
+  ["cat", "猫"],
+  ["dog", "犬"],
+  ["house", "家"],
+];
+
+// アプリで作った単語帳に、language のExcelテンプレートをそのまま使って words を取り込む。単語帳のパスを返す
+async function createTemplateNotebook(
+  page: Page,
+  baseURL: string,
+  title: string,
+  language = "中国語",
+  words = WORDS,
+) {
   const notebookUrl = await createNotebook(page, title);
-  const template = await page.request.get("/my-notebooks/template?language=中国語");
+  const template = await page.request.get(`/my-notebooks/template?language=${language}`);
   expect(template.ok()).toBe(true);
   const source = new ExcelJS.Workbook();
   await source.xlsx.load((await template.body()) as unknown as ArrayBuffer);
-  // テンプレートの1行目（列名）はそのまま使い、記入例の代わりに WORDS を書く
+  // テンプレートの1行目（列名）はそのまま使い、記入例の代わりに words を書く
   const header = (source.worksheets[0].getRow(1).values as ExcelJS.CellValue[]).slice(1);
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Sheet1");
   sheet.addRow(header);
-  for (const word of WORDS) sheet.addRow(word);
+  for (const word of words) sheet.addRow(word);
   const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
   const res = await page.request.post(notebookUrl, {
     multipart: {
       intent: "importCards",
       file: {
-        name: "中国語.xlsx",
+        name: `${language}.xlsx`,
         mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         buffer,
       },
@@ -92,18 +114,18 @@ async function createPlainNotebook(page: Page, baseURL: string, title: string) {
   return notebookUrl;
 }
 
-// クイズの設定を開き、拼音・全問を選ぶ
-async function openQuizSettings(page: Page, notebookUrl: string) {
+// クイズの設定を開き、答える列（既定は拼音）・全問を選ぶ
+async function openQuizSettings(page: Page, notebookUrl: string, column = "拼音") {
   await page.goto(`${notebookUrl}/quiz`);
-  await page.getByRole("button", { name: "拼音", exact: true }).click();
+  await page.getByRole("button", { name: column, exact: true }).click();
   await page.getByRole("button", { name: "全問", exact: true }).click();
 }
 
 const startQuiz = (page: Page) => page.getByRole("button", { name: "クイズを始める" }).click();
 
-async function currentWord(page: Page) {
+async function currentWord(page: Page, words = WORDS) {
   const head = (await page.locator("[data-quiz-head]").textContent())!.trim();
-  return WORDS.find(([h]) => h === head)!;
+  return words.find(([h]) => h === head)!;
 }
 
 test.beforeEach(async ({ page }) => {
@@ -160,16 +182,9 @@ test("中国語テンプレートの単語帳で拼音を答えると、意味�
   await expect(page.getByText("全問正解です！")).toBeVisible();
 });
 
-test("読み上げの選択は拼音を答えるときだけ出て、「読み上げない」を選ぶと読み上げない", async ({
-  page,
-  baseURL,
-}) => {
+test("「読み上げない」を選ぶと、答え合わせで読み上げない", async ({ page, baseURL }) => {
   const notebookUrl = await createTemplateNotebook(page, baseURL!, "e2e 用の読み上げを切るクイズ");
-  await page.goto(`${notebookUrl}/quiz`);
   const off = page.getByRole("button", { name: "読み上げない", exact: true });
-  await page.getByRole("button", { name: "意味", exact: true }).click();
-  await expect(off).toHaveCount(0);
-
   await openQuizSettings(page, notebookUrl);
   await off.click();
   await expect(off).toHaveAttribute("aria-pressed", "true");
@@ -183,6 +198,57 @@ test("読み上げの選択は拼音を答えるときだけ出て、「読み�
   await page.waitForTimeout(200);
   expect(await spoken(page)).toEqual([]);
 });
+
+test("読み上げの選択は、意味・拼音を答えるときだけ出す", async ({ page, baseURL }) => {
+  const notebookUrl = await createTemplateNotebook(
+    page,
+    baseURL!,
+    "e2e 用のドイツ語テンプレートのクイズ",
+    "ドイツ語",
+    GERMAN_WORDS,
+  );
+  const off = page.getByRole("button", { name: "読み上げない", exact: true });
+  await openQuizSettings(page, notebookUrl, "意味");
+  await expect(off).toBeVisible();
+  await page.getByRole("button", { name: "性", exact: true }).click();
+  await expect(off).toHaveCount(0);
+});
+
+for (const { language, notebookLanguage, words, lang } of [
+  { language: "中国語", notebookLanguage: null, words: WORDS, lang: "zh-CN" },
+  { language: "フランス語", notebookLanguage: "french", words: FRENCH_WORDS, lang: "fr-FR" },
+  { language: "英語", notebookLanguage: null, words: ENGLISH_WORDS, lang: "en-US" },
+]) {
+  test(`${language}のテンプレートの単語帳で意味を答えると、答え合わせで見出し語を${lang}で読み上げる`, async ({
+    page,
+    baseURL,
+  }) => {
+    const notebookUrl = await createTemplateNotebook(
+      page,
+      baseURL!,
+      `e2e 用の${language}の意味のクイズ`,
+      language,
+      words,
+    );
+    if (notebookLanguage) {
+      const res = await page.request.post(notebookUrl, {
+        form: { intent: "updateLanguage", language: notebookLanguage },
+        headers: { Origin: baseURL! },
+      });
+      expect(res.ok()).toBe(true);
+    }
+    await openQuizSettings(page, notebookUrl, "意味");
+    await startQuiz(page);
+
+    const [head, meaning] = await currentWord(page, words);
+    // 意味を答えるので、意味のヒントは出さない
+    await expect(page.getByText(/^意味：/)).toHaveCount(0);
+    await page.getByRole("button", { name: meaning, exact: true }).click();
+    await expect(page.getByText("正解！")).toBeVisible();
+    await expect.poll(() => spoken(page)).toEqual([`${lang}:${head}`]);
+    await expect(page.getByRole("button", { name: "発音を聞く" })).toBeVisible();
+  });
+}
 
 test("1行目がテンプレートと違う単語帳では、意味も読み上げも、読み上げの選択も出さない", async ({
   page,
