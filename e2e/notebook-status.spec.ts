@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { signUpWithPassword } from "./auth-helpers";
 import { E2E_USER } from "./constants";
 import { createNotebook } from "./helpers";
 
@@ -46,11 +47,7 @@ test("共有された単語帳には、誰から共有されたかを薄く小�
   // 別のユーザーが登録して、招待リンクから参加する
   const guestContext = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   const guest = await guestContext.newPage();
-  await guest.goto("/signup");
-  await guest.getByLabel("ユーザー名").fill("e2e_guest");
-  await guest.getByLabel(/パスワード/).fill("password-1234");
-  await guest.getByRole("button", { name: "アカウントを作成" }).click();
-  await guest.waitForURL((url) => !url.pathname.startsWith("/signup"));
+  await signUpWithPassword(guest.request, { username: "e2e_guest", password: "password-1234" });
   await guest.goto(new URL(inviteUrl).pathname);
   await guest.getByRole("button", { name: "参加する" }).click();
   await expect(

@@ -39,6 +39,11 @@ export default defineConfig({
       DATABASE_URL: `file:${dbFile}`,
       BETTER_AUTH_URL: baseURL,
       BETTER_AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-0000",
+      // 本物の Google ログインは自動化できないので、e2e のユーザーはパスワードで作る
+      PASSWORD_SIGNUP: "true",
+      // Google の認可画面へのリダイレクトだけを確かめるためのダミー
+      GOOGLE_CLIENT_ID: "e2e-google-client-id",
+      GOOGLE_CLIENT_SECRET: "e2e-google-client-secret",
     },
   },
 });

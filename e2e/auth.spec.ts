@@ -1,9 +1,41 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
+import { expectRedirectToGoogle, signUpWithPassword } from "./auth-helpers";
 import { E2E_USER } from "./constants";
 
 // このファイルは未ログインの状態から始める
 test.use({ storageState: { cookies: [], origins: [] } });
+
+// Google を連携する前の既存ユーザー向けに、移行期間中だけ残しているログイン
+async function loginWithPassword(page: Page) {
+  await page.getByText("以前のユーザー名でログインする").click();
+  await page.getByLabel("ユーザー名").fill(E2E_USER.username);
+  await page.getByLabel("パスワード").fill(E2E_USER.password);
+  await page.getByRole("button", { name: "ユーザー名でログイン" }).click();
+}
+
+test("ログイン画面の「Google でログイン」で Google の認可画面へ移る", async ({ page }) => {
+  await page.goto("/login");
+  await expectRedirectToGoogle(page, () =>
+    page.getByRole("button", { name: "Google でログイン" }).click(),
+  );
+});
+
+test("新規登録は Google だけで、パスワードの入力欄は出さない", async ({ page }) => {
+  await page.goto("/signup");
+  await expect(page.getByLabel("パスワード")).toHaveCount(0);
+  await expectRedirectToGoogle(page, () =>
+    page.getByRole("button", { name: "Google で登録" }).click(),
+  );
+});
+
+test("Google を連携していないユーザーには、My単語帳で連携を促す", async ({ page }) => {
+  await signUpWithPassword(page.request, { username: "e2e_unlinked", password: "password-1234" });
+  await page.goto("/my-notebooks");
+  await expectRedirectToGoogle(page, () =>
+    page.getByRole("button", { name: "Google アカウントを連携" }).click(),
+  );
+});
 
 test("未ログインで保護されたページを開くと、戻り先つきでログインへ飛ぶ", async ({ page }) => {
   await page.goto("/learn/chinese/05");
@@ -15,9 +47,7 @@ test("ログインすると単語帳の一覧に入れ、ログアウトする�
 }) => {
   // 外部サイトへの戻り先(オープンリダイレクト)は無視され、既定の /my-notebooks へ飛ぶ
   await page.goto("/login?redirect=https://evil.example.com");
-  await page.getByLabel("ユーザー名").fill(E2E_USER.username);
-  await page.getByLabel(/パスワード/).fill(E2E_USER.password);
-  await page.getByRole("button", { name: "ログイン", exact: true }).click();
+  await loginWithPassword(page);
   await expect(page).toHaveURL(/\/my-notebooks$/);
 
   await page
@@ -39,9 +69,7 @@ test("未ログインのヘッダーには My単語帳・学習教材 のリン�
 
 test("ログイン中のヘッダーには My単語帳・学習教材 のリンクを出す", async ({ page }) => {
   await page.goto("/login");
-  await page.getByLabel("ユーザー名").fill(E2E_USER.username);
-  await page.getByLabel(/パスワード/).fill(E2E_USER.password);
-  await page.getByRole("button", { name: "ログイン", exact: true }).click();
+  await loginWithPassword(page);
   await expect(page).toHaveURL(/\/my-notebooks$/);
 
   const header = page.getByRole("banner");
