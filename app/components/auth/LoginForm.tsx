@@ -32,10 +32,7 @@ export default function LoginForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-4 flex flex-col gap-4"
-    >
+    <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <label htmlFor="username" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           ユーザー名
@@ -77,7 +74,6 @@ export default function LoginForm() {
       >
         {pending ? "ログイン中…" : "ユーザー名でログイン"}
       </button>
-
     </form>
   );
 }

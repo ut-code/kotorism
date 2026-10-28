@@ -20,7 +20,9 @@ export async function signUpWithPassword(
 // Google の認可画面へ実際には行かせず、遷移先の URL だけを確かめる
 export async function expectRedirectToGoogle(page: Page, click: () => Promise<void>) {
   await page.route("https://accounts.google.com/**", (route) => route.abort());
-  const request = page.waitForRequest((req) => req.url().startsWith("https://accounts.google.com/"));
+  const request = page.waitForRequest((req) =>
+    req.url().startsWith("https://accounts.google.com/"),
+  );
   await click();
   expect(new URL((await request).url()).searchParams.get("client_id")).toBe("e2e-google-client-id");
 }
