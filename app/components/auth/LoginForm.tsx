@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
-import Link from "@/components/Link";
 
 import { authClient } from "@/lib/shared/auth-client";
 import { safeRedirectPath } from "@/lib/shared/auth-redirect";
 
+// Google を連携する前の既存ユーザー向け。移行期間(PASSWORD_LOGIN=true)のあいだだけ出す
 export default function LoginForm() {
   const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-2xl border border-black/[.08] bg-white p-6 dark:border-white/[.145] dark:bg-zinc-950"
+      className="mt-4 flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="username" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -75,15 +75,9 @@ export default function LoginForm() {
         disabled={pending}
         className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
       >
-        {pending ? "ログイン中…" : "ログイン"}
+        {pending ? "ログイン中…" : "ユーザー名でログイン"}
       </button>
 
-      <p className="text-center text-sm text-zinc-500 dark:text-zinc-500">
-        アカウントをお持ちでない場合は{" "}
-        <Link href="/signup" className="text-coral-500 hover:underline dark:text-coral-500">
-          新規登録
-        </Link>
-      </p>
     </form>
   );
 }
