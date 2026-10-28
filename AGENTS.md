@@ -24,7 +24,18 @@ Work test-first. For any new behaviour or bug fix:
 2. Write the minimum code to make it pass (green).
 3. Refactor with the tests green.
 
-- Pure functions (`app/lib/shared`) get unit tests with Vitest, co-located as `<name>.test.ts`. Run with `npx vitest run`.
 - For a bug, reproduce it in a failing test first, then fix it.
-- User-facing flows get an end-to-end test (Playwright).
+
+## Which kind of test
+
+Pick the cheapest test that can catch the bug. E2E is slow and runs on every PR, so it is the last resort, not the default.
+
+1. Unit test (Vitest, `<name>.test.ts`, node). Pure functions in `app/lib/shared`, server code in `app/lib/server` (in-memory DB), and properties of static data (quiz questions, section lists, verb lists). If a check only reads data, it belongs here, even if the bug was seen in the UI.
+2. Component test (Vitest + Testing Library, `<Name>.test.tsx` next to the component, jsdom). Behaviour that stays inside one screen and needs no server: opening/closing, input validation, keyboard handling, what is shown for a given prop/state. Mock callbacks instead of hitting an `action`.
+3. E2E (Playwright, `e2e/`). Only for:
+   - user scenarios that cross the server: auth, saving and reloading data, sharing, permissions — one happy path plus the error paths that matter;
+   - things jsdom cannot do: real layout (positions, sizes, overflow) and touch gestures. Add these only for a regression that actually happened, not for every screen.
+
+Do not add an E2E test for something a unit or component test can cover. Run all Vitest tests with `npx vitest run` (or `--project unit` / `--project component`).
+
 - Before finishing, run `npm run lint`, `npm run typecheck` and the tests.
