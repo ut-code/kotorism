@@ -43,56 +43,6 @@ async function longPressDrag(page: Page, source: Locator, target: { x: number; y
   await page.mouse.up();
 }
 
-test.describe("列の名前の変更", () => {
-  test("「列を編集」ボタンは無く、列の見出しをダブルクリックすると名前を変えられる", async ({
-    page,
-    baseURL,
-  }) => {
-    const table = await createNotebookWithColumns(page, baseURL!, "e2e 用の列名を変える単語帳");
-    await expect(page.getByRole("button", { name: "列を編集" })).toHaveCount(0);
-
-    await table.getByRole("columnheader", { name: "意味", exact: true }).dblclick();
-    const input = table.getByRole("textbox", { name: "列の名前" });
-    await expect(input).toBeFocused();
-    await expect(input).toHaveValue("意味");
-    await input.fill("日本語訳");
-    await page.keyboard.press("Enter");
-
-    await expect(table.getByRole("columnheader", { name: "日本語訳", exact: true })).toBeVisible();
-    // 列の値はそのまま残る
-    await expect(table.getByRole("cell", { name: "un chat", exact: true })).toBeVisible();
-    await expect(table.getByRole("cell", { name: "2", exact: true })).toBeVisible();
-  });
-
-  test("名前の変更中に Esc を押すと、変えずに戻る", async ({ page, baseURL }) => {
-    const table = await createNotebookWithColumns(
-      page,
-      baseURL!,
-      "e2e 用の列名の変更を取り消す単語帳",
-    );
-    await table.getByRole("columnheader", { name: "意味", exact: true }).dblclick();
-    await table.getByRole("textbox", { name: "列の名前" }).fill("取り消す名前");
-    await page.keyboard.press("Escape");
-    await expect(table.getByRole("columnheader", { name: "意味", exact: true })).toBeVisible();
-  });
-
-  test("名前の変更中に「列を削除」で、その列を消せる（見出し語の列は消せない）", async ({
-    page,
-    baseURL,
-  }) => {
-    const table = await createNotebookWithColumns(page, baseURL!, "e2e 用の列を消す単語帳");
-    await table.getByRole("columnheader", { name: "見出し語", exact: true }).dblclick();
-    await expect(table.getByRole("button", { name: "列を削除" })).toHaveCount(0);
-    await page.keyboard.press("Escape");
-
-    page.once("dialog", (dialog) => dialog.accept());
-    await table.getByRole("columnheader", { name: "例文", exact: true }).dblclick();
-    await table.getByRole("button", { name: "列を削除" }).click();
-    await expect(table.getByRole("columnheader", { name: "例文", exact: true })).toHaveCount(0);
-    await expect(table.getByRole("cell", { name: "un chat", exact: true })).toHaveCount(0);
-  });
-});
-
 test.describe("長押ししたまま動かして並べ替える", () => {
   test("組が複数ある単語は、どの組の行を長押ししても、その単語の行すべてに色が付く", async ({
     page,

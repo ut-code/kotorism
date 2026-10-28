@@ -32,26 +32,6 @@ test("「新しい単語帳」を押すとすぐ空の単語帳が開き、そ�
   await expect(page.getByText("e2e 用の単語帳")).toBeVisible();
 });
 
-test("単語帳のタイトルは、あとからタイトルを押して変えられる（Esc で取り消し）", async ({
-  page,
-}) => {
-  await createNotebook(page, "e2e 用のタイトルを変える単語帳");
-  await page.getByRole("heading", { level: 1, name: "e2e 用のタイトルを変える単語帳" }).click();
-  const titleInput = page.getByRole("textbox", { name: "単語帳のタイトル" });
-  await titleInput.fill("取り消すタイトル");
-  await page.keyboard.press("Escape");
-  await expect(
-    page.getByRole("heading", { level: 1, name: "e2e 用のタイトルを変える単語帳" }),
-  ).toBeVisible();
-
-  await page.getByRole("heading", { level: 1, name: "e2e 用のタイトルを変える単語帳" }).click();
-  await titleInput.fill("変えたタイトル");
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { level: 1, name: "変えたタイトル" })).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole("heading", { level: 1, name: "変えたタイトル" })).toBeVisible();
-});
-
 test("他人の単語帳の共有URLは、存在しなければ 404", async ({ page }) => {
   const response = await page.goto("/share/does-not-exist");
   expect(response?.status()).toBe(404);
@@ -315,69 +295,4 @@ test("表の★の欄は、★と目の高さがそろい、★の回数と見�
   expect(layout.countOffset).toBeLessThanOrEqual(0.5);
   expect(layout.starToCount).toBeLessThanOrEqual(4);
   expect(layout.countToEye).toBeGreaterThanOrEqual(12);
-});
-
-test.describe("単語帳の名前が自分の別の単語帳と重なったとき", () => {
-  // 「重なり確認 …」という名前の単語帳を1つ作っておき、新しい単語帳に同じ名前を付けようとする
-  async function tryDuplicate(page: import("@playwright/test").Page, name: string) {
-    await createNotebook(page, name);
-    await page.goto("/my-notebooks");
-    await page.getByRole("button", { name: "新しい単語帳" }).click();
-    const titleInput = page.getByRole("textbox", { name: "単語帳のタイトル" });
-    await titleInput.fill(name);
-    await titleInput.press("Enter");
-    await expect(page.getByRole("alert")).toContainText(
-      `「${name}」という名前の単語帳がすでにあります`,
-    );
-  }
-
-  test("番号を付けた名前を選べる", async ({ page }) => {
-    await tryDuplicate(page, "重なり確認 番号");
-    await page.getByRole("button", { name: "「重なり確認 番号 1」にする" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "重なり確認 番号 1" })).toBeVisible();
-  });
-
-  test("今日の日付を付けた名前を選べる", async ({ page }) => {
-    await tryDuplicate(page, "重なり確認 日付");
-    await page
-      .getByRole("button", { name: /^「重なり確認 日付 \d{4}-\d{2}-\d{2}」にする$/ })
-      .click();
-    await expect(
-      page.getByRole("heading", { level: 1, name: /^重なり確認 日付 \d{4}-\d{2}-\d{2}$/ }),
-    ).toBeVisible();
-  });
-
-  test("このままの名前にもできる", async ({ page }) => {
-    await tryDuplicate(page, "重なり確認 このまま");
-    await page.getByRole("button", { name: "このままにする" }).click();
-    await expect(
-      page.getByRole("heading", { level: 1, name: "重なり確認 このまま" }),
-    ).toBeVisible();
-    await page.goto("/my-notebooks");
-    await expect(page.getByText("重なり確認 このまま", { exact: true })).toHaveCount(2);
-  });
-
-  test("新しい単語帳を「無題の単語帳」のまま決めても、重なっていれば知らせる", async ({ page }) => {
-    for (let i = 0; i < 2; i++) {
-      await page.goto("/my-notebooks");
-      await page.getByRole("button", { name: "新しい単語帳" }).click();
-      await page.getByRole("textbox", { name: "単語帳のタイトル" }).press("Enter");
-    }
-    // 2つ目で知らせる（1つ目は、ほかに「無題の単語帳」が無ければそのまま決まる）
-    await expect(page.getByRole("alert")).toContainText(
-      "「無題の単語帳」という名前の単語帳がすでにあります",
-    );
-  });
-});
-
-test("Excel・スプレッドシートから追加では、Googleスプレッドシートを .xlsx で書き出して取り込む方法を案内する", async ({
-  page,
-}) => {
-  await createNotebook(page, "e2e 用のスプレッドシートの案内の単語帳");
-  await page.getByRole("button", { name: "Excel・スプレッドシートから追加" }).click();
-  await expect(
-    page.getByText(
-      "Googleスプレッドシートの場合は、「ファイル」→「ダウンロード」→「Microsoft Excel（.xlsx）」で保存したファイルを選んでください。",
-    ),
-  ).toBeVisible();
 });

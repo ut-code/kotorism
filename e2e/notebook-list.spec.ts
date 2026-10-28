@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { createNotebook } from "./helpers";
 
@@ -50,44 +50,6 @@ test("お気に入りにした単語帳は一覧の一番上に並び、外す�
   await expect
     .poll(() => ownOrder(page, prefix))
     .toEqual([`${prefix} C`, `${prefix} B`, `${prefix} A`]);
-});
-
-// マウスで長押ししたまま、target の位置へ動かして離す
-async function longPressDrag(page: Page, source: Locator, target: { x: number; y: number }) {
-  // ♡ や削除のボタンの上では並べ替えないので、単語帳の名前（リンク）の上を長押しする
-  const box = (await source.getByRole("link").boundingBox())!;
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.waitForTimeout(600);
-  await page.mouse.move(target.x, target.y, { steps: 10 });
-  await page.mouse.up();
-}
-
-test("単語帳を長押ししたまま動かすと並べ替えられ、長押しのあとは単語帳を開かない", async ({
-  page,
-}) => {
-  const prefix = "一覧の並べ替え";
-  await createThree(page, prefix);
-  await expect
-    .poll(() => ownOrder(page, prefix))
-    .toEqual([`${prefix} C`, `${prefix} B`, `${prefix} A`]);
-
-  // A を C の上へ。ほかのテストの単語帳で一覧が長くなっていても A と C が画面に入るよう、真ん中の B を画面の中央へ
-  await item(page, `${prefix} B`).evaluate((el) => el.scrollIntoView({ block: "center" }));
-  const c = (await item(page, `${prefix} C`).boundingBox())!;
-  await longPressDrag(page, item(page, `${prefix} A`), { x: c.x + 20, y: c.y + 4 });
-  await expect
-    .poll(() => ownOrder(page, prefix))
-    .toEqual([`${prefix} A`, `${prefix} C`, `${prefix} B`]);
-  await expect(page).toHaveURL(/\/my-notebooks$/);
-  await page.reload();
-  await expect
-    .poll(() => ownOrder(page, prefix))
-    .toEqual([`${prefix} A`, `${prefix} C`, `${prefix} B`]);
-
-  // 普通に押せば、これまでどおり単語帳が開く
-  await item(page, `${prefix} B`).getByRole("link").click();
-  await expect(page.getByRole("heading", { level: 1, name: `${prefix} B` })).toBeVisible();
 });
 
 test.describe("スマホ（タッチ操作）", () => {

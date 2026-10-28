@@ -2,23 +2,13 @@ import { devices, expect, test, type Page } from "@playwright/test";
 
 import { createNotebook } from "./helpers";
 
+// 補助で書き換えたあとに続けて打つ流れは、実ブラウザのキー入力でしか正しく確かめられないので e2e に残す。
+// それ以外の入力補助は app/routes/my-notebooks.$notebookId._index/input-assist.test.tsx で確かめる
 async function chooseLanguage(page: Page, label: string) {
   await page.getByRole("combobox", { name: "入力補助の言語" }).selectOption({ label });
   // 保存が終わるまで待つ（再読み込みしても選んだ言語のまま）
   await expect(page.getByRole("combobox", { name: "入力補助の言語" })).toBeEnabled();
 }
-
-test("言語が指定なしの単語帳には、入力補助を出さない", async ({ page }) => {
-  await createNotebook(page, "e2e 用の補助なしの単語帳");
-  const table = page.getByRole("table").first();
-  await expect(page.getByRole("combobox", { name: "入力補助の言語" })).toHaveValue("");
-
-  await table.getByRole("button", { name: "表に単語を追加" }).click();
-  await page.keyboard.type("cafe");
-  await page.keyboard.press("ArrowUp");
-  await expect(table.getByRole("textbox", { name: "見出し語" })).toHaveValue("cafe");
-  await expect(page.getByRole("toolbar", { name: "入力補助" })).toHaveCount(0);
-});
 
 test("フランス語の単語帳では、↑ やボタンでアクセント記号付きの文字を入力でき、列ごとに補助を外せる", async ({
   page,
@@ -60,44 +50,6 @@ test("フランス語の単語帳では、↑ やボタンでアクセント記�
   await table.getByRole("button", { name: "表に単語を追加" }).click();
   await table.getByRole("textbox", { name: "意味" }).click();
   await expect(assist.getByRole("radio", { name: "補助なし" })).toBeChecked();
-});
-
-test("表全体の編集中も、カーソルの直前の文字が切り替えられるなら ↑ は欄の移動より切り替えを優先し、そうでなければ上の欄へ移る", async ({
-  page,
-}) => {
-  await createNotebook(page, "e2e 用のスペイン語の編集");
-  await chooseLanguage(page, "スペイン語");
-  const table = page.getByRole("table").first();
-  await table.getByRole("button", { name: "表に単語を追加" }).click();
-  // 追加が終わる（入力欄が空に戻り、「追加」を押せるようになる）のを待ってから次の単語を打つ
-  const addButton = table.getByRole("button", { name: "追加", exact: true });
-  for (const word of ["uno", "dos"]) {
-    await page.keyboard.type(word);
-    await page.keyboard.press("Enter");
-    await expect(table.getByRole("textbox", { name: "見出し語" })).toHaveValue("");
-    await expect(addButton).toBeEnabled();
-  }
-  await page.keyboard.press("Escape");
-
-  await page.getByRole("button", { name: "表を編集" }).click();
-  const heads = table.getByRole("textbox", { name: "見出し語" });
-  await expect(heads).toHaveCount(2);
-
-  // 直前の文字（s）は切り替えられないので、上の欄へ移る
-  await heads.nth(1).click();
-  await page.keyboard.press("End");
-  await page.keyboard.press("ArrowUp");
-  await expect(heads.nth(0)).toBeFocused();
-
-  // 文字を打った直後でなくても、直前の文字（o）が切り替えられるなら ↑↓ は切り替えに使う
-  await page.keyboard.press("End");
-  await page.keyboard.press("ArrowUp");
-  await expect(heads.nth(0)).toHaveValue("unó");
-  await expect(heads.nth(0)).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("ArrowDown");
-  await expect(heads.nth(0)).toHaveValue("unó");
-  await expect(heads.nth(0)).toBeFocused();
 });
 
 test("中国語の単語帳では、見出し語はピンインから簡体字に変換し、ピンインの列は声調記号を付けて入力できる", async ({
