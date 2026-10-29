@@ -1,23 +1,71 @@
-// 背景の動く文字列とメインコピー（ことりずむなど）の間に敷く、開いた本のシルエット。
-// 半透明の図形で背景の文字列を和らげ、手前の文字の視認性を上げる。
-export default function BookShape() {
+import type { CSSProperties, ReactNode } from "react";
+
+// 1ページの縦÷横（四六判 127×188mm）
+const PAGE_RATIO = 188 / 127;
+// 以下の長さは viewBox の単位
+const PAGE_WIDTH = 9;
+const PAGE_HEIGHT = PAGE_WIDTH * PAGE_RATIO;
+// のどでページの上端・下端が下がる深さ
+const SPINE_DIP = 1;
+const BOOK_WIDTH = PAGE_WIDTH * 2;
+const BOOK_HEIGHT = PAGE_HEIGHT + SPINE_DIP;
+
+// 左右のページを1つの図形にする（ページごとに分けると、のどにも縁の線が引かれる）
+const W = PAGE_WIDTH;
+const BOOK_PATH = [
+  `M0.25 0L${W - 1} 0`,
+  `A1 1 0 0 1 ${W} ${SPINE_DIP}A1 1 0 0 1 ${W + 1} 0`,
+  `L${BOOK_WIDTH - 0.25} 0A0.25 0.25 0 0 1 ${BOOK_WIDTH} 0.25`,
+  `L${BOOK_WIDTH} ${PAGE_HEIGHT - 0.25}A0.25 0.25 0 0 1 ${BOOK_WIDTH - 0.25} ${PAGE_HEIGHT}`,
+  `L${W + 1} ${PAGE_HEIGHT}A1 1 0 0 0 ${W} ${BOOK_HEIGHT}A1 1 0 0 0 ${W - 1} ${PAGE_HEIGHT}`,
+  `L0.25 ${PAGE_HEIGHT}A0.25 0.25 0 0 1 0 ${PAGE_HEIGHT - 0.25}`,
+  "L0 0.25A0.25 0.25 0 0 1 0.25 0Z",
+].join("");
+
+// 背景をぼかす層を本の形に切り抜くためのマスク。backdrop-filter は SVG の図形にはかけられないため、HTML の層にかける
+const BOOK_MASK = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${BOOK_WIDTH} ${BOOK_HEIGHT}" preserveAspectRatio="none"><path d="${BOOK_PATH}"/></svg>`,
+)}")`;
+
+// children を載せる開いた本。md以上では本を出さず、中身を縦に並べるだけの箱になる
+export default function BookShape({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="3 6.75 18 11"
-      fill="none"
-      preserveAspectRatio="none"
-      // 見出しブロック（見出し・説明文）を包むdivは中身の実際の幅と高さに
-      // シュリンクラップされているため、そこに少しだけ外側にはみ出させて重ねれば、
-      // 文字を欠けさせず、かつ広がりすぎて本に見えなくなることもない。
-      // svgは置換要素で、insetだけ指定してもviewBoxの縦横比が優先され文字からはみ出すため、
-      // 位置（負のleft/top）に加えて幅・高さも「100% + 左右（上下）のはみ出し分」で明示する。
-      // viewBoxは本の輪郭ぴったり（x: 3〜21, y: 6.75〜17.75）にしてあり、ページ下端は
-      // 高さの10/11の位置（残り1/11は下中央の綴じ目の出っ張り）なので、高さはその分1.1倍する
-      className="pointer-events-none absolute -top-6 -left-4 -z-10 h-[calc((100%+3rem)*1.1)] w-[calc(100%+2rem)] fill-white/70 sm:-top-8 sm:-left-6 sm:h-[calc((100%+4rem)*1.1)] sm:w-[calc(100%+3rem)] dark:fill-zinc-900/60"
+    <div
+      style={
+        {
+          "--book-aspect": `${BOOK_WIDTH} / ${BOOK_HEIGHT}`,
+          "--book-spine": `${SPINE_DIP / BOOK_WIDTH}`,
+        } as CSSProperties
+      }
+      // 幅は「ことりずむ」の幅（5.3 × --vb-title）+ 余白。高さは aspect-ratio で決まり、中身の方が高いときは中身に合わせて伸びる。
+      // 下の padding に、のどの出っ張りの高さ（本の幅 × --book-spine）を足して、中身をページの上下中央に置く
+      className={`relative flex aspect-(--book-aspect) w-[calc(5.3*var(--vb-title)+3rem)] max-w-none flex-col items-center justify-center pt-4 pb-[calc(1rem+(5.3*var(--vb-title)+3rem)*var(--book-spine))] md:aspect-auto md:w-auto md:p-0 ${className}`}
     >
-      <path d="M3.25 6.75L11 6.75A1 1 0 0 1 12 7.75L12 17.75A1 1 0 0 0 11 16.75L3.25 16.75A0.25 0.25 0 0 1 3 16.5L3 7A0.25 0.25 0 0 1 3.25 6.75Z" />
-      <path d="M20.75 6.75L13 6.75A1 1 0 0 0 12 7.75L12 17.75A1 1 0 0 1 13 16.75L20.75 16.75A0.25 0.25 0 0 0 21 16.5L21 7A0.25 0.25 0 0 0 20.75 6.75Z" />
-    </svg>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 md:hidden">
+        <div
+          style={{
+            maskImage: BOOK_MASK,
+            maskSize: "100% 100%",
+            WebkitMaskImage: BOOK_MASK,
+            WebkitMaskSize: "100% 100%",
+          }}
+          className="absolute inset-0 backdrop-blur-xl"
+        />
+        <svg
+          viewBox={`0 0 ${BOOK_WIDTH} ${BOOK_HEIGHT}`}
+          preserveAspectRatio="none"
+          className="absolute inset-0 size-full fill-white/30 stroke-white/70 drop-shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:fill-white/5 dark:stroke-white/15 dark:drop-shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+        >
+          <path d={BOOK_PATH} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+        </svg>
+      </div>
+      {children}
+    </div>
   );
 }

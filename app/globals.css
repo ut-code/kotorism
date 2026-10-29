@@ -243,23 +243,22 @@ body {
   「ことりずむ」（全角5文字 + 字間0.06em ≒ 5.3em幅）が画面からはみ出さないよう、
   スマホでは画面幅の8割ほど（15vw）、sm以上では画面幅に合わせて伸ばしつつ、
   大きな画面で大きくなりすぎないよう上限（8rem）を設ける。
---vb-hero-pt: ヒーローの上padding。
-  スマホではヒーローを1画面ぴったり（100svhからヘッダーの高さ73pxを引いた高さ）にして
-  下のカードがスクロールして初めて見えるようにし、中身（見出し〜ボタン）はその中で上下中央に置く。
-  中身の高さは 固定分（説明文2行 + ボタン上の余白 + ボタン。実測で
-  196px）+ 1.222 * --vb-title（h1の行ボックス1.5倍 - 説明文の引き上げ0.278倍）。 */
+--vb-hero-pt: ヒーローの上padding。md未満では下のpaddingにも使う（routes/_index/route.tsx）。 */
 .vb-hero {
   --vb-title: 15vw;
-  --vb-hero-pt: max(40px, calc((100svh - 73px - 196px - 1.222 * var(--vb-title)) / 2));
-  min-height: calc(100svh - 73px);
+  --vb-hero-pt: 40px;
   padding-top: var(--vb-hero-pt);
 }
 
 @media (min-width: 640px) {
   .vb-hero {
     --vb-title: min(11vw, 8rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .vb-hero {
     --vb-hero-pt: 96px;
-    min-height: 0;
   }
 }
 
