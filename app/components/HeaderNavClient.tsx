@@ -57,10 +57,11 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
     );
 
   // 折り畳まずに横並びで表示する画面幅。ログイン中はナビのリンクも並ぶためmd以上、
-  // 未ログインはログイン・新規登録だけなのでロゴと1行に収まる460px以上（e2e/auth.spec.tsで確認している）
+  // 未ログインはログイン・新規登録だけなのでロゴと1行に収まる480px以上（e2e/auth.spec.tsで確認している）。
+  // 環境によって文字の幅が数px変わるため、ぎりぎり収まる幅より20pxほど余裕をとっている
   const inline = userName
     ? { show: "md:flex", hide: "md:hidden" }
-    : { show: "min-[460px]:flex", hide: "min-[460px]:hidden" };
+    : { show: "min-[480px]:flex", hide: "min-[480px]:hidden" };
 
   return (
     <>
