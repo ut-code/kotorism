@@ -79,7 +79,7 @@ test("ログイン中のヘッダーには My単語帳・学習教材 のリン�
 
 test.describe("未ログインのヘッダー（スマホ幅）", () => {
   test("1行に収まる幅では、ログイン・新規登録を折り畳まずに表示する", async ({ page }) => {
-    await page.setViewportSize({ width: 440, height: 800 });
+    await page.setViewportSize({ width: 460, height: 800 });
     await page.goto("/login");
     const header = page.getByRole("banner");
     const signup = header.getByRole("link", { name: "新規登録" });
@@ -94,7 +94,8 @@ test.describe("未ログインのヘッダー（スマホ幅）", () => {
   });
 
   test("収まらない幅では、ハンバーガーメニューにまとめる", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 800 });
+    // 1行に収まらなくなるいちばん広い幅のあたり（ロゴが横長になり、440px では 12px あふれていた）
+    await page.setViewportSize({ width: 440, height: 800 });
     await page.goto("/login");
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "新規登録" })).toBeHidden();
