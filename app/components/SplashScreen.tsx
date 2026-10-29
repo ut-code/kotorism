@@ -23,7 +23,7 @@ export default function SplashScreen() {
       aria-hidden="true"
     >
       <div className="vb-splash-logo flex flex-col items-center gap-4">
-        <Image src="/logo.png" alt="" width={517} height={624} preload className="h-20 w-auto" />
+        <Image src="/logo.png" alt="" width={756} height={644} preload className="h-20 w-auto" />
         {/* ヘッダー・LPの見出しと同じロゴ文字（フォント・グラデーション）で表示する */}
         <span className="text-4xl tracking-[0.06em] text-black">
           <BrandName />

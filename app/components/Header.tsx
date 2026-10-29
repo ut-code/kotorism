@@ -33,12 +33,12 @@ export default function Header({
   return (
     <header className="sticky top-0 z-50 bg-white/5 dark:bg-zinc-600/80 backdrop-blur-md border-b border-black/[.08] dark:border-white/[.145]">
       <div className="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
-        <Link href="/" className="flex item-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <Image
             src="/logo.png"
             alt="ことりずむ ロゴ"
-            width={32}
-            height={32}
+            width={756}
+            height={644}
             className="h-10 w-auto object-contain"
           />
           <span className="inline-block self-center text-[clamp(1.2rem,4.5vw,2.125rem)] tracking-[0.06em]">
