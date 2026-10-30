@@ -5,7 +5,7 @@ import { passwordAuth } from "@/lib/server/auth.server";
 import { redirectIfLoggedIn } from "@/lib/server/session.server";
 import type { Route } from "./+types/route";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
-import LoginForm from "@/components/auth/LoginForm";
+import { LegacyLoginForm, LegacyLoginNotice } from "@/components/auth/LegacyLogin";
 import WaveCirclesBackground from "@/components/WaveCirclesBackground";
 
 export const meta: Route.MetaFunction = () => [{ title: "ログイン | ことりずむ" }];
@@ -34,20 +34,14 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
           ref={cardRef}
           className="flex flex-col gap-4 rounded-2xl border border-white/70 bg-white/30 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl dark:border-white/15 dark:bg-white/5 dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)]"
         >
+          {passwordLogin && <LegacyLoginNotice />}
           <GoogleSignInButton label="Google でログイン" />
           {oauthError && (
             <p role="alert" className="text-sm text-red-600 dark:text-red-400">
               Google でのログインに失敗しました。もう一度お試しください。
             </p>
           )}
-          {passwordLogin && (
-            <details className="border-t border-black/[.08] pt-4 text-sm dark:border-white/[.145]">
-              <summary className="cursor-pointer text-zinc-500 dark:text-zinc-400">
-                以前のユーザー名でログインする
-              </summary>
-              <LoginForm />
-            </details>
-          )}
+          {passwordLogin && <LegacyLoginForm />}
         </div>
       </div>
     </main>
