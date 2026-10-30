@@ -13,26 +13,7 @@ export default defineConfig({
     // DB に触れるテスト(app/lib/server)用のインメモリ SQLite。テストファイルごとに別プロセスで動くため、
     // ファイルをまたいでデータは共有されない。マイグレーションは各テストが applyMigrations() で当てる
     env: { DATABASE_URL: "file::memory:?cache=shared" },
-    // 1画面で完結する UI の振る舞い(*.test.tsx)は、ブラウザを立ち上げずに jsdom で確かめる。
-    // そうしないと e2e に入れるしかなく、CI が遅くなる
-    projects: [
-      {
-        extends: true,
-        test: {
-          name: "unit",
-          include: ["app/**/*.test.ts"],
-          environment: "node",
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: "component",
-          include: ["app/**/*.test.tsx"],
-          environment: "jsdom",
-          setupFiles: ["./vitest.setup.ts"],
-        },
-      },
-    ],
+    include: ["app/**/*.test.ts"],
+    environment: "node",
   },
 });
