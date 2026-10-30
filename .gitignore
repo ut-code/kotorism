@@ -49,3 +49,4 @@ yarn-error.log*
 # 開発用DBの実体ファイルは各自のローカル環境で prisma migrate によって作成する（Git管理しない）
 /prisma/dev.db
 /prisma/dev.db-journal
+.vitest/

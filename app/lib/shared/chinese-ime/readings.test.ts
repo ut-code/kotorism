@@ -1,5 +1,5 @@
 import { pinyin } from "pinyin";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { CHAR_DICT } from "./dict/chars";
 import { CHAR_READINGS } from "./dict/readings";

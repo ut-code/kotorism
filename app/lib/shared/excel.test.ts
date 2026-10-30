@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { createTemplateWorkbookBuffer, ExcelParseError, parseExcelWorkbook } from "./excel";
 

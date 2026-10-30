@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { BOOK_PAGE_SHAPE, bookPagePath } from "./book-page";
 
