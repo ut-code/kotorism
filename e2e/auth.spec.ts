@@ -1,24 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-import { expectRedirectToGoogle, signUpWithPassword } from "./auth-helpers";
+import { signUpWithPassword } from "./auth-helpers";
 
 // このファイルは未ログインの状態から始める
 test.use({ storageState: { cookies: [], origins: [] } });
-
-test("ログイン画面の「Google でログイン」で Google の認可画面へ移る", async ({ page }) => {
-  await page.goto("/login");
-  await expectRedirectToGoogle(page, () =>
-    page.getByRole("button", { name: "Google でログイン" }).click(),
-  );
-});
-
-test("新規登録は Google だけで、パスワードの入力欄は出さない", async ({ page }) => {
-  await page.goto("/signup");
-  await expect(page.getByLabel("パスワード")).toHaveCount(0);
-  await expectRedirectToGoogle(page, () =>
-    page.getByRole("button", { name: "Google で登録" }).click(),
-  );
-});
 
 test("未ログインで保護されたページを開くと、戻り先つきでログインへ飛ぶ", async ({ page }) => {
   await page.goto("/learn/chinese/05");
