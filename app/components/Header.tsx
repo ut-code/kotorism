@@ -27,7 +27,8 @@ export default function Header({
   // ログイン中のユーザー名。未ログインならnull
   userName: string | null;
 }) {
-  // My単語帳・学習教材はログインしないと使えないため、未ログインではリンクを出さない
+  // My単語帳・学習教材はログインしないと使えないため、未ログインではリンクを出さない。
+  // 広い画面ではサイドバーに同じリンクがあるため、ヘッダーではスマホ幅のメニューの中にだけ出す
   const navLinks = userName ? NAV_LINKS : [];
 
   return (
@@ -46,19 +47,6 @@ export default function Header({
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          {navLinks.length > 0 && (
-            <nav className="hidden items-center gap-x-4 text-[clamp(1rem,2.2vw,1.125rem)] font-semibold tracking-[0.04em] text-zinc-600 md:flex dark:text-zinc-200">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`whitespace-nowrap transition-colors ${link.hoverClassName}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          )}
           <HeaderNavClient links={navLinks} allSections={allSections} userName={userName} />
           <ThemeToggle />
         </div>
