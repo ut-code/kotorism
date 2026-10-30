@@ -8,7 +8,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 // Google を連携する前の既存ユーザー向けに、移行期間中だけ残しているログイン
 async function loginWithPassword(page: Page) {
-  await page.getByText("以前のユーザー名でログインする", { exact: true }).click();
+  await page.getByText("以前のユーザー名でログインする").click();
   await page.getByLabel("ユーザー名").fill(E2E_USER.username);
   await page.getByLabel("パスワード").fill(E2E_USER.password);
   await page.getByRole("button", { name: "ユーザー名でログイン" }).click();
