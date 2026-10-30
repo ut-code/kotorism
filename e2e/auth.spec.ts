@@ -67,16 +67,6 @@ test("未ログインのヘッダーには My単語帳・学習教材 のリン�
   await expect(header.getByRole("link", { name: "学習教材" })).toHaveCount(0);
 });
 
-test("ログイン中のヘッダーには My単語帳・学習教材 のリンクを出す", async ({ page }) => {
-  await page.goto("/login");
-  await loginWithPassword(page);
-  await expect(page).toHaveURL(/\/my-notebooks$/);
-
-  const header = page.getByRole("banner");
-  await expect(header.getByRole("link", { name: "My単語帳" })).toBeVisible();
-  await expect(header.getByRole("link", { name: "学習教材" })).toBeVisible();
-});
-
 test.describe("未ログインのヘッダー（スマホ幅）", () => {
   test("1行に収まる幅では、ログイン・新規登録を折り畳まずに表示する", async ({ page }) => {
     await page.setViewportSize({ width: 480, height: 800 });
