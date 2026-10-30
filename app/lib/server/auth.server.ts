@@ -4,6 +4,11 @@ import { prismaAdapter } from "@better-auth/prisma-adapter";
 
 import { prisma } from "@/lib/server/prisma.server";
 import { passwordAuthFlags } from "@/lib/shared/password-auth";
+import {
+  googleProfileToUser,
+  withoutClientInfo,
+  withoutOAuthTokens,
+} from "@/lib/shared/personal-data";
 
 export const passwordAuth = passwordAuthFlags(process.env);
 
@@ -17,6 +22,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      mapProfileToUser: googleProfileToUser,
     },
   },
   account: {
@@ -27,6 +33,18 @@ export const auth = betterAuth({
       allowDifferentEmails: true,
     },
   },
+  // 使わない個人情報(トークン、IP アドレス、User-Agent)は保存しない。理由は lib/shared/personal-data.ts
+  databaseHooks: {
+    account: {
+      create: { before: async (account) => ({ data: withoutOAuthTokens(account) }) },
+      update: { before: async (account) => ({ data: withoutOAuthTokens(account) }) },
+    },
+    session: {
+      create: { before: async (session) => ({ data: withoutClientInfo(session) }) },
+      update: { before: async (session) => ({ data: withoutClientInfo(session) }) },
+    },
+  },
+  advanced: { ipAddress: { disableIpTracking: true } },
   // 移行期間中のユーザー名ログイン(signIn.username)に必要。Google だけになったら外せる
   plugins: [username()],
 });

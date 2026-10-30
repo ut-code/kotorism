@@ -5,20 +5,21 @@ import { prisma } from "@/lib/server/prisma.server";
 
 // prisma/migrations/*/migration.sql を古い順に、テスト用のインメモリ DB へ当てる
 export async function applyMigrations() {
-  const dir = path.join(process.cwd(), "prisma/migrations");
-  for (const name of readdirSync(dir).sort()) {
-    const file = path.join(dir, name, "migration.sql");
-    let sql: string;
-    try {
-      sql = readFileSync(file, "utf8");
-    } catch {
-      continue; // migration_lock.toml など
-    }
-    for (const statement of sql.split(/;\s*\n/)) {
-      if (statement.trim()) await prisma.$executeRawUnsafe(statement);
-    }
+  for (const name of readdirSync(migrationsDir).sort()) {
+    if (name.endsWith(".toml")) continue; // migration_lock.toml
+    await runMigration(name);
   }
 }
+
+// データを書き換えるマイグレーションを、データを入れたあとでもう一度当てて確かめるために使う
+export async function runMigration(name: string) {
+  const sql = readFileSync(path.join(migrationsDir, name, "migration.sql"), "utf8");
+  for (const statement of sql.split(/;\s*\n/)) {
+    if (statement.trim()) await prisma.$executeRawUnsafe(statement);
+  }
+}
+
+const migrationsDir = path.join(process.cwd(), "prisma/migrations");
 
 let sequence = 0;
 const nextId = (prefix: string) => `${prefix}_${(sequence += 1)}`;
