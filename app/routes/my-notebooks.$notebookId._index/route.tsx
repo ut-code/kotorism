@@ -140,7 +140,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     where: { id: notebookId },
     include: {
       cards: { orderBy: { position: "asc" } },
-      user: { select: { name: true, username: true } },
+      user: { select: { name: true } },
     },
   });
 
@@ -152,7 +152,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   // オーナーのみ、共有管理パネル（招待リンク・共同編集者一覧）に必要なデータを取得する
   let invites: { id: string; token: string }[] = [];
-  let shares: { id: string; user: { name: string; username: string | null } }[] = [];
+  let shares: { id: string; user: { name: string } }[] = [];
   if (isOwner) {
     [invites, shares] = await Promise.all([
       prisma.notebookInvite.findMany({
@@ -163,7 +163,7 @@ export async function loader({ params }: Route.LoaderArgs) {
       prisma.notebookShare.findMany({
         where: { notebookId },
         orderBy: { createdAt: "asc" },
-        select: { id: true, user: { select: { name: true, username: true } } },
+        select: { id: true, user: { select: { name: true } } },
       }),
     ]);
   }
@@ -196,13 +196,13 @@ export async function loader({ params }: Route.LoaderArgs) {
       language: normalizeNotebookLanguage(notebook.language),
       cardCount: notebook.cards.length,
       // 共同編集者として開いたときに「〇〇さんから共有」と出す、作成者の名前
-      ownerName: notebook.user.username ?? notebook.user.name,
+      ownerName: notebook.user.name,
     },
     isOwner,
     invites,
     shares: shares.map((share) => ({
       id: share.id,
-      userName: share.user.username ?? share.user.name,
+      userName: share.user.name,
     })),
     columns,
     cards,

@@ -57,7 +57,7 @@ export async function loader() {
       notebook: {
         include: {
           _count: { select: { cards: true } },
-          user: { select: { name: true, username: true } },
+          user: { select: { name: true } },
         },
       },
     },
@@ -136,7 +136,7 @@ export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
                   </p>
                   {/* 誰から共有された単語帳かを、薄く小さい文字で出す */}
                   <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
-                    {share.notebook.user.username ?? share.notebook.user.name}さんから共有
+                    {share.notebook.user.name}さんから共有
                   </p>
                 </Link>
               </li>

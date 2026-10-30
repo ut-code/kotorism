@@ -7,6 +7,7 @@ import LearnTree from "@/components/LearnTree";
 
 import AuthNavLinks from "@/components/auth/AuthNavLinks";
 import LogoutButton from "@/components/auth/LogoutButton";
+import DisplayNameEditor from "@/components/DisplayNameEditor";
 
 export type HeaderNavLink = {
   href: string;
@@ -43,13 +44,15 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
     return () => document.removeEventListener("pointerdown", closeOnOutside);
   }, [isMenuOpen]);
 
-  // ログイン状態に応じた表示。PC用・スマホ用に同じ内容を使い回す
-  const renderAuth = () =>
+  // ログイン状態に応じた表示。PC用・スマホ用に同じ内容を使い回す。
+  // 横並びではロゴと1行に収めるため狭い幅では名前を省くが、メニューの中には広さがあり、
+  // そこでも省くとスマホから名前を変えられなくなるので常に出す
+  const renderAuth = (inMenu: boolean) =>
     userName ? (
       <>
-        <span className="hidden text-base text-zinc-500 sm:inline dark:text-zinc-400">
-          {userName}
-        </span>
+        <div className={inMenu ? "" : "hidden sm:block"}>
+          <DisplayNameEditor name={userName} />
+        </div>
         <LogoutButton />
       </>
     ) : (
@@ -66,7 +69,7 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
   return (
     <>
       {/* 広い画面：ログイン状態を横並びにする（ナビ本体はHeader側で静的に描画される） */}
-      <div className={`hidden items-center gap-3 ${inline.show}`}>{renderAuth()}</div>
+      <div className={`hidden items-center gap-3 ${inline.show}`}>{renderAuth(false)}</div>
 
       {/* 狭い画面：ハンバーガーボタン */}
       <button
@@ -134,7 +137,7 @@ export default function HeaderNavClient({ links, userName, allSections }: Header
             ))}
           </nav>
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-black/[.08] pt-3 dark:border-white/[.145]">
-            {renderAuth()}
+            {renderAuth(true)}
           </div>
         </div>
       )}
