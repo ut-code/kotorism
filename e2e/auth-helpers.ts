@@ -4,15 +4,10 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
 // パスワード登録の API で直接ユーザーを作る。登録に成功するとレスポンスの Cookie でログイン状態になる
 export async function signUpWithPassword(
   request: APIRequestContext,
-  user: { username: string; password: string },
+  user: { name: string; password: string },
 ) {
   const res = await request.post("/api/auth/sign-up/email", {
-    data: {
-      name: user.username,
-      email: `${user.username}@vocabook.local`,
-      password: user.password,
-      username: user.username,
-    },
+    data: { name: user.name, email: `${user.name}@example.test`, password: user.password },
   });
   expect(res.ok()).toBe(true);
 }

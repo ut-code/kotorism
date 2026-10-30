@@ -2,7 +2,7 @@
 // ログインに要るのは accounts の Google のユーザー ID(accountId)だけなので、それ以外を落としてもログインはできる
 
 // better-auth はメールで既存ユーザーを探す(暗黙のアカウント紐付け)ので、メールは空にできない。
-// 既存ユーザーの <username>@vocabook.local と同じく架空のアドレスにし、Google のユーザー ID で一意にする
+// 旧ユーザー名登録のユーザーの <ユーザー名>@vocabook.local と同じく架空のアドレスにし、Google のユーザー ID で一意にする
 export function googleProfileToUser(profile: { sub: string }) {
   return { email: `${profile.sub}@google.vocabook.local`, image: undefined };
 }

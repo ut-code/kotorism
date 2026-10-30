@@ -1,24 +1,21 @@
 import { describe, expect, it } from "vitest";
 
-import { passwordAuthFlags } from "./password-auth";
+import { passwordAuthEnabled } from "./password-auth";
 
-describe("passwordAuthFlags", () => {
-  it("未設定ならパスワードでのログインも登録も無効", () => {
-    expect(passwordAuthFlags({})).toEqual({ login: false, signUp: false });
+describe("passwordAuthEnabled", () => {
+  it("未設定ならパスワード認証は無効", () => {
+    expect(passwordAuthEnabled({})).toBe(false);
   });
 
-  it("PASSWORD_LOGIN=true ならログインだけ有効", () => {
-    expect(passwordAuthFlags({ PASSWORD_LOGIN: "true" })).toEqual({ login: true, signUp: false });
+  it("PASSWORD_SIGNUP=true なら有効", () => {
+    expect(passwordAuthEnabled({ PASSWORD_SIGNUP: "true" })).toBe(true);
   });
 
-  it("PASSWORD_SIGNUP=true なら登録もログインも有効", () => {
-    expect(passwordAuthFlags({ PASSWORD_SIGNUP: "true" })).toEqual({ login: true, signUp: true });
+  it("移行期間用だった PASSWORD_LOGIN=true が残っていても有効にしない", () => {
+    expect(passwordAuthEnabled({ PASSWORD_LOGIN: "true" })).toBe(false);
   });
 
   it.each(["1", "TRUE", "yes", ""])("%j は true として扱わない", (value) => {
-    expect(passwordAuthFlags({ PASSWORD_LOGIN: value, PASSWORD_SIGNUP: value })).toEqual({
-      login: false,
-      signUp: false,
-    });
+    expect(passwordAuthEnabled({ PASSWORD_SIGNUP: value })).toBe(false);
   });
 });

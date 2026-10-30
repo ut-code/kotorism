@@ -47,14 +47,14 @@ test("共有された単語帳には、誰から共有されたかを薄く小�
   // 別のユーザーが登録して、招待リンクから参加する
   const guestContext = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   const guest = await guestContext.newPage();
-  await signUpWithPassword(guest.request, { username: "e2e_guest", password: "password-1234" });
+  await signUpWithPassword(guest.request, { name: "e2e_guest", password: "password-1234" });
   await guest.goto(new URL(inviteUrl).pathname);
   await guest.getByRole("button", { name: "参加する" }).click();
   await expect(
     guest.getByRole("heading", { level: 1, name: "共有元の確認の単語帳" }),
   ).toBeVisible();
 
-  const sharedBy = `${E2E_USER.username}さんから共有`;
+  const sharedBy = `${E2E_USER.name}さんから共有`;
   // 単語帳のページ
   await expect(guest.getByText(sharedBy)).toBeVisible();
 

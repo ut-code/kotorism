@@ -36,7 +36,6 @@ it("保存済みの使わない個人情報を消し、ログインに要る Goo
       id: "p",
       name: "たなか",
       email: "tanaka@vocabook.local",
-      username: "tanaka",
       accounts: {
         create: [
           {
@@ -61,7 +60,6 @@ it("保存済みの使わない個人情報を消し、ログインに要る Goo
   });
   expect(await prisma.user.findUniqueOrThrow({ where: { id: "p" } })).toMatchObject({
     email: "tanaka@vocabook.local",
-    username: "tanaka",
   });
   for (const id of ["ga", "pg"]) {
     expect(await prisma.account.findUniqueOrThrow({ where: { id } })).toMatchObject({
