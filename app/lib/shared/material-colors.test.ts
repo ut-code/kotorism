@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { NOTEBOOK_CATEGORY } from "./study-events";
 import { OTHER_MATERIAL_COLOR, materialColors } from "./material-colors";

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import * as chinese from "@/routes/learn._chinese.chinese.05/quiz-data";
 import * as french1 from "@/routes/learn._french.french.05/quiz-data";

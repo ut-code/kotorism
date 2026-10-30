@@ -7,12 +7,12 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "start": "npx prisma migrate deploy && react-router-serve ./build/server/index.js",
-    "lint": "oxlint",
-    "test": "vitest run",
+    "lint": "vp lint",
+    "test": "vp test run",
     "test:e2e": "playwright test",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
-    "typecheck": "react-router typegen && tsc --noEmit",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
+    "typecheck": "react-router typegen && tsrs --noEmit --fast",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -39,17 +39,21 @@
     "@react-router/dev": "^8.4.0",
     "@react-router/fs-routes": "^8.4.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^20",
+    "@types/node": "^26.6.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/coverage-v8": "5.0.5",
     "dotenv": "^17.4.2",
-    "oxfmt": "^0.63.0",
-    "oxlint": "^1.88.0",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
+    "tsrs": "^0.20.1-ts7.1.0-beta",
     "typescript": "^5",
-    "vite": "^8.3.4",
-    "vitest": "^4.1.11"
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vite-plus": "1.4.0",
+    "vitest": "5.0.5"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vitest": "5.0.5"
   }
 }

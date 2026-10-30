@@ -29,6 +29,6 @@ Pick the cheapest test that can catch the bug. E2E is slow and runs on every PR,
 
 There are no component tests (no Testing Library / jsdom). UI behaviour that stays inside one screen is not tested; move logic worth testing into a pure function in `lib/shared` and unit-test that. Do not add a test that only confirms something obvious.
 
-Run the Vitest tests with `npx vitest run`.
+Run the Vitest tests with `npm test`.
 
 - Before finishing, run `npm run lint`, `npm run typecheck` and the tests.

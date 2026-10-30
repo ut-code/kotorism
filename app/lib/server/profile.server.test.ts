@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vite-plus/test";
 
 import { prisma } from "@/lib/server/prisma.server";
 import { updateDisplayName } from "@/lib/server/profile.server";

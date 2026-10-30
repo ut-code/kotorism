@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { prisma } from "@/lib/server/prisma.server";
 import { sortNotebooks } from "@/lib/shared/notebook-order";

@@ -1,4 +1,4 @@
-import { beforeAll, expect, it } from "vitest";
+import { beforeAll, expect, it } from "vite-plus/test";
 
 import { prisma } from "@/lib/server/prisma.server";
 import { applyMigrations, runMigration } from "@/lib/server/test/db";

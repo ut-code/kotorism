@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { WAVE_CIRCLES_SHAPE, waveCircle } from "./wave-circles";
 

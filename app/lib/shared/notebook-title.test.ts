@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { NOTEBOOK_TITLE_MAX_LENGTH } from "./notebook-schema";
 import { datedTitle, numberedTitle } from "./notebook-title";

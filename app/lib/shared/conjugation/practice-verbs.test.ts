@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { verbs as french } from "@/routes/learn._french.french.03/verbs";
 import { verbs as german } from "@/routes/learn._german.german.03/verbs";

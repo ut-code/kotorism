@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { TENSE_OPTIONS as DE } from "./de/types";
 import { TENSE_OPTIONS as ES } from "./es/types";
