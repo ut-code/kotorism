@@ -27,7 +27,7 @@ const nextId = (prefix: string) => `${prefix}_${(sequence += 1)}`;
 export function createUser() {
   const id = nextId("user");
   return prisma.user.create({
-    data: { id, name: id, email: `${id}@example.test`, username: id },
+    data: { id, name: id, email: `${id}@example.test` },
   });
 }
 

@@ -114,8 +114,6 @@ model User {
   name                   String
   email                  String
   emailVerified          Boolean                 @default(false)
-  username               String?
-  displayUsername        String?
   image                  String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
@@ -135,7 +133,6 @@ model User {
   studyStreak            StudyStreak?
 
   @@unique([email])
-  @@unique([username])
   @@map("users")
 }
 

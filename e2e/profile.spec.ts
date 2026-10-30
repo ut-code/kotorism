@@ -6,7 +6,7 @@ import { signUpWithPassword } from "./auth-helpers";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test("ヘッダーで名前を変えると保存され、読み込み直しても新しい名前が出る", async ({ page }) => {
-  await signUpWithPassword(page.request, { username: "e2e_rename", password: "password-1234" });
+  await signUpWithPassword(page.request, { name: "e2e_rename", password: "password-1234" });
   await page.goto("/my-notebooks");
   const header = page.getByRole("banner");
 

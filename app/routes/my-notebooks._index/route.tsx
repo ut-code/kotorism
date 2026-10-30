@@ -2,8 +2,6 @@ import PageTitle, { PAGE_MAIN_CLASS } from "@/components/PageTitle";
 import Link from "@/components/Link";
 
 import { prisma } from "@/lib/server/prisma.server";
-import { passwordAuth } from "@/lib/server/auth.server";
-import LinkGoogleButton from "@/components/auth/LinkGoogleButton";
 import NewNotebookButton from "@/components/my-notebooks/NewNotebookButton";
 import { requireUser } from "@/lib/server/session.server";
 import StarColorSettings from "@/components/StarColorSettings";
@@ -63,16 +61,11 @@ export async function loader() {
     },
   });
 
-  // パスワードログインを廃止したあとも同じデータに入れるよう、移行期間中は Google 未連携の人に連携を促す
-  const needsGoogleLink =
-    passwordAuth.login &&
-    (await prisma.account.count({ where: { userId: user.id, providerId: "google" } })) === 0;
-
-  return { notebooks, sharedNotebooks, needsGoogleLink };
+  return { notebooks, sharedNotebooks };
 }
 
 export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
-  const { notebooks, sharedNotebooks, needsGoogleLink } = loaderData;
+  const { notebooks, sharedNotebooks } = loaderData;
 
   return (
     <main className={PAGE_MAIN_CLASS}>
@@ -86,8 +79,6 @@ export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
           <StarColorSettings />
         </div>
       </div>
-
-      {needsGoogleLink && <LinkGoogleButton />}
 
       <section className="mt-10 flex w-full max-w-md flex-col items-center gap-3 text-center">
         <NewNotebookButton />
