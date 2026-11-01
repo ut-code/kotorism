@@ -65,7 +65,10 @@ export const meta: Route.MetaFunction = () => [
 ];
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/logo.png", type: "image/png" },
+  // Google検索のファビコンは正方形(48pxの倍数推奨)が必須なので、横長の logo.png ではなく正方形版を使う
+  { rel: "icon", href: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+  { rel: "icon", href: "/favicon-192.png", type: "image/png", sizes: "192x192" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
   {
