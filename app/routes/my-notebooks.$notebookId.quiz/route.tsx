@@ -7,7 +7,7 @@ import { getNotebookRole } from "@/lib/server/notebook-access.server";
 import { normalizeCardData } from "@/lib/shared/card-data";
 import { normalizeColumns } from "@/lib/shared/notebook-columns";
 import { normalizeNotebookLanguage } from "@/lib/shared/notebook-language";
-import QuizDeck from "./QuizDeck";
+import QuizDeck from "@/components/my-notebooks/QuizDeck";
 import type { Route } from "./+types/route";
 
 export async function loader({ params }: Route.LoaderArgs) {

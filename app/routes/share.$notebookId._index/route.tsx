@@ -91,12 +91,20 @@ export default function SharedNotebookPage({ loaderData }: Route.ComponentProps)
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">{cards.length}語</p>
           </div>
           {cards.length > 0 && (
-            <Link
-              href={`/share/${notebook.id}/study`}
-              className="rounded-full bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
-            >
-              暗記学習を始める
-            </Link>
+            <div className="flex w-full flex-col gap-3 text-center sm:w-auto sm:flex-row sm:items-center">
+              <Link
+                href={`/share/${notebook.id}/quiz`}
+                className="rounded-full border border-black/[.08] px-5 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:border-black/[.15] dark:border-white/[.145] dark:hover:border-white/[.25]"
+              >
+                クイズに挑戦
+              </Link>
+              <Link
+                href={`/share/${notebook.id}/study`}
+                className="rounded-full bg-black px-5 py-2 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
+              >
+                暗記学習を始める
+              </Link>
+            </div>
           )}
         </div>
 

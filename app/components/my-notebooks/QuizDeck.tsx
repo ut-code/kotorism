@@ -21,9 +21,9 @@ type QuizCard = {
   head: string;
   // 見出し語1件につく「組」の並び。同じ添字の値同士が列をまたいで対応する
   rows: Record<string, string>[];
-  // 自分がこの単語に★をつけているか・★をつけた累計回数
-  starred: boolean;
-  starCount: number;
+  // 自分がこの単語に★をつけているか・★をつけた累計回数（共有リンクのクイズでは無い）
+  starred?: boolean;
+  starCount?: number;
 };
 
 type Question = {
@@ -92,11 +92,15 @@ export default function QuizDeck({
   language,
   columns,
   cards,
+  readOnly = false,
 }: {
   notebookId: string;
   language: NotebookLanguage | null;
   columns: string[];
   cards: QuizCard[];
+  // 共有リンク（/share/...）から解くとき。単語帳のメンバーではないので、
+  // ★の付け外し・回答や学習時間の記録はせず、問題を解くことだけができる
+  readOnly?: boolean;
 }) {
   // 回答の記録（学習カレンダー用）。結果を画面に反映する必要は無いので、送りっぱなしにする
   const answerFetcher = useFetcher();
@@ -127,7 +131,10 @@ export default function QuizDeck({
   const starFetcher = useFetcher();
   const [stars, setStars] = useState<Record<string, QuizStar>>(() =>
     Object.fromEntries(
-      cards.map((card) => [card.id, { starred: card.starred, starCount: card.starCount }]),
+      cards.map((card) => [
+        card.id,
+        { starred: card.starred ?? false, starCount: card.starCount ?? 0 },
+      ]),
     ),
   );
   const { colors: starColors } = useStarColors();
@@ -155,7 +162,9 @@ export default function QuizDeck({
   };
 
   // 問題に答えている間（設定画面・結果画面以外）の学習時間を記録する
-  useStudyTimer(phase === "quiz" ? { kind: "deck", deckId: notebookId, mode: "quiz" } : null);
+  useStudyTimer(
+    phase === "quiz" && !readOnly ? { kind: "deck", deckId: notebookId, mode: "quiz" } : null,
+  );
 
   const start = (list: Question[]) => {
     setQuestions(list);
@@ -202,29 +211,31 @@ export default function QuizDeck({
           </div>
         </section>
 
-        <section className="w-full">
-          <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
-            出題する単語
-          </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {(["all", "starred"] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setTarget(value)}
-                disabled={value === "starred" && starredCount === 0}
-                aria-pressed={effectiveTarget === value}
-                className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                  effectiveTarget === value
-                    ? "bg-coral-500 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {value === "all" ? "すべて" : `★つきのみ（${starredCount}語）`}
-              </button>
-            ))}
-          </div>
-        </section>
+        {!readOnly && (
+          <section className="w-full">
+            <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">
+              出題する単語
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {(["all", "starred"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTarget(value)}
+                  disabled={value === "starred" && starredCount === 0}
+                  aria-pressed={effectiveTarget === value}
+                  className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                    effectiveTarget === value
+                      ? "bg-coral-500 text-white"
+                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {value === "all" ? "すべて" : `★つきのみ（${starredCount}語）`}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="w-full">
           <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">問題数</div>
@@ -356,10 +367,12 @@ export default function QuizDeck({
     if (answered) return;
     setSelected(choice);
     if (speech?.speakOn === "answer") speakHead(question.head);
-    answerFetcher.submit(
-      { intent: "recordQuizAnswer", cardId: question.cardId },
-      { method: "post", action: `/my-notebooks/${notebookId}` },
-    );
+    if (!readOnly) {
+      answerFetcher.submit(
+        { intent: "recordQuizAnswer", cardId: question.cardId },
+        { method: "post", action: `/my-notebooks/${notebookId}` },
+      );
+    }
     if (choice === question.answer) setCorrectCount((count) => count + 1);
     else setMistakes((prev) => [...prev, question]);
   };
@@ -455,20 +468,22 @@ export default function QuizDeck({
           <div className="flex items-center gap-3">
             {/* 覚えにくい単語に★をつけておき、あとで★つきの単語だけを出題できるようにする。
                 色は暗記学習モードの★と同じく、★をつけた回数で変える */}
-            <button
-              type="button"
-              onClick={toggleStar}
-              aria-label={star.starred ? "★を外す" : "★をつける"}
-              aria-pressed={star.starred}
-              style={starColor ? { color: starColor } : undefined}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-2xl transition-colors dark:border-zinc-700 ${
-                starColor
-                  ? "hover:opacity-75"
-                  : "text-zinc-300 hover:text-zinc-400 dark:text-zinc-600 dark:hover:text-zinc-500"
-              }`}
-            >
-              {star.starred ? "★" : "☆"}
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                onClick={toggleStar}
+                aria-label={star.starred ? "★を外す" : "★をつける"}
+                aria-pressed={star.starred}
+                style={starColor ? { color: starColor } : undefined}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-2xl transition-colors dark:border-zinc-700 ${
+                  starColor
+                    ? "hover:opacity-75"
+                    : "text-zinc-300 hover:text-zinc-400 dark:text-zinc-600 dark:hover:text-zinc-500"
+                }`}
+              >
+                {star.starred ? "★" : "☆"}
+              </button>
+            )}
             <button
               type="button"
               onClick={next}
