@@ -293,7 +293,20 @@ function YearHeatmap(props: Props) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
-    if (scroller) scroller.scrollLeft = scroller.scrollWidth;
+    if (!scroller) return;
+    scroller.scrollLeft = scroller.scrollWidth;
+    // 月初は右端の列の「11月」などの見出しが列からはみ出しており、Webフォントが読み込まれて
+    // 文字幅が変わると右端もずれる。ユーザーがまだ動かしていなければ、読み込み後に右端へ合わせ直す
+    const initialScrollLeft = scroller.scrollLeft;
+    let active = true;
+    void document.fonts?.ready.then(() => {
+      if (active && scroller.scrollLeft === initialScrollLeft) {
+        scroller.scrollLeft = scroller.scrollWidth;
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const weeks: string[][] = [];
