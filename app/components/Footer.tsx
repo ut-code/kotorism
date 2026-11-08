@@ -99,7 +99,7 @@ export default function Footer() {
 
           <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:mt-4 sm:text-base dark:text-zinc-400">
             <span>©︎{new Date().getFullYear()}</span>
-            <span className="leading-none tracking-[0.06em]">ことりずむ</span>
+            <span className="leading-none tracking-[0.06em]">ut.code();</span>
           </div>
         </div>
       </div>
