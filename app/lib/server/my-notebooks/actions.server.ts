@@ -4,6 +4,7 @@ import { prisma } from "@/lib/server/prisma.server";
 import { requireUser } from "@/lib/server/session.server";
 import { requireNotebookRole } from "@/lib/server/notebook-access.server";
 import { ExcelParseError, parseExcelWorkbook } from "@/lib/shared/excel";
+import { EXCEL_UPLOAD_SIZE_ERROR, MAX_EXCEL_UPLOAD_SIZE } from "@/lib/shared/excel-constraints";
 import { normalizeCardData, type CardData } from "@/lib/shared/card-data";
 import {
   DEFAULT_HEAD_COLUMN,
@@ -95,6 +96,9 @@ export async function importCardsFromExcel(
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Excelファイル（.xlsx）を選択してください。" };
+  }
+  if (file.size > MAX_EXCEL_UPLOAD_SIZE) {
+    return { error: EXCEL_UPLOAD_SIZE_ERROR };
   }
 
   const notebook = await prisma.notebook.findUniqueOrThrow({

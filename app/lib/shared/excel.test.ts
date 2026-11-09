@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createTemplateWorkbookBuffer, ExcelParseError, parseExcelWorkbook } from "./excel";
+import { MAX_EXCEL_UPLOAD_SIZE } from "./excel-constraints";
 
 async function workbookBuffer(rows: (string | number | null)[][]): Promise<ArrayBuffer> {
   const workbook = new ExcelJS.Workbook();
@@ -51,6 +52,12 @@ describe("parseExcelWorkbook", () => {
 
   it("xlsx でないデータは ExcelParseError", async () => {
     await expect(parseExcelWorkbook(new TextEncoder().encode("not excel").buffer)).rejects.toThrow(
+      ExcelParseError,
+    );
+  });
+
+  it("10 MB を超えるファイルは解析前に拒否する", async () => {
+    await expect(parseExcelWorkbook(new ArrayBuffer(MAX_EXCEL_UPLOAD_SIZE + 1))).rejects.toThrow(
       ExcelParseError,
     );
   });

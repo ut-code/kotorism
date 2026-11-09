@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFetcher } from "react-router";
 
+import { MAX_EXCEL_UPLOAD_SIZE } from "@/lib/shared/excel-constraints";
 import type { FormState } from "@/lib/shared/form-state";
 
 const initialState: FormState = {};
@@ -174,6 +175,9 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
           required
           className="text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-coral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-coral-700 hover:file:bg-coral-200 hover:file:text-coral-800 dark:text-zinc-400 dark:file:bg-coral-900/30 dark:file:text-coral-300 dark:hover:file:bg-coral-900/50 dark:hover:file:text-coral-200"
         />
+        <p className="text-xs text-zinc-500 dark:text-zinc-500">
+          ファイルサイズは最大 {MAX_EXCEL_UPLOAD_SIZE / (1024 * 1024)} MB です。
+        </p>
         <p className="text-xs text-zinc-500 dark:text-zinc-500">
           1行目を見出し行として読み取ります。既存の列と同じ名前の列はそこに追加され、無い列名は新しい列として追加されます。
         </p>
