@@ -1,11 +1,7 @@
 import ExcelJS from "exceljs";
 import { describe, expect, it } from "vite-plus/test";
 
-import {
-  createTemplateWorkbookBuffer,
-  ExcelParseError,
-  parseExcelWorkbook,
-} from "./excel";
+import { createTemplateWorkbookBuffer, ExcelParseError, parseExcelWorkbook } from "./excel";
 import { MAX_EXCEL_UPLOAD_SIZE } from "./excel-constraints";
 
 async function workbookBuffer(rows: (string | number | null)[][]): Promise<ArrayBuffer> {
