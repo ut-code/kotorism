@@ -1,6 +1,9 @@
 import ExcelJS from "exceljs";
 
 import type { CardData } from "@/lib/shared/card-data";
+import { EXCEL_UPLOAD_SIZE_ERROR, MAX_EXCEL_UPLOAD_SIZE } from "@/lib/shared/excel-constraints";
+
+export { EXCEL_UPLOAD_SIZE_ERROR, MAX_EXCEL_UPLOAD_SIZE } from "@/lib/shared/excel-constraints";
 
 export type ParsedNotebook = {
   // Excelの1行目（ヘッダー行）の値を、出現順のまま並べたもの。
@@ -52,6 +55,10 @@ function cellToText(value: ExcelJS.CellValue): string {
 
 // アップロードされたExcelファイルの1シート目を読み取り、1行目をヘッダーとする可変列の単語帳データに変換する
 export async function parseExcelWorkbook(buffer: ArrayBuffer): Promise<ParsedNotebook> {
+  if (buffer.byteLength > MAX_EXCEL_UPLOAD_SIZE) {
+    throw new ExcelParseError(EXCEL_UPLOAD_SIZE_ERROR);
+  }
+
   // ファイルを読み込み、データをworkbookに格納する
   const workbook = new ExcelJS.Workbook();
   try {

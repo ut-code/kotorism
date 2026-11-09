@@ -20,11 +20,13 @@ import {
   MAX_STAR_COUNT,
   NOTEBOOK_TITLE_MAX_LENGTH,
 } from "@/lib/shared/notebook-schema";
+import { EXCEL_UPLOAD_SIZE_ERROR, MAX_EXCEL_UPLOAD_SIZE } from "@/lib/shared/excel-constraints";
 
 import {
   addNotebookColumn,
   createBlankNotebook,
   createCard as createCardAction,
+  importCardsFromExcel,
   deleteCard,
   deleteNotebook,
   moveCard,
@@ -585,6 +587,17 @@ describe("★(toggleStar / setStarCount)", () => {
 });
 
 describe("入力の検証", () => {
+  it("10 MB を超える Excel ファイルは解析せず拒否する", async () => {
+    loginAs(owner);
+    const formData = new FormData();
+    formData.set("file", new File([new Uint8Array(MAX_EXCEL_UPLOAD_SIZE + 1)], "large.xlsx"));
+
+    expect(await importCardsFromExcel(notebook.id, formData)).toEqual({
+      error: EXCEL_UPLOAD_SIZE_ERROR,
+    });
+    expect(await prisma.card.count({ where: { notebookId: notebook.id } })).toBe(0);
+  });
+
   it("長すぎるタイトルの単語帳は作成しない", async () => {
     loginAs(owner);
     const before = await prisma.notebook.count({ where: { userId: owner.id } });
