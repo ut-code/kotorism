@@ -36,7 +36,6 @@ describe("使わない個人情報を DB に保存しない", () => {
       userId: user.id,
       providerId: "google",
       accountId: "1234567890",
-      issuer: "https://accounts.google.com",
       ...tokens,
     });
     await ctx.internalAdapter.updateAccount(account.id, tokens);

@@ -9,7 +9,7 @@ beforeAll(async () => {
 
 // 本番に保存済みのトークン・IP アドレス・本物のメールと画像を、デプロイ時に消すマイグレーション
 it("保存済みの使わない個人情報を消し、ログインに要る Google のユーザー ID とパスワードは残す", async () => {
-  const google = { providerId: "google", issuer: "https://accounts.google.com" };
+  const google = { providerId: "google" };
   const tokens = { accessToken: "ya29.xxx", idToken: "eyJ.xxx", accessTokenExpiresAt: new Date() };
   // Google で新規登録したユーザー
   await prisma.user.create({
@@ -42,7 +42,6 @@ it("保存済みの使わない個人情報を消し、ログインに要る Goo
             id: "pc",
             accountId: "p",
             providerId: "credential",
-            issuer: "local:credential",
             password: "hashed",
           },
           { id: "pg", accountId: "222", ...google, ...tokens },

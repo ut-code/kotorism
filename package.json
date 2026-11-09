@@ -22,7 +22,7 @@
     "@react-router/serve": "^8.4.0",
     "@resvg/resvg-js": "^2.6.2",
     "@types/mdx": "^2.0.14",
-    "better-auth": "^1.7.2",
+    "better-auth": "^1.7.7",
     "exceljs": "^4.4.0",
     "isbot": "^5.2.2",
     "pinyin": "^4.0.0",
@@ -53,6 +53,9 @@
     "vitest": "5.0.5"
   },
   "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    },
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
     "vitest": "5.0.5"
   }
