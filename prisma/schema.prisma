@@ -250,9 +250,7 @@ model Session {
 
 model Account {
   id                    String    @id
-  // ログイン方法の種類（email/password なら "local:credential"）。
-  // better-auth 1.7 以降、同一providerId内でaccountIdの一意性を保証するために追加されたフィールド
-  issuer                String
+  // ログイン方法の種類（email/password なら "credential"、Google なら "google"）
   accountId             String
   providerId            String
   userId                String
@@ -267,7 +265,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@unique([issuer, accountId])
+  @@unique([providerId, accountId])
   @@index([userId])
   @@map("accounts")
 }
