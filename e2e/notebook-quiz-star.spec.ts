@@ -49,9 +49,11 @@ test("クイズで答えたあと、「次の問題へ」の横の★で単語�
   await star.click();
   await expect(page.getByRole("button", { name: "★を外す" })).toBeVisible();
 
-  // ★はサーバーに保存され、開き直しても★つきの単語として出題できる
+  // ★はサーバーに保存され、開き直しても★つきの単語として出題できる。
+  // 同じタブで開き直すと解いている途中から再開するので、保存した途中経過を消して設定画面から開く
   await expect
     .poll(async () => {
+      await page.evaluate(() => sessionStorage.clear());
       await page.goto(`${notebookUrl}/quiz`);
       return page.getByRole("button", { name: /★つきのみ/ }).textContent();
     })
