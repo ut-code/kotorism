@@ -9,6 +9,8 @@ import { useStudyTimer } from "@/hooks/useStudyTimer";
 import { useSwipe } from "@/hooks/useSwipe";
 import { starColorFor } from "@/lib/shared/star-colors";
 import type { CardData } from "@/lib/shared/card-data";
+import { deckProgressKey, restoreStudyProgress, studyUnitKey } from "@/lib/shared/deck-progress";
+import { useSessionProgress } from "@/hooks/useSessionProgress";
 import MultiElementCard from "@/components/my-notebooks/MultiElement"; //三次元用の三角柱UIを導入
 
 type Card = {
@@ -28,17 +30,19 @@ type Card = {
 // そのまま1組=1枚のStudyUnitとして使う
 type StudyUnit = {
   card: Card;
+  // 途中経過を保存するときに、出題単位を見分けるキー（studyUnitKey）
+  key: string;
   // 列名 → この組での値（見出し語列を除く。値が無い列はキー自体が存在しない）
   values: Record<string, string>;
 };
 
 function expandToUnits(card: Card, bodyColumns: string[]): StudyUnit[] {
-  return card.data.rows.map((row) => {
+  return card.data.rows.map((row, rowIndex) => {
     const values: Record<string, string> = {};
     for (const column of bodyColumns) {
       if (row[column] !== undefined) values[column] = row[column];
     }
-    return { card, values };
+    return { card, key: studyUnitKey(card.id, rowIndex), values };
   });
 }
 
@@ -83,6 +87,24 @@ export default function StudyDeck({
   const [flipped, setFlipped] = useState(false);
 
   const [frontColumn, setFrontColumn] = useState<string>(columns[0] ?? "");
+
+  // 誤ってリロードしても、同じ並び順・同じカード・同じおもての列から再開できるように sessionStorage に保存する
+  const { restored } = useSessionProgress(
+    deckProgressKey(mode, notebookId),
+    { order: order.map((i) => units[i].key), index, frontColumn },
+    (saved) => {
+      const progress = restoreStudyProgress(
+        saved,
+        units.map((unit) => unit.key),
+      );
+      if (!progress) return;
+      setOrder(progress.order);
+      setIndex(progress.index);
+      if (progress.frontColumn && columns.includes(progress.frontColumn)) {
+        setFrontColumn(progress.frontColumn);
+      }
+    },
+  );
 
   // このページを開いている間の学習時間を記録する
   useStudyTimer({ kind: "deck", deckId: notebookId, mode });
@@ -156,6 +178,8 @@ export default function StudyDeck({
   // 移動しただけ＝idが変わらない場合も、ここで重複カウントを防いでいる）
   const countedIdRef = useRef<string | null>(null);
   useEffect(() => {
+    // 途中経過を読み戻す前は1枚目が仮に表示されているだけなので、数えない
+    if (!restored) return;
     if (countedIdRef.current === currentCard.id) return;
     countedIdRef.current = currentCard.id;
     viewFetcher.submit(
@@ -164,7 +188,7 @@ export default function StudyDeck({
     );
     // viewFetcher は毎レンダリングで同一とは限らないため、依存にはカードidだけを持たせる
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentCard.id]);
+  }, [currentCard.id, restored]);
 
   // 次のカードへ。indexが末尾を超えないようMath.minでクランプし、
   // カードが切り替わったら必ず表向きに戻す

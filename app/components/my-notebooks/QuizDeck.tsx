@@ -3,7 +3,14 @@ import { useFetcher } from "react-router";
 
 import { AUDIO_OPTIONS, SpeakButton } from "@/components/practice/PracticeControls";
 import { useStarColors } from "@/hooks/useStarColors";
+import { useSessionProgress } from "@/hooks/useSessionProgress";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
+import {
+  deckProgressKey,
+  restoreQuizProgress,
+  type QuizProgress,
+  type QuizQuestion as Question,
+} from "@/lib/shared/deck-progress";
 import type { NotebookLanguage } from "@/lib/shared/notebook-language";
 import {
   quizHint,
@@ -24,21 +31,6 @@ type QuizCard = {
   // 自分がこの単語に★をつけているか・★をつけた累計回数（共有リンクのクイズでは無い）
   starred?: boolean;
   starCount?: number;
-};
-
-type Question = {
-  // 出題元の単語（Card.id）。回答を学習カレンダーに記録するのに使う
-  cardId: string;
-  // 出題する見出し語
-  head: string;
-  // 正解（選んだ列の値）
-  answer: string;
-  // 正解と同じ組の、ヒントの列の値（中国語のテンプレートで拼音を答えるときの意味）。無ければ空文字
-  hint: string;
-  // 正解と同じ組の、見出し語の上に出す列の値（中国語のテンプレートで意味を答えるときの拼音）。無ければ空文字
-  ruby: string;
-  // 正解を含む選択肢（表示順にシャッフル済み）
-  choices: string[];
 };
 
 const CHOICE_COUNT = 4;
@@ -138,6 +130,46 @@ export default function QuizDeck({
     ),
   );
   const { colors: starColors } = useStarColors();
+
+  // 誤ってリロードしても、解いている途中（と結果画面）から再開できるように sessionStorage に保存する。
+  // 設定画面では保存を消す（次に開いたときは設定から始める）
+  const progress: QuizProgress | null =
+    phase === "settings"
+      ? null
+      : {
+          phase,
+          column,
+          roundSize,
+          target,
+          audio,
+          questions,
+          index,
+          selected,
+          mistakes,
+          correctCount,
+        };
+  useSessionProgress(
+    deckProgressKey(readOnly ? "share-quiz" : "quiz", notebookId),
+    progress,
+    (saved) => {
+      const restored = restoreQuizProgress(saved, {
+        cardIds: cards.map((card) => card.id),
+        quizColumns,
+      });
+      if (!restored) return;
+      setPhase(restored.phase);
+      setColumn(restored.column);
+      setRoundSize(restored.roundSize);
+      setTarget(restored.target);
+      setAudio(restored.audio);
+      setQuestions(restored.questions);
+      setIndex(restored.index);
+      setSelected(restored.selected);
+      setMistakes(restored.mistakes);
+      setCorrectCount(restored.correctCount);
+    },
+  );
+
   const starredCount = quizTargetCards(cards, "starred", stars).length;
   // ★つきの単語が無くなったら、★つきのみは選べないので「すべて」に戻す
   const effectiveTarget: QuizTarget = starredCount > 0 ? target : "all";

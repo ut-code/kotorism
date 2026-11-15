@@ -3,6 +3,8 @@ import { useSwipe } from "@/hooks/useSwipe";
 import Link from "@/components/Link";
 
 import type { CardData } from "@/lib/shared/card-data";
+import { deckProgressKey, restoreStudyProgress, studyUnitKey } from "@/lib/shared/deck-progress";
+import { useSessionProgress } from "@/hooks/useSessionProgress";
 import MultiElementCard from "@/components/my-notebooks/MultiElement";
 
 type Card = { id: string; data: CardData };
@@ -16,17 +18,19 @@ type Card = { id: string; data: CardData };
 // そのまま1組=1枚のStudyUnitとして使う
 type StudyUnit = {
   card: Card;
+  // 途中経過を保存するときに、出題単位を見分けるキー（studyUnitKey）
+  key: string;
   // 列名 → この組での値（見出し語列を除く。値が無い列はキー自体が存在しない）
   values: Record<string, string>;
 };
 
 function expandToUnits(card: Card, bodyColumns: string[]): StudyUnit[] {
-  return card.data.rows.map((row) => {
+  return card.data.rows.map((row, rowIndex) => {
     const values: Record<string, string> = {};
     for (const column of bodyColumns) {
       if (row[column] !== undefined) values[column] = row[column];
     }
-    return { card, values };
+    return { card, key: studyUnitKey(card.id, rowIndex), values };
   });
 }
 
@@ -59,6 +63,21 @@ export default function PublicStudyDeck({
   const [order, setOrder] = useState(() => units.map((_, i) => i));
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+
+  // 誤ってリロードしても、同じ並び順・同じカードから再開できるように sessionStorage に保存する
+  useSessionProgress(
+    deckProgressKey("share-study", notebookId),
+    { order: order.map((i) => units[i].key), index },
+    (saved) => {
+      const progress = restoreStudyProgress(
+        saved,
+        units.map((unit) => unit.key),
+      );
+      if (!progress) return;
+      setOrder(progress.order);
+      setIndex(progress.index);
+    },
+  );
 
   const current = units[order[index]];
   const currentCard = current.card;
