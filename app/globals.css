@@ -34,6 +34,13 @@
   --chart-learn-3: #145154; /* tealblue-800 */
   --chart-learn-4: #a6e6e6; /* tealblue-200 */
   --chart-other: #a1a1aa;
+  /* 白文字を載せるボタンの地色。白とのコントラスト比が 4.5 以上（WCAG AA）になる濃さにしている
+     （lib/shared/color-contrast.test.ts で確認）。コーラル500(#ff8877)や水色(#7fcdcc)の地に白文字は 1.8〜2.3 で読めないので使わない。
+     白文字は背景のテーマに関係なく同じ見え方になるので、ダークモードでも同じ色を使う */
+  --button-notebook: #a83b2c; /* coral-800（6.1） */
+  --button-notebook-hover: #7a2b20; /* coral-900 */
+  --button-learn: #167e82; /* tealblue-600（4.8） */
+  --button-learn-hover: #146568; /* tealblue-700 */
   color-scheme: light;
 }
 
@@ -61,6 +68,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* bg-button-notebook（My単語帳）/ bg-button-learn（学習教材）として使う */
+  --color-button-notebook: var(--button-notebook);
+  --color-button-notebook-hover: var(--button-notebook-hover);
+  --color-button-learn: var(--button-learn);
+  --color-button-learn-hover: var(--button-learn-hover);
   --font-sans: var(--font-noto-sans-jp);
   --font-serif: var(--font-shippori-mincho), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono);

@@ -233,7 +233,7 @@ export default function QuizDeck({
                 aria-pressed={column === name}
                 className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
                   column === name
-                    ? "bg-coral-500 text-white"
+                    ? "bg-button-notebook text-white"
                     : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -258,7 +258,7 @@ export default function QuizDeck({
                   aria-pressed={effectiveTarget === value}
                   className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                     effectiveTarget === value
-                      ? "bg-coral-500 text-white"
+                      ? "bg-button-notebook text-white"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -280,7 +280,7 @@ export default function QuizDeck({
                 aria-pressed={roundSize === size}
                 className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
                   roundSize === size
-                    ? "bg-coral-500 text-white"
+                    ? "bg-button-notebook text-white"
                     : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -305,7 +305,7 @@ export default function QuizDeck({
                   aria-pressed={audio === option.value}
                   className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
                     audio === option.value
-                      ? "bg-coral-500 text-white"
+                      ? "bg-button-notebook text-white"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -330,7 +330,7 @@ export default function QuizDeck({
               ),
             )
           }
-          className="rounded-full bg-coral-500 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-coral-600"
+          className="rounded-full bg-button-notebook px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-notebook-hover"
         >
           クイズを始める
         </button>
@@ -371,7 +371,7 @@ export default function QuizDeck({
             <button
               type="button"
               onClick={() => start(shuffle(mistakes))}
-              className="rounded-full bg-coral-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
+              className="rounded-full bg-button-notebook px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-button-notebook-hover"
             >
               間違えた単語だけもう一度
             </button>
@@ -519,7 +519,7 @@ export default function QuizDeck({
             <button
               type="button"
               onClick={next}
-              className="rounded-full bg-coral-500 px-8 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
+              className="rounded-full bg-button-notebook px-8 py-2.5 text-sm font-bold text-white transition-colors hover:bg-button-notebook-hover"
             >
               {isLast ? "結果を見る" : "次の問題へ"}
             </button>

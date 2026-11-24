@@ -309,7 +309,7 @@ function PracticeView({
               type="button"
               onClick={() => setRevealed(true)}
               disabled={strokes.length === 0}
-              className="w-full rounded-full bg-tealblue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-tealblue-700 disabled:opacity-40"
+              className="w-full rounded-full bg-button-learn px-6 py-3 font-bold text-white transition-colors hover:bg-button-learn-hover disabled:opacity-40"
             >
               答え合わせ
             </button>
@@ -391,7 +391,7 @@ function PracticeView({
               <button
                 type="button"
                 onClick={() => resetForNext(index + 1)}
-                className="rounded-full bg-tealblue-600 px-6 py-2 text-sm font-bold text-white hover:bg-tealblue-700"
+                className="rounded-full bg-button-learn px-6 py-2 text-sm font-bold text-white hover:bg-button-learn-hover"
               >
                 次の字へ
               </button>
@@ -510,7 +510,7 @@ export default function HandwritingPractice() {
         <button
           type="button"
           onClick={() => setQueue(shuffle(compareList))}
-          className="mt-5 rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+          className="mt-5 rounded-full bg-button-learn px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover"
         >
           手書き練習を始める
         </button>

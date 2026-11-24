@@ -85,7 +85,7 @@ export default function InvitePage({ loaderData }: Route.ComponentProps) {
         <fetcher.Form method="post" className="mt-8">
           <button
             type="submit"
-            className="rounded-full bg-coral-500 px-6 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
+            className="rounded-full bg-button-notebook px-6 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-button-notebook-hover hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
           >
             参加する
           </button>

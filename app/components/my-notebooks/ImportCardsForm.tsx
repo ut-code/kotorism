@@ -14,7 +14,7 @@ function SubmitButton({ pending }: { pending: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full bg-coral-500 px-4 py-1.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 disabled:opacity-50 dark:hover:shadow-none"
+      className="rounded-full bg-button-notebook px-4 py-1.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-button-notebook-hover hover:shadow-lg hover:shadow-coral-200 disabled:opacity-50 dark:hover:shadow-none"
     >
       {pending ? "取り込み中…" : "Excelから追加"}
     </button>
@@ -93,7 +93,7 @@ function ImportTemplate() {
                 className={[
                   "rounded-full border px-3 py-1.5 text-sm transition-colors",
                   isSelected
-                    ? "border-tealblue-600 bg-tealblue-600 text-white"
+                    ? "border-tealblue-600 bg-button-learn text-white"
                     : "border-black/[.08] bg-white text-zinc-700 hover:bg-zinc-100 dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800",
                 ].join(" ")}
               >

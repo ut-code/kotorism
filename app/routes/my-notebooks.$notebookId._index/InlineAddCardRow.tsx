@@ -154,7 +154,7 @@ export default function InlineAddCardRow({
             type="button"
             onClick={submit}
             disabled={pending}
-            className="mr-3 rounded-full bg-coral-500 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50"
+            className="mr-3 rounded-full bg-button-notebook px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-button-notebook-hover disabled:opacity-50"
           >
             {pending ? "追加中…" : "追加"}
           </button>
