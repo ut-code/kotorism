@@ -9,9 +9,10 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
-test("「新規登録する」で新規登録の画面へ移る", async ({ page }) => {
+// ログインと新規登録は /login の1画面にまとめている（Google ログインは初回にそのまま登録される）
+test("「新規登録する」でログイン / 新規登録の画面へ移る", async ({ page }) => {
   await page.getByRole("main").getByRole("link", { name: "新規登録する" }).click();
-  await expect(page).toHaveURL(/\/signup$/);
+  await expect(page).toHaveURL(/\/login$/);
 });
 
 test("「ログインする」でログインの画面へ移る", async ({ page }) => {
