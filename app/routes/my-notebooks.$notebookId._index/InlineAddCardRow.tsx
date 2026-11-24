@@ -76,7 +76,7 @@ export default function InlineAddCardRow({
           onClick={() => (open ? addAndNext() : onOpenChange(true))}
           aria-label="表に単語を追加"
           title="単語を追加"
-          className="w-full py-2 text-lg leading-none text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-coral-400"
+          className="w-full py-2 text-lg leading-none text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-coral-400"
         >
           ＋
         </button>

@@ -75,7 +75,7 @@ export function SectionBookmarkButton({
         className={`flex items-center justify-center rounded-full transition-colors disabled:opacity-60 ${circle} ${
           shown
             ? "bg-amber-100 text-amber-500 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50"
-            : "bg-zinc-100 text-zinc-400 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-700"
+            : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-700"
         }`}
       >
         <BookmarkIcon filled={shown} className={icon} />
@@ -123,7 +123,7 @@ export function SectionBookmarkButton({
               <button
                 type="button"
                 onClick={() => setShowPrompt(false)}
-                className="mt-4 text-sm text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                className="mt-4 text-sm text-zinc-500 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
               >
                 閉じる
               </button>

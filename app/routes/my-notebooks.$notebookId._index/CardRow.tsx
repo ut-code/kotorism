@@ -119,7 +119,7 @@ export default function CardRow({
           className={
             starColor
               ? "flex transition-opacity hover:opacity-75"
-              : "flex text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
+              : "flex text-zinc-500 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
           }
         >
           <StarIcon filled={displayedStarred} className="h-4 w-4" />
@@ -136,7 +136,7 @@ export default function CardRow({
       <span
         aria-label="暗記モードで表示した回数"
         title="暗記モードで見た回数"
-        className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-400 dark:text-zinc-600"
+        className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-500 dark:text-zinc-600"
       >
         <EyeIcon className="h-4 w-4" />
         {card.viewCount}
@@ -268,7 +268,7 @@ export default function CardRow({
                         onClick={() => mergeCell(rowIndex, column)}
                         aria-label={`「${column}」を下の組と結合`}
                         title="下の組と結合（1回の入力で、結合した組すべてに同じ値を保存する）"
-                        className="shrink-0 text-xs text-zinc-400 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+                        className="shrink-0 text-xs text-zinc-500 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
                       >
                         ⬇
                       </button>
@@ -289,7 +289,7 @@ export default function CardRow({
                   }
                   aria-label={`「${card.data.head}」に組を追加`}
                   title="組（意味など）を追加"
-                  className="px-1 text-lg leading-none text-zinc-400 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
+                  className="px-1 text-lg leading-none text-zinc-500 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
                 >
                   ＋
                 </button>

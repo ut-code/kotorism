@@ -363,7 +363,7 @@ export function ChineseImeInput({
           {/* ピンイン音節区切り表示 */}
           <div className="flex items-center justify-between border-b border-zinc-100 pb-2 text-xs dark:border-zinc-800">
             <div className="flex items-center gap-1.5 text-tealblue-700 dark:text-tealblue-300">
-              <span className="font-semibold text-zinc-400 dark:text-zinc-500">拼音:</span>
+              <span className="font-semibold text-zinc-500 dark:text-zinc-500">拼音:</span>
               {/* 声調記号が見えるよう、正規化した音節ではなく入力したままの文字で区切って出す */}
               <span
                 lang="zh-Latn-pinyin"
@@ -374,7 +374,7 @@ export function ChineseImeInput({
               </span>
             </div>
             {totalPages > 1 && (
-              <div className="text-zinc-400 dark:text-zinc-500">
+              <div className="text-zinc-500 dark:text-zinc-500">
                 {currentPage + 1} / {totalPages}
               </div>
             )}
@@ -401,7 +401,7 @@ export function ChineseImeInput({
                   >
                     <span
                       className={`text-xs ${
-                        isSelected ? "text-tealblue-100" : "text-zinc-400 dark:text-zinc-500"
+                        isSelected ? "text-tealblue-100" : "text-zinc-500 dark:text-zinc-500"
                       }`}
                     >
                       {idx + 1}.
@@ -411,7 +411,7 @@ export function ChineseImeInput({
                     </span>
                     {c.kind === "sentence" && (
                       <span
-                        className={`rounded px-1 text-[10px] ${
+                        className={`rounded px-1 text-xs ${
                           isSelected
                             ? "bg-tealblue-700 text-tealblue-100"
                             : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
@@ -424,14 +424,14 @@ export function ChineseImeInput({
                 );
               })
             ) : (
-              <span className="text-xs text-zinc-400 dark:text-zinc-500">
+              <span className="text-xs text-zinc-500 dark:text-zinc-500">
                 候補が見つかりません（Enterでアルファベットのまま確定）
               </span>
             )}
           </div>
 
           {/* 候補ナビゲーション & ショートカット説明 */}
-          <div className="mt-2.5 flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500">
+          <div className="mt-2.5 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-500">
             <div className={`flex-wrap gap-x-3 gap-y-1 ${useKeypad ? "hidden" : "flex"}`}>
               {KEY_HINTS.map(([keys, label]) => (
                 <span key={label}>

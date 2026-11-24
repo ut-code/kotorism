@@ -272,7 +272,7 @@ export default function NotebookTable({
                     onClick={() => addNewRow(0)}
                     aria-label="表に行を追加"
                     title="行を追加（いちばん下の行で ↓ を押しても追加できます）"
-                    className="w-full py-2 text-lg leading-none text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-coral-400"
+                    className="w-full py-2 text-lg leading-none text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-coral-400"
                   >
                     ＋
                   </button>

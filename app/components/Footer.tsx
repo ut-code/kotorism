@@ -50,7 +50,7 @@ export default function Footer() {
       <div className="px-[5%] pt-5 pb-3">
         <div className="flex flex-col items-center gap-2.5 sm:gap-3">
           <div className="flex flex-col items-center gap-1 text-center">
-            <p className="text-xs tracking-[0.04em] text-zinc-400 sm:text-sm dark:text-zinc-400">
+            <p className="text-xs tracking-[0.04em] text-zinc-500 sm:text-sm dark:text-zinc-400">
               ことりずむについて
             </p>
             <div className="flex items-center gap-x-4 text-black sm:gap-x-5 dark:text-zinc-100">
@@ -76,10 +76,10 @@ export default function Footer() {
           </div>
 
           <div className="mt-3 flex flex-col items-center gap-1 text-center sm:mt-4">
-            <p className="text-xs tracking-[0.04em] text-zinc-400 sm:text-sm dark:text-zinc-400">
+            <p className="text-xs tracking-[0.04em] text-zinc-500 sm:text-sm dark:text-zinc-400">
               ut.code();について
             </p>
-            <p className="text-xs tracking-[0.04em] text-zinc-600 max-[379px]:text-[11px] sm:text-base dark:text-zinc-200">
+            <p className="text-xs tracking-[0.04em] text-zinc-600 sm:text-base dark:text-zinc-200">
               ことりずむは、東京大学のソフトウェア開発サークル
               {/* 画面幅によって折り返す位置が変わらないよう、「サークル」の後で改行 */}
               <br className="sm:hidden" /> ut.code(); のプロジェクトです。
@@ -97,7 +97,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-400 sm:mt-4 sm:text-base dark:text-zinc-400">
+          <div className="mt-3 flex items-baseline justify-center gap-1.5 text-sm tracking-wide text-zinc-500 sm:mt-4 sm:text-base dark:text-zinc-400">
             <span>©︎{new Date().getFullYear()}</span>
             <span className="leading-none tracking-[0.06em]">ut.code();</span>
           </div>

@@ -120,7 +120,7 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
 
       {/* 操作ガイド。カードの左右をクリックしたときと同じく、ここをクリックしても前後の面へ回転する */}
       {showHint && (
-        <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-500">
+        <div className="flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-500">
           <button
             type="button"
             onClick={() => setRotationStep((prev) => prev - 1)}

@@ -181,7 +181,9 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
   };
 
   if (status === "loading") {
-    return <div className="py-10 text-center text-sm text-zinc-400">読み込み中…</div>;
+    return (
+      <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">読み込み中…</div>
+    );
   }
 
   if (status === "guest") {
@@ -309,7 +311,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                   }
                   className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-tealblue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 />
-                <div className="text-right text-xs text-zinc-400">
+                <div className="text-right text-xs text-zinc-500 dark:text-zinc-400">
                   {customSourceText.length} / {CUSTOM_SOURCE_MAX_LENGTH}
                 </div>
               </div>
@@ -448,7 +450,7 @@ function TranslationFeedbackCard({
       )}
 
       {submission.referenceTranslation && (
-        <p className="mt-4 text-xs text-zinc-400">
+        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
           模範解答（一例）: {submission.referenceTranslation}
         </p>
       )}
@@ -488,7 +490,7 @@ function TranslationHistory({
                   <span className="block truncate text-sm text-zinc-800 dark:text-zinc-100">
                     {submission.sourceText}
                   </span>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     {dateFormatter.format(new Date(submission.createdAt))}
                   </span>
                 </span>

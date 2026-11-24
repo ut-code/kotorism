@@ -68,10 +68,10 @@ export default function HanziCompare() {
               >
                 {label}
                 <span
-                  className={`text-[10px] ${
+                  className={`text-xs ${
                     mode === value
-                      ? "text-zinc-400 dark:text-tealblue-200"
-                      : "text-zinc-400 dark:text-zinc-500"
+                      ? "text-zinc-500 dark:text-tealblue-200"
+                      : "text-zinc-500 dark:text-zinc-500"
                   }`}
                 >
                   {hint}

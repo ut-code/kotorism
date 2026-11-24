@@ -438,7 +438,7 @@ export default function QuizDeck({
         <span>正解: {correctCount}</span>
       </div>
 
-      <div className="mt-6 text-xs text-zinc-400 dark:text-zinc-500">
+      <div className="mt-6 text-xs text-zinc-500 dark:text-zinc-500">
         {headColumn} → {column}
       </div>
       {question.ruby && (
