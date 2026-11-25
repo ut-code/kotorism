@@ -242,7 +242,7 @@ export default function StudyDeck({
           ★ボタンはフリップ用ボタンとは別要素（兄弟）なので、クリックがフリップに巻き込まれない */}
       <div className="relative mx-auto w-[320px] touch-pan-y" {...swipeHandlers}>
         {/* カード自体がクリック領域。クリックするたびに表裏(flipped)をトグルするだけで、
-            カードの移動（前へ/次へ/シャッフル）とは独立した操作になっている */}
+            単語の移動（前の単語/次の単語/シャッフル）とは独立した操作になっている */}
 
         {is3DMode ? (
           /* 3つの要素があるときは三角柱 */
@@ -295,7 +295,7 @@ export default function StudyDeck({
               <p className="text-sm text-zinc-500 dark:text-coral-200">他に項目がありません</p>
             )}
             <span className="mt-2 text-xs text-zinc-400 dark:text-coral-300">
-              クリックして{flipped ? "表" : "裏"}を見る
+              タップで{flipped ? "表に戻す" : "裏返す"}
             </span>
           </button>
         )}
@@ -354,7 +354,7 @@ export default function StudyDeck({
           disabled={index === 0}
           className="rounded-full border border-black/[.08] px-4 py-2 text-sm transition-colors hover:border-black/[.15] disabled:opacity-40 dark:border-white/[.145] dark:hover:border-white/[.25]"
         >
-          前へ
+          ← 前の単語
         </button>
         <button
           type="button"
@@ -369,7 +369,7 @@ export default function StudyDeck({
           disabled={index === order.length - 1}
           className="rounded-full bg-button-notebook px-4 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-button-notebook-hover hover:shadow-lg hover:shadow-coral-200 disabled:opacity-40 dark:hover:shadow-none"
         >
-          次へ
+          次の単語 →
         </button>
       </div>
 

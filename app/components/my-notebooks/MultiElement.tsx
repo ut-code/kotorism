@@ -104,7 +104,7 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
         {/* 左側ホバー時の矢印ガイド（前へ＋前の要素）。本文と重ならないようカード下端に置き、列名の長さに合わせて幅が伸び、はみ出す分は省略する */}
         <div className="pointer-events-none absolute inset-y-0 left-0 flex w-1/2 items-end justify-start pl-2 pb-2 opacity-0 transition-opacity group-hover:opacity-100">
           <span className="flex h-6 max-w-full items-center gap-1 rounded-full bg-black/10 px-2 text-xs font-bold whitespace-nowrap text-black backdrop-blur-sm dark:bg-white/10 dark:text-white">
-            <span className="shrink-0">◀</span>
+            <span className="shrink-0">↺</span>
             <span className="truncate">{prevLabel}</span>
           </span>
         </div>
@@ -113,28 +113,33 @@ const MultiElementCard: React.FC<MultiElementCardProps> = ({
         <div className="pointer-events-none absolute inset-y-0 right-0 flex w-1/2 items-end justify-end pr-2 pb-2 opacity-0 transition-opacity group-hover:opacity-100">
           <span className="flex h-6 max-w-full items-center gap-1 rounded-full bg-black/10 px-2 text-xs font-bold whitespace-nowrap text-black backdrop-blur-sm dark:bg-white/10 dark:text-white">
             <span className="truncate">{nextLabel}</span>
-            <span className="shrink-0">▶</span>
+            <span className="shrink-0">↻</span>
           </span>
         </div>
       </div>
 
-      {/* 操作ガイド。カードの左右をクリックしたときと同じく、ここをクリックしても前後の面へ回転する */}
+      {/* 面の切り替え。カードの左右をタップしたときと同じく、前後の面へ回す。
+          単語の切り替え（下の「← 前の単語」「次の単語 →」）と見分けられるよう、矢印ではなく回転の印と面の名前を出す */}
       {showHint && (
-        <div className="flex items-center gap-4 text-xs text-zinc-400 dark:text-zinc-500">
+        <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
           <button
             type="button"
             onClick={() => setRotationStep((prev) => prev - 1)}
-            className="rounded px-1 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+            aria-label={`前の面（${prevLabel}）へ回す`}
+            className="flex max-w-[9rem] items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
           >
-            ◀ 左: 戻る
+            <span aria-hidden="true">↺</span>
+            <span className="truncate">{prevLabel}</span>
           </button>
-          <span aria-hidden="true">|</span>
+          <span>面を回す</span>
           <button
             type="button"
             onClick={() => setRotationStep((prev) => prev + 1)}
-            className="rounded px-1 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+            aria-label={`次の面（${nextLabel}）へ回す`}
+            className="flex max-w-[9rem] items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
           >
-            右: 進む ▶
+            <span className="truncate">{nextLabel}</span>
+            <span aria-hidden="true">↻</span>
           </button>
         </div>
       )}
