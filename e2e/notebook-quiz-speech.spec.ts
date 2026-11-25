@@ -118,7 +118,7 @@ async function createPlainNotebook(page: Page, baseURL: string, title: string) {
 async function openQuizSettings(page: Page, notebookUrl: string, column = "拼音") {
   await page.goto(`${notebookUrl}/quiz`);
   await page.getByRole("button", { name: column, exact: true }).click();
-  await page.getByRole("button", { name: "全問", exact: true }).click();
+  await page.getByRole("button", { name: /^全問（\d+問）$/ }).click();
 }
 
 const startQuiz = (page: Page) => page.getByRole("button", { name: "クイズを始める" }).click();
