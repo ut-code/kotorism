@@ -14,6 +14,7 @@ import {
   type QuizOutcome,
 } from "@/components/practice/QuizParts";
 import { AccentInput } from "@/components/verbs/AccentInput";
+import { estimateMinutes } from "@/lib/shared/learn/practice-estimate";
 
 // 1問ずつ出題する演習（穴埋め・数字・時間表現・動詞の活用・ピンイン・選択クイズ）の共通部品。
 // 「設定 → 練習を始める → 出題中 → 結果」の流れと、問題数・制限時間・パス・間違えた問題の再挑戦を受け持つ。
@@ -166,6 +167,14 @@ export function Quiz<Q extends QuizQuestion>({
   const current = records[index];
   const correctCount = records.filter((r) => r.outcome === "correct").length;
   const roundSize = count === "all" ? pool.length : Math.min(Number(count), pool.length);
+  // 「練習を始める」の下に出す所要時間の目安。答え方が問題ごとに変わるときは最初の問題で見積もる
+  const estimateKind =
+    typeof modeOption === "function"
+      ? pool[0]
+        ? modeOption(pool[0]).kind
+        : "choice"
+      : modeOption.kind;
+  const minutes = estimateMinutes(roundSize, estimateKind);
 
   // 画面が切り替わって高さが変わったときに、演習の先頭が画面外に出ていれば戻す
   const scrollToTop = () => {
@@ -304,8 +313,8 @@ export function Quiz<Q extends QuizQuestion>({
               {pool.length === 0
                 ? emptyMessage
                 : roundSize === pool.length
-                  ? `${pool.length} 問を出題します`
-                  : `${pool.length} 問から ${roundSize} 問を出題します`}
+                  ? `${pool.length} 問を出題します（約${minutes}分）`
+                  : `${pool.length} 問から ${roundSize} 問を出題します（約${minutes}分）`}
             </p>
           </div>
           <div className="space-y-6">
