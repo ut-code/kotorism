@@ -69,23 +69,23 @@ export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <main className={PAGE_MAIN_CLASS}>
-      <div className="w-full max-w-2xl text-center">
+      {/* 主ボタン「＋ 新しい単語帳」を見出しのすぐ下に置き、使い方ガイド・★の色はその下に小さく並べる */}
+      <div className="flex w-full max-w-2xl flex-col items-center text-center">
         <PageTitle>My単語帳</PageTitle>
         <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
           単語帳を作ったり、暗記したりできます。
         </p>
-        <div className="mt-4 flex justify-center gap-3">
+        <div className="mt-6">
+          <NewNotebookButton />
+        </div>
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+          押すとすぐ開き、Excelの取り込みもそこで行えます。
+        </p>
+        <div className="mt-5 flex justify-center gap-3">
           <NotebookGuideButton />
           <StarColorSettings />
         </div>
       </div>
-
-      <section className="mt-10 flex w-full max-w-md flex-col items-center gap-3 text-center">
-        <NewNotebookButton />
-        <p className="text-xs text-zinc-500 dark:text-zinc-500">
-          押すとすぐ新しい単語帳が開きます。タイトル・列・単語の入力やExcel・Googleスプレッドシートのファイルの取り込みは、開いたページでそのまま行えます。
-        </p>
-      </section>
 
       <section className="mt-12 w-full max-w-2xl">
         <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
