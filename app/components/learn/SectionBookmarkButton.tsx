@@ -89,14 +89,15 @@ export function SectionBookmarkButton({
       >
         <BookmarkIcon filled={shown} className={icon} />
       </button>
-      <span
-        role="status"
-        className={`pointer-events-none absolute top-full right-0 mt-1.5 whitespace-nowrap rounded-full bg-zinc-900 px-2.5 py-1 text-xs text-white shadow transition-opacity dark:bg-zinc-100 dark:text-zinc-900 ${
-          notice ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        {notice}
-      </span>
+      {/* 出している間だけ置く。常に置いておくと、セクションのページで練習の答え合わせ（role="status"）と区別できなくなる */}
+      {notice && (
+        <span
+          role="status"
+          className="pointer-events-none absolute top-full right-0 mt-1.5 whitespace-nowrap rounded-full bg-zinc-900 px-2.5 py-1 text-xs text-white shadow dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          {notice}
+        </span>
+      )}
 
       {showPrompt &&
         !isLoggedIn &&
