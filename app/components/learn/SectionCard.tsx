@@ -1,6 +1,10 @@
 import Link from "@/components/Link";
 
 import { SectionBookmarkButton } from "@/components/learn/SectionBookmarkButton";
+import {
+  sectionCardStatusLabel,
+  type SectionCardStatus,
+} from "@/lib/shared/learn/section-card-status";
 
 interface SectionCardProps {
   href: string;
@@ -10,12 +14,15 @@ interface SectionCardProps {
   sectionSlug: string;
   isLoggedIn: boolean;
   manuallyTagged: boolean;
+  // 進み具合（未着手・取り組んだ・通算の正解数）
+  status: SectionCardStatus;
 }
 
 // /learn/[language] のセクション一覧カード。ブックマークは manuallyTagged の有無にかかわらず
 // 必ず表示し、塗りつぶし（苦手）か輪郭のみ（通常）かでひと目で状態がわかるようにする。
 // カード全体はセクションへのリンクだが、ブックマーク部分だけは独立してクリックでき、
-// その場でタグをON/OFFできる（Linkを絶対配置の背面レイヤーにして重ねている）
+// その場でタグをON/OFFできる（Linkを絶対配置の背面レイヤーにして重ねている）。
+// 右端の「＞」はボタンに見えないよう、丸い背景を付けない飾りにしている
 export function SectionCard({
   href,
   index,
@@ -24,6 +31,7 @@ export function SectionCard({
   sectionSlug,
   isLoggedIn,
   manuallyTagged,
+  status,
 }: SectionCardProps) {
   return (
     <div className="group relative flex items-center justify-between rounded-2xl border border-tealblue-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 dark:border-tealblue-600 dark:bg-tealblue-900 dark:hover:border-tealblue-400 dark:hover:bg-tealblue-800 dark:hover:shadow-none">
@@ -33,6 +41,16 @@ export function SectionCard({
           Section {index + 1}
         </span>
         <span className="font-medium text-zinc-900 dark:text-zinc-50">{title}</span>
+        <span
+          className={`text-xs ${
+            status.kind === "new"
+              ? "text-zinc-500 dark:text-tealblue-200"
+              : "font-medium text-tealblue-700 dark:text-tealblue-200"
+          }`}
+        >
+          {status.kind !== "new" && <span aria-hidden="true">✓ </span>}
+          {sectionCardStatusLabel(status)}
+        </span>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <SectionBookmarkButton
@@ -41,9 +59,10 @@ export function SectionCard({
           isLoggedIn={isLoggedIn}
           initialActive={manuallyTagged}
         />
-        <div className="pointer-events-none flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-tealblue-950 dark:text-tealblue-300 dark:group-hover:bg-tealblue-700 dark:group-hover:text-tealblue-50">
+        <div className="pointer-events-none text-zinc-500 transition-colors group-hover:text-tealblue-600 dark:text-tealblue-300 dark:group-hover:text-tealblue-50">
           <svg
-            className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+            className="h-5 w-5 transition-transform group-hover:translate-x-0.5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
