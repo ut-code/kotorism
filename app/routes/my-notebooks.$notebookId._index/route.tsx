@@ -13,7 +13,10 @@ import NotebookLanguageSelect from "./NotebookLanguageSelect";
 import NotebookTable from "./NotebookTable";
 import NotebookTitle from "./NotebookTitle";
 import ImportCardsForm from "@/components/my-notebooks/ImportCardsForm";
-import ResetAllStarsButton from "@/components/my-notebooks/ResetAllStarsButton";
+import ResetAllStarsButton, {
+  MENU_ITEM_CLASS,
+} from "@/components/my-notebooks/ResetAllStarsButton";
+import NotebookMoreMenu from "@/components/my-notebooks/NotebookMoreMenu";
 import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
 import ShareManager from "@/components/my-notebooks/ShareManager";
 import { normalizeCardData } from "@/lib/shared/card-data";
@@ -222,7 +225,9 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
   // ホームの「Excelから取り込む」から作った直後（?import=1）は、取り込み欄を開いた状態で始める。
   // ?import=1 はすぐ URL から外す（NotebookTitle）ので、最初の値だけを覚えておく
   const [searchParams] = useSearchParams();
-  const [openImport] = useState(() => searchParams.get("import") === "1");
+  const [importOpen, setImportOpen] = useState(() => searchParams.get("import") === "1");
+  // 「共有」で開く欄（リンクでの公開・共同編集者の管理）。作成者だけ
+  const [shareOpen, setShareOpen] = useState(false);
 
   // 「表を編集」を押すと、表のすべてのセルを入力欄にしてまとめて保存できる（intent=updateCards）。
   // 保存に成功したら表示に戻り、入力に問題があれば何も保存せずに理由を表示して編集を続ける
@@ -236,6 +241,11 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
     if (!bulkState.error) setEditingAll(false);
   }
 
+  const openImport = () => {
+    setImportOpen(true);
+    setShareOpen(false);
+  };
+
   return (
     <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-4xl">
@@ -246,8 +256,9 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
           ← My単語帳一覧
         </Link>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-          <div>
+        {/* 主役（学ぶ）はタイトルのすぐ下に大きく、脇役（共有・取り込みなどの管理）は右上の「共有」「⋯」にまとめる */}
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div className="min-w-0">
             <NotebookTitle notebookId={notebook.id} title={notebook.title} canEdit={isOwner} />
             <NotebookLanguageSelect
               notebookId={notebook.id}
@@ -268,40 +279,92 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
                 {notebook.ownerName}さんから共有
               </p>
             )}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             {isOwner && (
-              <div className="mt-3 flex flex-col items-start gap-2">
-                <ShareNotebookButton notebookId={notebook.id} isPublic={notebook.isPublic} />
-                <ShareManager notebookId={notebook.id} invites={invites} shares={shares} />
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShareOpen((prev) => !prev);
+                  setImportOpen(false);
+                }}
+                aria-expanded={shareOpen}
+                className="rounded-full border border-black/[.08] px-4 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-white/[.145] dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                共有
+              </button>
+            )}
+            <NotebookMoreMenu>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={openImport}
+                className={MENU_ITEM_CLASS}
+              >
+                Excel・スプレッドシートから追加
+              </button>
+              {hasAnyStars && <ResetAllStarsButton notebookId={notebook.id} variant="menuItem" />}
+            </NotebookMoreMenu>
+          </div>
+        </div>
+
+        {notebook.cardCount > 0 && (
+          // スマホなど狭い画面では、ボタンが押しつぶされて文字が折り返さないよう、画面幅いっぱいで1行に1つずつ並べる
+          <div className="mt-6 flex flex-col gap-3 text-center sm:flex-row sm:items-center">
+            <Link
+              href={`/my-notebooks/${notebook.id}/study`}
+              className="rounded-full bg-button-notebook px-8 py-3 text-base font-bold whitespace-nowrap text-white transition-all hover:-translate-y-0.5 hover:bg-button-notebook-hover hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
+            >
+              暗記学習を始める
+            </Link>
+            <Link
+              href={`/my-notebooks/${notebook.id}/quiz`}
+              className="rounded-full border-2 border-coral-300 px-8 py-2.5 text-base font-bold whitespace-nowrap text-coral-800 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:shadow-md hover:shadow-coral-100 dark:border-coral-800 dark:text-coral-200 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:shadow-none"
+            >
+              クイズに挑戦
+            </Link>
+            {starredCount > 0 && (
+              <Link
+                href={`/my-notebooks/${notebook.id}/review`}
+                className="rounded-full px-5 py-2.5 text-sm font-medium whitespace-nowrap text-coral-800 underline-offset-4 transition-colors hover:underline dark:text-coral-200"
+              >
+                ★を復習する（{starredCount}語）
+              </Link>
             )}
           </div>
-          {notebook.cardCount > 0 && (
-            // スマホなど狭い画面では、ボタンが押しつぶされて文字が折り返さないよう、画面幅いっぱいで1行に1つずつ並べる
-            <div className="flex w-full flex-col gap-3 text-center sm:w-auto sm:flex-row sm:items-center">
-              {starredCount > 0 && (
-                <Link
-                  href={`/my-notebooks/${notebook.id}/review`}
-                  className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium whitespace-nowrap text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
-                >
-                  ★を復習する（{starredCount}語）
-                </Link>
-              )}
-              <Link
-                href={`/my-notebooks/${notebook.id}/quiz`}
-                className="rounded-full border border-coral-300 px-5 py-2 text-sm font-medium whitespace-nowrap text-coral-700 transition-all hover:-translate-y-0.5 hover:border-coral-500 hover:bg-coral-50 hover:text-coral-800 hover:shadow-md hover:shadow-coral-100 dark:border-coral-900/50 dark:text-coral-300 dark:hover:border-coral-600 dark:hover:bg-coral-950/20 dark:hover:text-coral-200 dark:hover:shadow-none"
+        )}
+
+        {isOwner && shareOpen && (
+          <section
+            aria-label="共有"
+            className="mt-6 flex flex-col gap-4 rounded-2xl border border-black/[.08] p-4 dark:border-white/[.145]"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">共有</h2>
+              <button
+                type="button"
+                onClick={() => setShareOpen(false)}
+                className="text-xs text-zinc-500 transition-colors hover:underline dark:text-zinc-400"
               >
-                クイズに挑戦
-              </Link>
-              <Link
-                href={`/my-notebooks/${notebook.id}/study`}
-                className="rounded-full bg-button-notebook px-5 py-2 text-sm font-medium whitespace-nowrap text-white transition-all hover:-translate-y-0.5 hover:bg-button-notebook-hover hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
-              >
-                暗記学習を始める
-              </Link>
-              {hasAnyStars && <ResetAllStarsButton notebookId={notebook.id} />}
+                閉じる
+              </button>
             </div>
-          )}
-        </div>
+            <div>
+              <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                見るだけ：リンクを知っている人なら、ログインしなくても見て暗記学習・クイズができます。
+              </p>
+              <ShareNotebookButton notebookId={notebook.id} isPublic={notebook.isPublic} />
+            </div>
+            <ShareManager notebookId={notebook.id} invites={invites} shares={shares} embedded />
+          </section>
+        )}
+
+        {/* 表全体の編集中は「保存」「キャンセル」だけを出し、ほかの操作は編集を終えてから行う */}
+        {importOpen && !editingAll && (
+          <div className="mt-6">
+            <ImportCardsForm notebookId={notebook.id} open onOpenChange={setImportOpen} />
+          </div>
+        )}
 
         <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
           {cards.length > 0 &&
@@ -336,13 +399,6 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
                 編集
               </button>
             ))}
-          {/* 表全体の編集中は「保存」「キャンセル」だけを出し、ほかの操作は編集を終えてから行う */}
-          {!editingAll && (
-            <>
-              {/* 単語・列の追加は表の＋から、列名の変更・削除は列の見出しから行う */}
-              <ImportCardsForm notebookId={notebook.id} defaultExpanded={openImport} />
-            </>
-          )}
         </div>
 
         {/* 表をまとめて編集するときのフォーム。入力欄は表の中にあり、form 属性でこのフォームに結び付く */}
@@ -364,6 +420,7 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
             columns={columns}
             cards={cards}
             bulkEditFormId={editingAll ? BULK_EDIT_FORM_ID : undefined}
+            onRequestImport={openImport}
           />
         </InputAssist>
       </div>

@@ -19,11 +19,12 @@ test("「新しい単語帳」を押すとすぐ空の単語帳が開き、そ�
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 1, name: "e2e 用の単語帳" })).toBeVisible();
 
-  // 同じページで、表への追加と Excel の取り込みがすぐ使える
+  // 同じページで、表への追加と Excel の取り込みがすぐ使える（単語が0語のときは表の真ん中に大きく出す）
+  const table = page.getByRole("table").first();
+  await expect(table.getByRole("button", { name: "単語を追加する" })).toBeVisible();
   await expect(
-    page.getByRole("table").first().getByRole("button", { name: "表に単語を追加" }),
+    table.getByRole("button", { name: "Excel・スプレッドシートから取り込む" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Excel・スプレッドシートから追加" })).toBeVisible();
 
   // 再読み込みしてもタイトルの入力にはならず、一覧に作った単語帳が並ぶ
   await page.reload();
@@ -63,8 +64,11 @@ test("単語帳の表では、★（ブックマーク）を見出し語の下�
 
   await head.getByRole("button", { name: "★をつける" }).click();
   await expect(head.getByRole("button", { name: "★の回数を増やす" })).toBeVisible();
-  // 削除は右端の列に残る（編集は表の上の「表を編集」からまとめて行う）
-  await expect(row.locator("td").last().getByRole("button", { name: "削除" })).toBeVisible();
+  // 削除は右端の列に残る（編集は表の上の「表を編集」からまとめて行う）。PCでは行にマウスを乗せると見える
+  await row.hover();
+  const deleteButton = row.locator("td").last().getByRole("button", { name: "削除" });
+  await expect(deleteButton).toBeVisible();
+  await expect(deleteButton).toHaveCSS("opacity", "1");
 });
 
 test("見出し語の列の右に区切り線を引く（表示中・編集中・単語の追加中とも）", async ({
@@ -103,6 +107,41 @@ test("見出し語の列の右に区切り線を引く（表示中・編集中�
   expect(await hasRightLine(editingHead.locator("xpath=ancestor::td[1]"))).toBe(true);
 });
 
+test("単語を削除すると数秒「元に戻す」を出し、戻せば残り、戻さなければ消える", async ({
+  page,
+  baseURL,
+}) => {
+  await createNotebook(page, "e2e 用の削除の取り消しの単語帳");
+  const notebookUrl = new URL(page.url()).pathname;
+  for (const head of ["merci", "bonjour"]) {
+    const created = await page.request.post(notebookUrl, {
+      form: { intent: "createCard", head, "row:0:意味": "x" },
+      headers: { Origin: baseURL! },
+    });
+    expect(created.ok()).toBe(true);
+  }
+  await page.reload();
+  const table = page.getByRole("table").first();
+  const deleteRow = async (head: string) => {
+    const row = table.locator("tbody tr").filter({ hasText: head });
+    await row.hover();
+    await row.getByRole("button", { name: "削除" }).click();
+  };
+
+  // 元に戻すと、再読み込みしても残っている
+  await deleteRow("merci");
+  await expect(table.getByText("merci", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "元に戻す" }).click();
+  await expect(table.getByText("merci", { exact: true })).toBeVisible();
+
+  // 戻さなければ、数秒後に削除が保存される
+  await deleteRow("bonjour");
+  await expect(page.getByRole("button", { name: "元に戻す" })).toBeHidden({ timeout: 10_000 });
+  await page.reload();
+  await expect(table.getByText("merci", { exact: true })).toBeVisible();
+  await expect(table.getByText("bonjour", { exact: true })).toHaveCount(0);
+});
+
 test.describe("スマホ幅の単語帳ページ", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
@@ -115,22 +154,21 @@ test.describe("スマホ幅の単語帳ページ", () => {
     });
     expect(created.ok()).toBe(true);
     await page.reload();
-    // ★を付けると「★を復習する」「★を一括リセット」も並び、ボタンが最大の4つになる
+    // ★を付けると「★を復習する」も並び、ボタンが最大の3つになる（★を一括リセットは「⋯」メニューの中）
     await page.getByRole("button", { name: "★をつける" }).click();
     await expect(page.getByRole("link", { name: /★を復習する/ })).toBeVisible();
 
     const buttons = [
-      page.getByRole("link", { name: /★を復習する/ }),
-      page.getByRole("link", { name: "クイズに挑戦" }),
       page.getByRole("link", { name: "暗記学習を始める" }),
-      page.getByRole("button", { name: "★を一括リセット" }),
+      page.getByRole("link", { name: "クイズに挑戦" }),
+      page.getByRole("link", { name: /★を復習する/ }),
     ];
     const boxes = [];
     for (const button of buttons) boxes.push((await button.boundingBox())!);
 
     for (let i = 0; i < boxes.length; i++) {
       // 文字が1行に収まっている（折り返して縦に伸びていない）
-      expect(boxes[i].height).toBeLessThan(48);
+      expect(boxes[i].height).toBeLessThan(56); // 1行なら約48px、折り返すと約72px
       // 前のボタンより下の行にある（横に並んでいない）
       if (i > 0) expect(boxes[i].y).toBeGreaterThanOrEqual(boxes[i - 1].y + boxes[i - 1].height);
       // どのボタンも同じ幅（画面幅いっぱい）
