@@ -112,7 +112,7 @@ export default function CardRow({
   // ★を外すときは、隣の回数（StarCountEditor）から0にリセットする
   const starControls = (
     <span className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
-      <span className="inline-flex items-center gap-0.5" title="★を付けた回数">
+      <span className="inline-flex items-center gap-0.5" title="★の数（押すたびに増える）">
         <button
           type="button"
           onClick={handleAddStar}
@@ -137,7 +137,7 @@ export default function CardRow({
           ★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
       <span
         aria-label="暗記モードで表示した回数"
-        title="暗記モードで見た回数"
+        title="見た回数（暗記学習で表示した回数）"
         className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-400 dark:text-zinc-600"
       >
         <EyeIcon className="h-4 w-4" />
