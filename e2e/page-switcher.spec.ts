@@ -1,67 +1,23 @@
 import { expect, test } from "@playwright/test";
 
-// My単語帳 ← 学習履歴 → 学習教材 の並び（両端はループ）。各ページの左端に左隣、右端に右隣のページを出す
-const PAGES = [
-  {
-    path: "/my-notebooks",
-    left: "学習教材",
-    leftPath: "/learn",
-    right: "最近の学習履歴",
-    rightPath: "/history",
-  },
-  {
-    path: "/history",
-    left: "My単語帳",
-    leftPath: "/my-notebooks",
-    right: "学習教材",
-    rightPath: "/learn",
-  },
-  {
-    path: "/learn",
-    left: "最近の学習履歴",
-    leftPath: "/history",
-    right: "My単語帳",
-    rightPath: "/my-notebooks",
-  },
-];
+// ログイン後の主な3つの場所（学習履歴・My単語帳・学習教材）の行き来。
+// ヘッダーの下の「◀ ○○ / ○○ ▶」はパンくずリストに見えて紛らわしいので出さず、PCではサイドバーから移動する
+// （スマホのフリック中だけ出す名前は swipe-navigation.spec.ts）
+test("PCではヘッダーの下に ◀▶ を出さず、サイドバーの 学習履歴・My単語帳・学習教材 から移動できる", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/learn");
+  await expect(page.getByText("◀︎", { exact: false })).toHaveCount(0);
 
-for (const { path, left, leftPath, right, rightPath } of PAGES) {
-  test(`PCでも ${path} のヘッダーの下に ◀ ${left}・${right} ▶ を出し、クリックで移動できる`, async ({
-    page,
-  }) => {
-    await page.goto(path);
-    const switcher = page.getByRole("navigation", { name: "ページの切り替え" });
-    const leftLink = switcher.getByRole("link", { name: left, exact: true });
-    const rightLink = switcher.getByRole("link", { name: right, exact: true });
-    await expect(leftLink).toBeVisible();
-    await expect(rightLink).toBeVisible();
-
-    // 左のリンクは画面の左側、右のリンクは画面の右側に置く
-    const width = page.viewportSize()!.width;
-    expect((await leftLink.boundingBox())!.x).toBeLessThan(width / 2);
-    expect((await rightLink.boundingBox())!.x).toBeGreaterThan(width / 2);
-
-    await leftLink.click();
-    await expect(page).toHaveURL(new RegExp(`${leftPath}$`));
-    await page.goto(path);
-    await page
-      .getByRole("navigation", { name: "ページの切り替え" })
-      .getByRole("link", { name: right, exact: true })
-      .click();
-    await expect(page).toHaveURL(new RegExp(`${rightPath}$`));
-  });
-}
-
-// 学習教材の下の階層（言語ごとの一覧・各教材のページ）にも、学習教材と同じ ◀▶ を出す
-for (const path of ["/learn/french", "/learn/french/01"]) {
-  test(`${path} にも学習教材と同じ ◀ 最近の学習履歴・My単語帳 ▶ を出す`, async ({ page }) => {
-    await page.goto(path);
-    const switcher = page.getByRole("navigation", { name: "ページの切り替え" });
-    await expect(switcher.getByRole("link", { name: "最近の学習履歴", exact: true })).toBeVisible();
-    await switcher.getByRole("link", { name: "My単語帳", exact: true }).click();
-    await expect(page).toHaveURL(/\/my-notebooks$/);
-  });
-}
+  const sidebar = page.locator("aside");
+  await sidebar.getByRole("link", { name: "学習履歴", exact: true }).click();
+  await expect(page).toHaveURL(/\/history$/);
+  await sidebar.getByRole("link", { name: "My単語帳", exact: true }).click();
+  await expect(page).toHaveURL(/\/my-notebooks$/);
+  await sidebar.getByRole("link", { name: "学習教材", exact: true }).click();
+  await expect(page).toHaveURL(/\/learn$/);
+});
 
 // フリック・◀▶で行き来したときに見出しが動いて見えないよう、3ページで見出しの大きさと位置を揃える
 for (const viewport of [
@@ -99,31 +55,3 @@ for (const viewport of [
     expect(learn).toEqual(history);
   });
 }
-
-test("PCでは、左の ◀ はメニュー（サイドバー）の右側に置く（メニューを閉じても重ならない）", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/history");
-  const left = page.getByRole("navigation", { name: "ページの切り替え" }).getByRole("link").first();
-  const sidebar = page.locator("aside").first();
-  await expect(sidebar).toBeVisible();
-  const sidebarRight = async (locator: typeof sidebar) => {
-    const box = (await locator.boundingBox())!;
-    return box.x + box.width;
-  };
-  expect((await left.boundingBox())!.x).toBeGreaterThanOrEqual(await sidebarRight(sidebar));
-
-  // メニューを閉じたときは、閉じたメニュー（開くボタン）の右側
-  await page.getByRole("button", { name: "サイドバーを閉じる" }).click();
-  const collapsed = page.getByRole("button", { name: "サイドバーを開く" }).locator("xpath=..");
-  await expect(collapsed).toBeVisible();
-  expect((await left.boundingBox())!.x).toBeGreaterThanOrEqual(await sidebarRight(collapsed));
-});
-
-test("スマホでは、左の ◀ は画面の左端に置く", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/history");
-  const left = page.getByRole("navigation", { name: "ページの切り替え" }).getByRole("link").first();
-  expect((await left.boundingBox())!.x).toBeLessThan(24);
-});
