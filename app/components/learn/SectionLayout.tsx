@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router";
+import { PhraseText } from "@/components/PhraseText";
 
 import BackLink from "@/components/learn/BackLink";
 import type { SectionSummary } from "@/lib/shared/learn/content";
@@ -40,7 +41,7 @@ export default function SectionLayout({
       {current && (
         <header className="mt-6 w-full max-w-3xl text-left">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
-            {current.title}
+            <PhraseText>{current.title}</PhraseText>
           </h1>
           {current.description && (
             <p className="mt-3 leading-7 text-zinc-600 dark:text-zinc-400">{current.description}</p>

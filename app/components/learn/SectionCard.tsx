@@ -1,4 +1,5 @@
 import Link from "@/components/Link";
+import { PhraseText } from "@/components/PhraseText";
 
 import { SectionBookmarkButton } from "@/components/learn/SectionBookmarkButton";
 import { practiceEstimateLabel, type PracticeKind } from "@/lib/shared/learn/practice-estimate";
@@ -44,7 +45,9 @@ export function SectionCard({
         <span className="text-xs font-semibold uppercase tracking-wider text-tealblue-600 dark:text-tealblue-300">
           Section {index + 1}
         </span>
-        <span className="font-medium text-zinc-900 dark:text-zinc-50">{title}</span>
+        <span className="font-medium text-zinc-900 dark:text-zinc-50">
+          <PhraseText>{title}</PhraseText>
+        </span>
         <span
           className={`text-xs ${
             status.kind === "new"

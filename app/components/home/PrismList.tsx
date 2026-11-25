@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { PhraseText } from "@/components/PhraseText";
 
 // 罫線と光の跡の色。光の跡は左上の --vb-trail-from から右下の --vb-trail-to（罫線と同じ色）へのグラデーション
 const TONES = {
@@ -149,7 +150,7 @@ export function PrismList({
             style={{ textUnderlineOffset: ruleOffset }}
             className={`underline decoration-1 [text-decoration-skip-ink:none] [text-underline-position:under] ${TONES[tone].rule}`}
           >
-            {item}
+            <PhraseText>{item}</PhraseText>
           </span>
         </li>
       ))}
