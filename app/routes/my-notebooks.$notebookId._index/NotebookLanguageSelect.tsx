@@ -7,7 +7,8 @@ import {
   type NotebookLanguage,
 } from "@/lib/shared/notebook-language";
 
-// 単語帳の言語。選ぶと、単語を入力するときにその言語の入力補助（アクセント記号・ピンイン）が付く。
+// 単語帳の言語。選ぶと、単語を入力するときにその言語の入力補助（アクセント記号・ピンイン）が付き、
+// クイズの答え合わせでその言語の発音で読み上げる。何に効くかを横に短く書いておく。
 // 学習教材にない言語（英語など）は「指定なし」にする。変えられるのは作成者だけで、共同編集者には選んだ言語だけを見せる
 export default function NotebookLanguageSelect({
   notebookId,
@@ -34,7 +35,7 @@ export default function NotebookLanguageSelect({
   }
 
   return (
-    <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-500">
+    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
       <label htmlFor="notebook-language">言語</label>
       <select
         id="notebook-language"
@@ -56,6 +57,7 @@ export default function NotebookLanguageSelect({
           </option>
         ))}
       </select>
+      <span>入力補助と、クイズの読み上げに使います</span>
       {fetcher.data?.error && (
         <span role="alert" className="text-red-600 dark:text-red-400">
           {fetcher.data.error}

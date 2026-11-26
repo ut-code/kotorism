@@ -17,6 +17,8 @@ import ResetAllStarsButton, {
   MENU_ITEM_CLASS,
 } from "@/components/my-notebooks/ResetAllStarsButton";
 import NotebookMoreMenu from "@/components/my-notebooks/NotebookMoreMenu";
+import StarIcon from "@/components/StarIcon";
+import EyeIcon from "@/components/EyeIcon";
 import ShareNotebookButton from "@/components/my-notebooks/ShareNotebookButton";
 import ShareManager from "@/components/my-notebooks/ShareManager";
 import { normalizeCardData } from "@/lib/shared/card-data";
@@ -410,6 +412,20 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
         {editingAll && bulkState.error && (
           <p role="alert" className="mt-3 text-right text-sm text-red-600 dark:text-red-400">
             {bulkState.error}
+          </p>
+        )}
+
+        {/* 各単語の見出し語の下の ☆・👁 の数字が何かを、表の上に短く書いておく（PCではマウスを乗せても出る） */}
+        {cards.length > 0 && (
+          <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="inline-flex items-center gap-1">
+              <StarIcon filled={false} className="h-3.5 w-3.5" />
+              ★の数（押すたびに増える）
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <EyeIcon className="h-3.5 w-3.5" />
+              見た回数（暗記学習で表示した回数）
+            </span>
           </p>
         )}
 
