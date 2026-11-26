@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("多面カードは、下の「◀ 左: 戻る」「右: 進む ▶」をクリックしても回転する", async ({
+test("多面カードは、下の「↺ 前の面」「次の面 ↻」をクリックしても回転する", async ({
   page,
   baseURL,
 }) => {
@@ -31,12 +31,13 @@ test("多面カードは、下の「◀ 左: 戻る」「右: 進む ▶」を�
   const current = page.getByRole("status").filter({ hasText: "表示中の面" });
   await expect(current).toHaveText("表示中の面: 見出し語");
 
-  await page.getByRole("button", { name: "右: 進む ▶" }).click();
+  // 面を回すボタンには、回した先の面の名前を出す（単語を移る「次の単語 →」と見分けられるように）
+  await page.getByRole("button", { name: "次の面（意味）へ回す" }).click();
   await expect(current).toHaveText("表示中の面: 意味");
 
-  await page.getByRole("button", { name: "◀ 左: 戻る" }).click();
+  await page.getByRole("button", { name: "前の面（見出し語）へ回す" }).click();
   await expect(current).toHaveText("表示中の面: 見出し語");
 
-  await page.getByRole("button", { name: "◀ 左: 戻る" }).click();
+  await page.getByRole("button", { name: "前の面（例文）へ回す" }).click();
   await expect(current).toHaveText("表示中の面: 例文");
 });
