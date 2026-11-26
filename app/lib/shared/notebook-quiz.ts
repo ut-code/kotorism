@@ -129,3 +129,23 @@ export function quizTargetCards<T extends { id: string }>(
   if (target === "all") return cards;
   return cards.filter((card) => stars[card.id]?.starred);
 }
+
+// 出題できる問題の数。見出し語1件につき、選んだ列の異なる値を1問と数える（同じ答えは1問にまとめる）
+export function quizQuestionCount(cards: { rows: Record<string, string>[] }[], column: string) {
+  return cards.reduce(
+    (sum, card) => sum + new Set(card.rows.map((row) => row[column]).filter(Boolean)).size,
+    0,
+  );
+}
+
+const QUIZ_ROUND_SIZES = [5, 10, 20];
+
+// 問題数の選択肢（0 は「全問」）。出題できる数以上の数は「全問」と同じなので出さない
+export function quizRoundSizeOptions(available: number): number[] {
+  return [...QUIZ_ROUND_SIZES.filter((size) => size < available), 0];
+}
+
+// 選んだ問題数を、出題できる数に合わせる。初期値の10問でも、10問以下しか出せなければ「全問」になる
+export function effectiveQuizRoundSize(roundSize: number, available: number): number {
+  return roundSize > 0 && roundSize < available ? roundSize : 0;
+}

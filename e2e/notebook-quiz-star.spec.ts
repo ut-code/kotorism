@@ -35,7 +35,7 @@ test("クイズで答えたあと、「次の問題へ」の横の★で単語�
   // ★のついた単語が無いうちは、★つきだけを選べない
   await expect(page.getByRole("button", { name: /★つきのみ/ })).toBeDisabled();
 
-  await page.getByRole("button", { name: "全問", exact: true }).click();
+  await page.getByRole("button", { name: /^全問（\d+問）$/ }).click();
   await page.getByRole("button", { name: "クイズを始める" }).click();
 
   // 答える前は★のボタンを出さない
@@ -60,7 +60,7 @@ test("クイズで答えたあと、「次の問題へ」の横の★で単語�
     .toContain("1語");
 
   await page.getByRole("button", { name: /★つきのみ/ }).click();
-  await page.getByRole("button", { name: "全問", exact: true }).click();
+  await page.getByRole("button", { name: /^全問（\d+問）$/ }).click();
   await page.getByRole("button", { name: "クイズを始める" }).click();
   await expect(page.getByText("1 / 1問目")).toBeVisible();
   await expect(page.locator("[data-quiz-head]")).toHaveText(head);

@@ -13,7 +13,10 @@ import {
 } from "@/lib/shared/deck-progress";
 import type { NotebookLanguage } from "@/lib/shared/notebook-language";
 import {
+  effectiveQuizRoundSize,
   quizHint,
+  quizQuestionCount,
+  quizRoundSizeOptions,
   quizSupport,
   quizTargetCards,
   toggleQuizStar,
@@ -34,7 +37,6 @@ type QuizCard = {
 };
 
 const CHOICE_COUNT = 4;
-const ROUND_SIZES = [5, 10, 20, 0]; // 0は「全問」
 
 function shuffle<T>(items: T[]): T[] {
   const result = [...items];
@@ -173,6 +175,10 @@ export default function QuizDeck({
   const starredCount = quizTargetCards(cards, "starred", stars).length;
   // ★つきの単語が無くなったら、★つきのみは選べないので「すべて」に戻す
   const effectiveTarget: QuizTarget = starredCount > 0 ? target : "all";
+  const targetCards = quizTargetCards(cards, effectiveTarget, stars);
+  // 単語が少ないときは、出題できる数より多い問題数は選べず、初期値の10問も「全問」になる
+  const availableCount = quizQuestionCount(targetCards, column);
+  const effectiveRoundSize = effectiveQuizRoundSize(roundSize, availableCount);
   // テンプレートの列のまま意味・拼音を答えるときだけ、見出し語を読み上げる
   // （意味では単語を出したとき、拼音では答え合わせで。中国語では、意味なら拼音を、拼音なら意味を出す）
   const support = quizSupport(columns, column, language);
@@ -272,19 +278,19 @@ export default function QuizDeck({
         <section className="w-full">
           <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">問題数</div>
           <div className="flex flex-wrap justify-center gap-2">
-            {ROUND_SIZES.map((size) => (
+            {quizRoundSizeOptions(availableCount).map((size) => (
               <button
                 key={size}
                 type="button"
                 onClick={() => setRoundSize(size)}
-                aria-pressed={roundSize === size}
+                aria-pressed={effectiveRoundSize === size}
                 className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
-                  roundSize === size
+                  effectiveRoundSize === size
                     ? "bg-button-notebook text-white"
                     : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
-                {size === 0 ? "全問" : `${size}問`}
+                {size === 0 ? `全問（${availableCount}問）` : `${size}問`}
               </button>
             ))}
           </div>
@@ -322,9 +328,9 @@ export default function QuizDeck({
             start(
               buildQuestions(
                 cards,
-                quizTargetCards(cards, effectiveTarget, stars),
+                targetCards,
                 column,
-                roundSize,
+                effectiveRoundSize,
                 support?.hintColumn ?? null,
                 support?.rubyColumn ?? null,
               ),
