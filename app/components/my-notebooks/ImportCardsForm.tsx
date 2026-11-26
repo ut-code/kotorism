@@ -119,10 +119,17 @@ function ImportTemplate() {
 // 普段は折りたたんでおき、必要なときだけ「Excel・スプレッドシートから追加」で開く。
 // 列名が既存の単語帳の列と一致すればそこに値が追加され、一致しない列名は
 // 単語帳の末尾に新しい列として自動で追加される
-export default function ImportCardsForm({ notebookId }: { notebookId: string }) {
+// defaultExpanded: 最初から取り込み欄を開いておく（ホームの「Excelから取り込む」から作った単語帳）
+export default function ImportCardsForm({
+  notebookId,
+  defaultExpanded = false,
+}: {
+  notebookId: string;
+  defaultExpanded?: boolean;
+}) {
   const fetcher = useFetcher<FormState>();
   const state = fetcher.data ?? initialState;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   // 取り込み成功のたびにkeyを変えてフォームを作り直し、ファイル選択欄を空に戻す
   const [formKey, setFormKey] = useState(0);
   const [prevState, setPrevState] = useState(state);

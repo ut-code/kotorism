@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useSearchParams } from "react-router";
 
 import Link from "@/components/Link";
 
@@ -219,6 +219,11 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
   const { notebook, isOwner, invites, shares, columns, cards, starredCount, hasAnyStars } =
     loaderData;
 
+  // ホームの「Excelから取り込む」から作った直後（?import=1）は、取り込み欄を開いた状態で始める。
+  // ?import=1 はすぐ URL から外す（NotebookTitle）ので、最初の値だけを覚えておく
+  const [searchParams] = useSearchParams();
+  const [openImport] = useState(() => searchParams.get("import") === "1");
+
   // 「表を編集」を押すと、表のすべてのセルを入力欄にしてまとめて保存できる（intent=updateCards）。
   // 保存に成功したら表示に戻り、入力に問題があれば何も保存せずに理由を表示して編集を続ける
   const [editingAll, setEditingAll] = useState(false);
@@ -335,7 +340,7 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
           {!editingAll && (
             <>
               {/* 単語・列の追加は表の＋から、列名の変更・削除は列の見出しから行う */}
-              <ImportCardsForm notebookId={notebook.id} />
+              <ImportCardsForm notebookId={notebook.id} defaultExpanded={openImport} />
             </>
           )}
         </div>
