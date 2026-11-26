@@ -40,7 +40,7 @@ test("共有された単語帳には、誰から共有されたかを薄く小�
 }) => {
   // 作成者（e2e ユーザー）が単語帳を作り、招待リンクを発行する
   await createNotebook(page, "共有元の確認の単語帳");
-  await page.getByRole("button", { name: "共同編集者を管理" }).click();
+  await page.getByRole("button", { name: "共有", exact: true }).click();
   await page.getByRole("button", { name: "招待リンクを発行する" }).click();
   const inviteUrl = await page.locator('input[value*="/invite/"]').inputValue();
 

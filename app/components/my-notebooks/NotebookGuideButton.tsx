@@ -145,7 +145,7 @@ export default function NotebookGuideButton() {
               <div className="flex items-center justify-between border-b border-black/[.06] px-6 py-4 dark:border-white/[.1]">
                 <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                   My単語帳の使い方
-                  <span className="ml-2 text-zinc-400 dark:text-zinc-500">
+                  <span className="ml-2 text-zinc-500 dark:text-zinc-500">
                     {index + 1} / {GUIDE_SLIDES.length}
                   </span>
                 </p>
@@ -153,7 +153,7 @@ export default function NotebookGuideButton() {
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="ガイドを閉じる"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-xl leading-none text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-xl leading-none text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                 >
                   ×
                 </button>

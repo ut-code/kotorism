@@ -329,7 +329,7 @@ export default function InputAssist({
                   ime.rawInput}
               </span>
               {totalPages > 1 && (
-                <span className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500">
+                <span className="flex items-center gap-1 text-zinc-500 dark:text-zinc-500">
                   <button
                     type="button"
                     tabIndex={-1}
@@ -374,7 +374,7 @@ export default function InputAssist({
                         }`}
                       >
                         <span
-                          className={`text-xs ${selected ? "text-tealblue-100" : "text-zinc-400 dark:text-zinc-500"}`}
+                          className={`text-xs ${selected ? "text-tealblue-100" : "text-zinc-500 dark:text-zinc-500"}`}
                         >
                           {i + 1}.
                         </span>
@@ -383,7 +383,7 @@ export default function InputAssist({
                     );
                   })
               ) : (
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                <span className="text-xs text-zinc-500 dark:text-zinc-500">
                   候補が見つかりません（Enter でピンインのまま確定）
                 </span>
               )}

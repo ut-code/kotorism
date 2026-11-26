@@ -126,7 +126,7 @@ export default function MyNotebooksPage({ loaderData }: Route.ComponentProps) {
                     {share.notebook._count.cards}語
                   </p>
                   {/* 誰から共有された単語帳かを、薄く小さい文字で出す */}
-                  <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                  <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-500">
                     {share.notebook.user.name}さんから共有
                   </p>
                 </Link>

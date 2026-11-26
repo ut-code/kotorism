@@ -15,6 +15,10 @@
   unicode-range: U+0100-0101, U+0112-0113, U+012A-012B, U+014C-014D, U+016A-016B, U+01D5-01D6;
 }
 
+/* 文字サイズと色のルール（AGENTS.md の「UI rules」と同じ）
+   - 文字は 12px（text-xs）未満にしない。本文は 15〜16px（text-base）、補足は 13〜14px（text-sm）
+   - 灰色の文字は背景とのコントラスト比 4.5 以上にする。白地では text-zinc-500 以上の濃さ、ダークモードでは dark:text-zinc-400 以上の明るさ
+   - PC で教材・単語帳の本文の幅は 720〜880px（max-w-3xl = 768px） */
 :root {
   /* Google Fonts(app/root.tsx の links)で読み込むフォント。マクロン付きの母音だけ Pinyin Macron（上）で表示する */
   --font-noto-sans-jp: "Pinyin Macron", "Noto Sans JP";

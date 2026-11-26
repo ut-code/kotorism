@@ -8,17 +8,19 @@ type Share = { id: string; userName: string };
 
 // 単語帳の共同編集者（招待リンク・参加済みメンバー）を管理するパネル。作成者にのみ表示する。
 // 参加すると常に編集可能になる（閲覧のみの共有は別途「リンクで一般公開」が担う）。
-// 普段は折りたたんでおき、必要なときだけ「共同編集者を管理」で開く
+// 単語帳のページでは「共有」を押して開いた欄の中に、枠と「閉じる」なしで開いた状態で出す（embedded）
 export default function ShareManager({
   notebookId,
   invites,
   shares,
+  embedded = false,
 }: {
   notebookId: string;
   invites: Invite[];
   shares: Share[];
+  embedded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(embedded);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
   // origin はブラウザで表示が確定してから使う（サーバーでは分からず、ハイドレーションが不一致になるため）
@@ -44,16 +46,26 @@ export default function ShareManager({
   }
 
   return (
-    <div className="flex w-full flex-col gap-4 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]">
+    <div
+      className={`flex w-full flex-col gap-4 ${
+        embedded
+          ? "border-t border-black/[.08] pt-4 dark:border-white/[.145]"
+          : "rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]"
+      }`}
+    >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">共同編集者を管理</h3>
-        <button
-          type="button"
-          onClick={() => setExpanded(false)}
-          className="text-xs text-zinc-500 transition-colors hover:underline dark:text-zinc-500"
-        >
-          閉じる
-        </button>
+        <h3 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+          {embedded ? "一緒に編集する" : "共同編集者を管理"}
+        </h3>
+        {!embedded && (
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="text-xs text-zinc-500 transition-colors hover:underline dark:text-zinc-500"
+          >
+            閉じる
+          </button>
+        )}
       </div>
 
       <div>

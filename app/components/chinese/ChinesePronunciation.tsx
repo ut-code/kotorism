@@ -336,7 +336,7 @@ export function ChinesePronunciation() {
       {(recognizedText || isRecording || isExactMatch !== null) && (
         <div className="space-y-4 rounded-xl border border-zinc-100 p-4 dark:border-zinc-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-400">認識結果</span>
+            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">認識結果</span>
             {isRecording ? (
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
                 音声を聞き取り中...
@@ -354,13 +354,13 @@ export function ChinesePronunciation() {
 
           <div className="grid grid-cols-2 gap-2 text-center">
             <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-              <div className="text-[10px] text-zinc-400">認識された漢字</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">認識された漢字</div>
               <div className="text-xl font-bold text-zinc-800 dark:text-zinc-100 min-h-[28px]">
                 {recognizedText || "-"}
               </div>
             </div>
             <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-              <div className="text-[10px] text-zinc-400">変換ピンイン</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">変換ピンイン</div>
               <div className="text-sm font-bold text-tealblue-600 dark:text-tealblue-400 min-h-[20px]">
                 {recognizedPinyin || "-"}
               </div>
@@ -369,7 +369,7 @@ export function ChinesePronunciation() {
 
           {!isRecording && alternatives.length > 1 && (
             <div className="pt-2">
-              <div className="text-[10px] text-zinc-400">検知された類似候補:</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">検知された類似候補:</div>
               <div className="mt-1 flex flex-wrap gap-1">
                 {alternatives.map((alt) => (
                   <span

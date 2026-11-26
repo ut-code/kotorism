@@ -192,7 +192,7 @@ export default function PublicStudyDeck({
             ) : (
               <p className="text-sm text-zinc-500 dark:text-coral-200">他に項目がありません</p>
             )}
-            <span className="mt-2 text-xs text-zinc-400 dark:text-coral-300">
+            <span className="mt-2 text-xs text-zinc-500 dark:text-coral-300">
               タップで{flipped ? "表に戻す" : "裏返す"}
             </span>
           </button>

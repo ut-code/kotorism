@@ -50,7 +50,7 @@ export default function LearnPage({ loaderData }: Route.ComponentProps) {
                     </span>
                   </div>
                 </div>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-tealblue-950 dark:text-tealblue-300 dark:group-hover:bg-tealblue-700 dark:group-hover:text-tealblue-50">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-colors group-hover:bg-tealblue-50 group-hover:text-tealblue-600 dark:bg-tealblue-950 dark:text-tealblue-300 dark:group-hover:bg-tealblue-700 dark:group-hover:text-tealblue-50">
                   <svg
                     className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                     fill="none"

@@ -66,7 +66,7 @@ export default function LearnTree({ allSections = {} }: LearnTreeProps) {
                 onClick={() => toggleLanguage(lang.languageSlug)}
                 aria-expanded={isLangOpen}
                 aria-label={`${lang.label}のセクション一覧を開閉`}
-                className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
+                className="rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
               >
                 <svg
                   className={`h-4 w-4 transition-transform ${isLangOpen ? "rotate-90" : ""}`}

@@ -10,6 +10,12 @@ test("未ログインで保護されたページを開くと、戻り先つき�
   await expect(page).toHaveURL(/\/login\?redirect=%2Flearn%2Fchinese%2F05$/);
 });
 
+test("/signup は戻り先を保ったまま /login へ移る", async ({ page }) => {
+  await page.goto("/signup?redirect=%2Flearn");
+  await expect(page).toHaveURL(/\/login\?redirect=%2Flearn$/);
+  await expect(page.getByRole("heading", { level: 1, name: "ログイン / 新規登録" })).toBeVisible();
+});
+
 test("ログイン中は単語帳の一覧に入れ、ログアウトすると保護ページに入れなくなる", async ({
   page,
 }) => {
@@ -35,12 +41,11 @@ test("未ログインのヘッダーには My単語帳・学習教材 のリン�
 });
 
 test.describe("未ログインのヘッダー（スマホ幅）", () => {
-  test("1行に収まる幅では、ログイン・新規登録を折り畳まずに表示する", async ({ page }) => {
+  test("1行に収まる幅では、ログイン / 新規登録を折り畳まずに表示する", async ({ page }) => {
     await page.setViewportSize({ width: 480, height: 800 });
     await page.goto("/login");
     const header = page.getByRole("banner");
-    const signup = header.getByRole("link", { name: "新規登録" });
-    await expect(header.getByRole("link", { name: "ログイン" })).toBeVisible();
+    const signup = header.getByRole("link", { name: "ログイン / 新規登録" });
     await expect(signup).toBeVisible();
     await expect(header.getByRole("button", { name: "メニューを開く" })).toBeHidden();
 
@@ -55,8 +60,8 @@ test.describe("未ログインのヘッダー（スマホ幅）", () => {
     await page.setViewportSize({ width: 460, height: 800 });
     await page.goto("/login");
     const header = page.getByRole("banner");
-    await expect(header.getByRole("link", { name: "新規登録" })).toBeHidden();
+    await expect(header.getByRole("link", { name: "ログイン / 新規登録" })).toBeHidden();
     await header.getByRole("button", { name: "メニューを開く" }).click();
-    await expect(header.getByRole("link", { name: "新規登録" })).toBeVisible();
+    await expect(header.getByRole("link", { name: "ログイン / 新規登録" })).toBeVisible();
   });
 });

@@ -61,7 +61,7 @@ export default function StarCountEditor({
         aria-label="★の回数を修正する"
         aria-expanded={open}
         style={color ? { color } : undefined}
-        className="text-xs leading-none text-zinc-400 underline decoration-dotted underline-offset-2 dark:text-zinc-600"
+        className="text-xs leading-none text-zinc-500 underline decoration-dotted underline-offset-2 dark:text-zinc-600"
       >
         {starCount}
       </button>

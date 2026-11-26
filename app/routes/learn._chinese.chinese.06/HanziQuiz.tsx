@@ -132,7 +132,7 @@ export default function HanziQuiz() {
                   className="flex items-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-700"
                 >
                   <Glyph char={item.japanese} kind="japanese" className="text-2xl" />
-                  <span className="text-zinc-400">→</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">→</span>
                   <Glyph
                     char={item.simplified}
                     kind="simplified"

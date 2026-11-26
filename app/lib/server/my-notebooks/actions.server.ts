@@ -166,8 +166,10 @@ export async function createBlankNotebook(formData: FormData): Promise<FormState
     },
   });
 
-  // ?new=1 で開くと、単語帳のページはタイトルを入力できる状態で始まる（NotebookTitle）
-  throw redirect(`/my-notebooks/${notebook.id}?new=1`);
+  // ?new=1 で開くと、単語帳のページはタイトルを入力できる状態で始まる（NotebookTitle）。
+  // ホームの「Excelから取り込む」（then=import）から作ったときは ?import=1 も付け、取り込み欄を開いた状態で始める
+  const importQuery = formData.get("then") === "import" ? "&import=1" : "";
+  throw redirect(`/my-notebooks/${notebook.id}?new=1${importQuery}`);
 }
 
 // 単語帳のタイトルを変える。作成者のみ実行可能。

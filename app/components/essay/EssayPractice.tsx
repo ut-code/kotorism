@@ -163,7 +163,9 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
   };
 
   if (status === "loading") {
-    return <div className="py-10 text-center text-sm text-zinc-400">読み込み中…</div>;
+    return (
+      <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">読み込み中…</div>
+    );
   }
 
   if (status === "guest") {
@@ -364,7 +366,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                 className="mt-4 w-full rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 text-base text-zinc-800 outline-none transition-colors focus:border-tealblue-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
               />
             )}
-            <div className="mt-1 text-right text-xs text-zinc-400">
+            <div className="mt-1 text-right text-xs text-zinc-500 dark:text-zinc-400">
               {countEssayLength(content, lengthUnit)}
               {unitLabel}
             </div>
@@ -480,7 +482,7 @@ function EssayHistory({
                   <span className="block truncate text-sm text-zinc-800 dark:text-zinc-100">
                     {submission.topicPrompt}
                   </span>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     {dateFormatter.format(new Date(submission.createdAt))}
                   </span>
                 </span>
@@ -517,13 +519,7 @@ function EssayLoginPrompt() {
           href={`/login?${redirectQuery}`}
           className="rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
         >
-          ログイン
-        </Link>
-        <Link
-          href={`/signup?${redirectQuery}`}
-          className="rounded-full border border-black/[.08] px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-white/[.145] dark:text-zinc-200 dark:hover:bg-zinc-800"
-        >
-          新規登録
+          ログイン / 新規登録
         </Link>
       </div>
     </div>

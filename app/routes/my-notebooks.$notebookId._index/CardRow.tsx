@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFetcher, useSubmit } from "react-router";
+import { useSubmit } from "react-router";
 
 import EyeIcon from "@/components/EyeIcon";
 import type { LongPressDragHandlers } from "@/hooks/useLongPressDrag";
@@ -40,6 +40,7 @@ export default function CardRow({
   columns,
   card,
   bulkEditFormId,
+  onDelete,
   drag,
   dragDisabled,
   isDragSource,
@@ -51,6 +52,8 @@ export default function CardRow({
   card: { id: string; data: CardData; starred: boolean; starCount: number; viewCount: number };
   // 表全体を編集中なら、入力欄をまとめて送るフォームのid（route.tsx の「表を編集」）。表示中はundefined
   bulkEditFormId?: string;
+  // 削除ボタンを押したとき（NotebookTable が表から隠し、数秒「元に戻す」を出してから送る）
+  onDelete: () => void;
   // 長押ししたまま動かして並べ替えるときの処理（NotebookTable）
   drag?: LongPressDragHandlers;
   dragDisabled?: boolean;
@@ -87,7 +90,6 @@ export default function CardRow({
       },
     );
   }
-  const deleteFetcher = useFetcher();
   const assistField = useAssistField();
   // どれかの組の行を長押ししている間は、この単語の行すべてに色を付ける（DraggableTr の data-card-pressed）
   const [pressed, setPressed] = useState(false);
@@ -110,7 +112,7 @@ export default function CardRow({
   // ★を外すときは、隣の回数（StarCountEditor）から0にリセットする
   const starControls = (
     <span className="mt-1.5 flex items-center gap-3 whitespace-nowrap">
-      <span className="inline-flex items-center gap-0.5" title="★を付けた回数">
+      <span className="inline-flex items-center gap-0.5" title="★の数（押すたびに増える）">
         <button
           type="button"
           onClick={handleAddStar}
@@ -119,7 +121,7 @@ export default function CardRow({
           className={
             starColor
               ? "flex transition-opacity hover:opacity-75"
-              : "flex text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
+              : "flex text-zinc-500 transition-colors hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
           }
         >
           <StarIcon filled={displayedStarred} className="h-4 w-4" />
@@ -135,8 +137,8 @@ export default function CardRow({
           ★のアイコン（StarIcon）と同じ大きさで中心をそろえる */}
       <span
         aria-label="暗記モードで表示した回数"
-        title="暗記モードで見た回数"
-        className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-400 dark:text-zinc-600"
+        title="見た回数（暗記学習で表示した回数）"
+        className="inline-flex items-center gap-0.5 text-xs leading-none text-zinc-500 dark:text-zinc-600"
       >
         <EyeIcon className="h-4 w-4" />
         {card.viewCount}
@@ -268,7 +270,7 @@ export default function CardRow({
                         onClick={() => mergeCell(rowIndex, column)}
                         aria-label={`「${column}」を下の組と結合`}
                         title="下の組と結合（1回の入力で、結合した組すべてに同じ値を保存する）"
-                        className="shrink-0 text-xs text-zinc-400 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+                        className="shrink-0 text-xs text-zinc-500 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
                       >
                         ⬇
                       </button>
@@ -289,9 +291,18 @@ export default function CardRow({
                   }
                   aria-label={`「${card.data.head}」に組を追加`}
                   title="組（意味など）を追加"
-                  className="px-1 text-lg leading-none text-zinc-400 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
+                  className="px-1 text-lg leading-none text-zinc-500 transition-colors hover:text-coral-600 dark:text-zinc-500 dark:hover:text-coral-400"
                 >
                   ＋
+                </button>
+                {/* 編集中はスマホでも削除を出す（表示中のスマホでは、誤って押さないよう出さない） */}
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  aria-label={`「${card.data.head}」を削除`}
+                  className="mt-2 block text-xs text-red-600 transition-colors hover:underline dark:text-red-400"
+                >
+                  削除
                 </button>
               </td>
             )}
@@ -317,7 +328,7 @@ export default function CardRow({
           drag={drag && { ...drag, onPressChange: setPressed }}
           dragDisabled={dragDisabled}
           data-card-pressed={pressed ? "" : undefined}
-          className={`border-t border-black/[.06] dark:border-white/[.1] ${isDragSource ? "opacity-40" : ""}`}
+          className={`group/card border-t border-black/[.06] dark:border-white/[.1] ${isDragSource ? "opacity-40" : ""}`}
         >
           {rowIndex === 0 && (
             // マスの名前（読み上げ）は見出し語にし、下の★などの文字を含めない
@@ -351,26 +362,15 @@ export default function CardRow({
               className="px-1.5 py-3 sm:px-4 text-right align-top whitespace-nowrap"
             >
               {/* 編集は表の上の「編集」からまとめて行う。ここには削除だけを置く。
-                  確認ダイアログで「キャンセル」された場合はpreventDefaultで送信自体を止める */}
-              <deleteFetcher.Form
-                method="post"
-                action={actionUrl}
-                className="inline"
-                onSubmit={(event) => {
-                  if (!window.confirm("この単語を削除しますか？")) {
-                    event.preventDefault();
-                  }
-                }}
+                  目立ちすぎて誤って押しやすいので、PCでは行にマウスを乗せたとき（キーボードでは選んだとき）だけ見せ、
+                  タッチ操作の端末では出さない（「編集」中に出す）。確認ダイアログの代わりに数秒「元に戻す」を出す */}
+              <button
+                type="button"
+                onClick={onDelete}
+                className="text-sm text-red-600 opacity-0 transition-opacity group-hover/card:opacity-100 hover:underline focus-visible:opacity-100 dark:text-red-400 [@media(hover:none)]:hidden"
               >
-                <input type="hidden" name="intent" value="deleteCard" />
-                <input type="hidden" name="cardId" value={card.id} />
-                <button
-                  type="submit"
-                  className="text-sm text-red-600 transition-colors hover:underline dark:text-red-400"
-                >
-                  削除
-                </button>
-              </deleteFetcher.Form>
+                削除
+              </button>
             </td>
           )}
         </DraggableTr>

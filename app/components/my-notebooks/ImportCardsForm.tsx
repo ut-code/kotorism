@@ -119,10 +119,18 @@ function ImportTemplate() {
 // 普段は折りたたんでおき、必要なときだけ「Excel・スプレッドシートから追加」で開く。
 // 列名が既存の単語帳の列と一致すればそこに値が追加され、一致しない列名は
 // 単語帳の末尾に新しい列として自動で追加される
-export default function ImportCardsForm({ notebookId }: { notebookId: string }) {
+// 開閉は単語帳のページが持つ（「⋯」メニューや、単語が0語のときの案内から開く）
+export default function ImportCardsForm({
+  notebookId,
+  open,
+  onOpenChange,
+}: {
+  notebookId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const fetcher = useFetcher<FormState>();
   const state = fetcher.data ?? initialState;
-  const [expanded, setExpanded] = useState(false);
   // 取り込み成功のたびにkeyを変えてフォームを作り直し、ファイル選択欄を空に戻す
   const [formKey, setFormKey] = useState(0);
   const [prevState, setPrevState] = useState(state);
@@ -133,17 +141,7 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
     }
   }
 
-  if (!expanded) {
-    return (
-      <button
-        type="button"
-        onClick={() => setExpanded(true)}
-        className="text-sm text-zinc-600 transition-colors hover:underline dark:text-zinc-400"
-      >
-        Excel・スプレッドシートから追加
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <div className="flex w-full flex-col gap-3 rounded-2xl border border-dashed border-black/[.15] p-4 dark:border-white/[.2]">
@@ -153,7 +151,7 @@ export default function ImportCardsForm({ notebookId }: { notebookId: string }) 
         </h3>
         <button
           type="button"
-          onClick={() => setExpanded(false)}
+          onClick={() => onOpenChange(false)}
           className="text-xs text-zinc-500 transition-colors hover:underline dark:text-zinc-500"
         >
           閉じる
