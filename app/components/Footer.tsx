@@ -1,5 +1,8 @@
 //花沢
+import { useLocation } from "react-router";
+
 import Link from "@/components/Link";
+import { footerVariant } from "@/lib/shared/footer-variant";
 
 const CONTACT_LINK = { href: "https://forms.gle/HnspDy2kNqQxPCWA8", label: "お問い合わせ" };
 
@@ -44,7 +47,41 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
+// トップページではサークル紹介つきの大きなフッター、アプリ内の画面では1行だけ、練習中は出さない（footerVariant）
 export default function Footer() {
+  const { pathname } = useLocation();
+  const variant = footerVariant(pathname);
+  if (variant === "none") return null;
+  if (variant === "compact") return <CompactFooter />;
+  return <FullFooter />;
+}
+
+// アプリ内の画面のフッター。お問い合わせとクレジットを1行に並べ、画面の下に大きな余白を作らない
+function CompactFooter() {
+  return (
+    <footer className="border-t border-black/[.08] px-6 py-3 dark:border-white/[.145]">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs tracking-[0.04em] text-zinc-500 dark:text-zinc-400">
+        <Link
+          href={CONTACT_LINK.href}
+          className="underline underline-offset-4 hover:text-zinc-800 dark:hover:text-zinc-200"
+        >
+          {CONTACT_LINK.label}
+        </Link>
+        <span>
+          ©︎{new Date().getFullYear()}{" "}
+          <Link
+            href={NAV_LINKS[0].href}
+            className="underline underline-offset-4 hover:text-zinc-800 dark:hover:text-zinc-200"
+          >
+            ut.code();
+          </Link>
+        </span>
+      </div>
+    </footer>
+  );
+}
+
+function FullFooter() {
   return (
     <footer className="border-t border-black/[.08] bg-white dark:border-white/[.145] dark:bg-zinc-600">
       <div className="px-[5%] pt-5 pb-3">
