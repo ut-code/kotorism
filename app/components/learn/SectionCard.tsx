@@ -1,6 +1,7 @@
 import Link from "@/components/Link";
 
 import { SectionBookmarkButton } from "@/components/learn/SectionBookmarkButton";
+import { practiceEstimateLabel, type PracticeKind } from "@/lib/shared/learn/practice-estimate";
 import {
   sectionCardStatusLabel,
   type SectionCardStatus,
@@ -16,6 +17,8 @@ interface SectionCardProps {
   manuallyTagged: boolean;
   // 進み具合（未着手・取り組んだ・通算の正解数）
   status: SectionCardStatus;
+  // 1問ずつ出題する演習の答え方。あれば「10問・約2分」と所要時間の目安を添える
+  practiceKind: PracticeKind | null;
 }
 
 // /learn/[language] のセクション一覧カード。ブックマークは manuallyTagged の有無にかかわらず
@@ -32,6 +35,7 @@ export function SectionCard({
   isLoggedIn,
   manuallyTagged,
   status,
+  practiceKind,
 }: SectionCardProps) {
   return (
     <div className="group relative flex items-center justify-between rounded-2xl border border-tealblue-200 bg-white p-5 text-left transition-all hover:-translate-y-1 hover:border-tealblue-300 hover:shadow-xl hover:shadow-tealblue-100 dark:border-tealblue-600 dark:bg-tealblue-900 dark:hover:border-tealblue-400 dark:hover:bg-tealblue-800 dark:hover:shadow-none">
@@ -50,6 +54,12 @@ export function SectionCard({
         >
           {status.kind !== "new" && <span aria-hidden="true">✓ </span>}
           {sectionCardStatusLabel(status)}
+          {practiceKind && (
+            <span className="font-normal text-zinc-500 dark:text-tealblue-200">
+              {" ・ "}
+              {practiceEstimateLabel(practiceKind)}
+            </span>
+          )}
         </span>
       </div>
       <div className="flex shrink-0 items-center gap-2">

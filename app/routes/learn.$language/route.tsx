@@ -67,6 +67,7 @@ export default function LearnLanguagePage({ loaderData }: Route.ComponentProps) 
               sectionSlug={section.sectionSlug}
               isLoggedIn
               manuallyTagged={progress?.manuallyTagged ?? false}
+              practiceKind={section.practiceKind}
               status={sectionCardStatus({
                 viewed: viewedSlugs.has(section.sectionSlug),
                 attemptCount: progress?.attemptCount ?? 0,

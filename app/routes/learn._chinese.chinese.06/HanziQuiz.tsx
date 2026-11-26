@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { CollapsibleChoice } from "@/components/practice/PracticeControls";
 import { apiPost } from "@/lib/shared/api-client";
+import { estimateMinutes } from "@/lib/shared/learn/practice-estimate";
 import CompareCard, { Glyph } from "./CompareCard";
 import { compareList, type CharacterCompare } from "./compare-data";
 
@@ -74,9 +75,11 @@ export default function HanziQuiz() {
   }
 
   if (phase === "settings") {
+    const questionCount =
+      roundSize > 0 ? Math.min(roundSize, compareList.length) : compareList.length;
     return (
       <div className="space-y-8 rounded-2xl border border-tealblue-200 bg-white p-6 text-center dark:border-tealblue-900/40 dark:bg-zinc-950">
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-3">
           <button
             type="button"
             onClick={() => start(compareList, roundSize)}
@@ -84,6 +87,9 @@ export default function HanziQuiz() {
           >
             クイズを始める
           </button>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            {questionCount} 問を出題します（約{estimateMinutes(questionCount, "choice")}分）
+          </p>
         </div>
         <div className="space-y-6">
           <CollapsibleChoice
