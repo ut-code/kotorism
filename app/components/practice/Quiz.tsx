@@ -495,7 +495,7 @@ function ChoiceList({
                       : "border-zinc-200 opacity-60 dark:border-zinc-700"
             }`}
           >
-            <span className="w-5 shrink-0 font-bold text-zinc-400 dark:text-zinc-500">
+            <span className="w-5 shrink-0 font-bold text-zinc-500 dark:text-zinc-500">
               {answered && isAnswer ? (
                 <span className="text-emerald-600 dark:text-emerald-400">○</span>
               ) : isWrongPick ? (
@@ -519,7 +519,7 @@ function SpeakerIcon() {
     <svg
       viewBox="0 0 20 20"
       aria-hidden="true"
-      className="mt-0.5 h-5 w-5 shrink-0 text-zinc-400 dark:text-zinc-500"
+      className="mt-0.5 h-5 w-5 shrink-0 text-zinc-500 dark:text-zinc-500"
     >
       <path d="M3 8h3l4-3v10l-4-3H3z" fill="currentColor" />
       <path

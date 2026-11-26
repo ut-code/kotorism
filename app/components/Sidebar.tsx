@@ -65,14 +65,14 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
   return (
     <aside className="hidden w-64 shrink-0 border-r border-black/[.08] bg-white p-4 md:block md:min-h-[calc(100vh-73px)] dark:border-white/[.145] dark:bg-zinc-950">
       <div className="mb-4 flex items-center justify-between border-b border-zinc-100 pb-2 dark:border-zinc-900">
-        <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">
           メニュー
         </span>
         <button
           onClick={() => setIsSidebarOpen(false)}
           title="サイドバーを閉じる"
           aria-label="サイドバーを閉じる"
-          className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
+          className="rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -117,7 +117,7 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
               onClick={() => setIsLearnOpen((prev) => !prev)}
               aria-expanded={isLearnOpen}
               aria-label="学習教材の言語一覧を開閉"
-              className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
+              className="rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-300"
             >
               <svg
                 className={`h-4 w-4 transition-transform ${isLearnOpen ? "rotate-90" : ""}`}

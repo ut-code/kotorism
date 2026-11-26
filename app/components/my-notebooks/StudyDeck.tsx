@@ -294,7 +294,7 @@ export default function StudyDeck({
               // 意味の列自体が無い、またはこのカードに項目が1件も登録されていない場合のフォールバック表示
               <p className="text-sm text-zinc-500 dark:text-coral-200">他に項目がありません</p>
             )}
-            <span className="mt-2 text-xs text-zinc-400 dark:text-coral-300">
+            <span className="mt-2 text-xs text-zinc-500 dark:text-coral-300">
               クリックして{flipped ? "表" : "裏"}を見る
             </span>
           </button>
@@ -339,7 +339,7 @@ export default function StudyDeck({
               ★（左）の右隣に並べる。サイズは★の文字サイズ（text-2xl）に合わせている */}
           <span
             aria-label="暗記モードで表示した回数"
-            className="inline-flex items-center gap-0.5 text-sm text-zinc-400 dark:text-zinc-600"
+            className="inline-flex items-center gap-0.5 text-sm text-zinc-500 dark:text-zinc-600"
           >
             <EyeIcon className="h-6 w-6" />
             {currentCard.viewCount}

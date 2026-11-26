@@ -22,7 +22,7 @@ export function CollapseToggle({
     >
       <span
         aria-hidden="true"
-        className={`inline-block text-xs text-zinc-400 transition-transform group-hover:text-tealblue-600 dark:text-zinc-500 ${open ? "rotate-90" : ""}`}
+        className={`inline-block text-xs text-zinc-500 transition-transform group-hover:text-tealblue-600 dark:text-zinc-500 ${open ? "rotate-90" : ""}`}
       >
         ▶
       </span>

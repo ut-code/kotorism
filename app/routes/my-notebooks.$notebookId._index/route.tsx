@@ -277,7 +277,7 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
             </p>
             {/* 共同編集者として開いたときは、誰から共有された単語帳かを薄く小さい文字で出す */}
             {!isOwner && (
-              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                 {notebook.ownerName}さんから共有
               </p>
             )}

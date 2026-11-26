@@ -324,7 +324,7 @@ function YearHeatmap(props: Props) {
       </h3>
       <div className="inline-flex flex-col gap-1">
         {/* 月の見出し。その週に1日が含まれる列にだけ出す */}
-        <div className="flex gap-[3px] pl-6 text-[10px] text-zinc-500 dark:text-zinc-400">
+        <div className="flex gap-[3px] pl-6 text-xs text-zinc-500 dark:text-zinc-400">
           {weeks.map((week) => {
             const first = week.find((d) => d.endsWith("-01") && d >= firstDay && d <= today);
             return (
@@ -335,7 +335,7 @@ function YearHeatmap(props: Props) {
           })}
         </div>
         <div className="flex gap-[3px]">
-          <div className="flex w-6 flex-col gap-[3px] text-[10px] leading-[11px] text-zinc-500 dark:text-zinc-400">
+          <div className="flex w-6 flex-col gap-[3px] text-xs leading-[11px] text-zinc-500 dark:text-zinc-400">
             {WEEKDAY_LABELS.map((label, i) => (
               <div key={label} className="h-[11px]">
                 {i % 2 === 1 ? label : ""}
@@ -366,7 +366,7 @@ function YearHeatmap(props: Props) {
             </div>
           ))}
         </div>
-        <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+        <div className="mt-2 flex items-center justify-end gap-1 text-xs text-zinc-500 dark:text-zinc-400">
           短
           {LEVEL_CLASSES.map((className) => (
             <span key={className} className={`size-[11px] rounded-[2px] ${className}`} />
@@ -490,7 +490,7 @@ function MonthCalendar(props: Props) {
               }`}
             >
               {dayNumber}
-              {minutes > 0 && <span className="text-[9px] opacity-80">{minutes}分</span>}
+              {minutes > 0 && <span className="text-xs opacity-80">{minutes}分</span>}
             </Link>
           );
         })}
@@ -633,7 +633,7 @@ function ChartFrame({
       <div className="relative h-40 border-b border-zinc-200 dark:border-zinc-700">
         {maxSeconds > 0 && (
           <div className="pointer-events-none absolute inset-x-0 top-0 border-t border-dashed border-zinc-200 dark:border-zinc-700">
-            <span className="absolute right-0 -top-4 text-[10px] text-zinc-500 dark:text-zinc-400">
+            <span className="absolute right-0 -top-4 text-xs text-zinc-500 dark:text-zinc-400">
               {formatDuration(maxSeconds)}
             </span>
           </div>
@@ -641,7 +641,7 @@ function ChartFrame({
         <div className="flex h-full items-end gap-[2px] pt-1">{children}</div>
       </div>
       {monthMarks ? (
-        <div className="relative h-5 text-[10px] text-zinc-500 dark:text-zinc-400">
+        <div className="relative h-5 text-xs text-zinc-500 dark:text-zinc-400">
           {monthMarks.map((mark) => (
             <div
               key={mark.key}
@@ -654,9 +654,9 @@ function ChartFrame({
           ))}
         </div>
       ) : (
-        <div className="mt-1 flex gap-[2px] text-[10px] text-zinc-500 dark:text-zinc-400">
+        <div className="mt-1 flex gap-[2px] text-xs text-zinc-500 dark:text-zinc-400">
           {ticks.map(({ key, tick }) => (
-            <div key={key} className="min-w-0 flex-1 overflow-visible whitespace-nowrap">
+            <div key={key} className="min-w-0 flex-1 overflow-visible whitespace-pre">
               {tick}
             </div>
           ))}
@@ -687,7 +687,7 @@ function BarLink({
       className="group relative flex h-full min-w-0 flex-1 flex-col justify-end"
     >
       {children}
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-[11px] text-white shadow group-hover:block group-focus-visible:block dark:bg-zinc-100 dark:text-zinc-900">
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-xs text-white shadow group-hover:block group-focus-visible:block dark:bg-zinc-100 dark:text-zinc-900">
         {label}
       </span>
     </Link>
@@ -794,10 +794,11 @@ function StackedDays(props: Props & { colors: Map<string, string> }) {
         maxSeconds={maxSeconds}
         ticks={detail.days.map(({ day }) => ({
           key: day,
-          // 週表示は全曜日、月表示は 1・8・15・22・29 日だけに目盛りを出す
+          // 週表示は全曜日、月表示は 1・8・15・22・29 日だけに目盛りを出す。
+          // 週表示は曜日を2行目に回す（12px で1行に並べると、スマホ幅で隣の目盛りと重なる）
           tick:
             view === "week"
-              ? `${formatShortDay(day)}(${WEEKDAY_LABELS[dayOfWeek(day)]})`
+              ? `${formatShortDay(day)}\n(${WEEKDAY_LABELS[dayOfWeek(day)]})`
               : (Number(day.slice(8, 10)) - 1) % 7 === 0
                 ? String(Number(day.slice(8, 10)))
                 : "",
