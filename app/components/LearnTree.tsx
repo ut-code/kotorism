@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PhraseText } from "@/components/PhraseText";
 import Link from "@/components/Link";
 import { useLocation } from "react-router";
 import { LANGUAGES } from "@/lib/shared/learn/languages";
@@ -100,7 +101,7 @@ export default function LearnTree({ allSections = {} }: LearnTreeProps) {
                           : "text-zinc-500 hover:bg-zinc-100 hover:text-tealblue-600 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-tealblue-600"
                       }`}
                     >
-                      {section.title}
+                      <PhraseText>{section.title}</PhraseText>
                     </Link>
                   );
                 })}

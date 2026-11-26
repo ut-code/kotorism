@@ -26,7 +26,8 @@ export function CollapseToggle({
       >
         ▶
       </span>
-      {children}
+      {/* 見出しの中身（項目名と今の値）は、狭いと▶の右で折り返す */}
+      <span className="flex flex-wrap items-baseline gap-x-2">{children}</span>
     </button>
   );
 }
@@ -47,9 +48,10 @@ export function CollapsibleSetting({
     <section>
       <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-100">
         <CollapseToggle open={open} onToggle={() => setOpen(!open)}>
-          {title}
+          {/* 項目名は1文字ずつ折り返さない（「お / 題」にしない）。スマホでは今の値を次の行に回す */}
+          <span className="whitespace-nowrap">{title}</span>
           {summary !== undefined && (
-            <span className="line-clamp-1 text-sm font-normal text-zinc-500 dark:text-zinc-400">
+            <span className="line-clamp-1 text-sm font-normal text-zinc-500 max-sm:basis-full dark:text-zinc-400">
               {summary}
             </span>
           )}
