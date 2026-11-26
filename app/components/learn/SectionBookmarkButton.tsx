@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router";
 import Link from "@/components/Link";
@@ -35,6 +35,14 @@ export function SectionBookmarkButton({
   const [active, setActive] = useState(initialActive);
   const [pending, setPending] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
+  // 押したあとに「ブックマークしました」などを短く出す（押せたことが分かるように）
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 2000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   async function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
     // セクション一覧ではカード全体がリンクになっているため、クリックがそちらに伝播しないようにする
@@ -48,6 +56,7 @@ export function SectionBookmarkButton({
     if (pending) return;
 
     setPending(true);
+    setNotice(active ? "ブックマークを外しました" : "ブックマークしました");
     setActive((prev) => !prev);
     await apiPost("/api/learn", { intent: "toggleManualTag", language, sectionSlug });
     setPending(false);
@@ -80,6 +89,15 @@ export function SectionBookmarkButton({
       >
         <BookmarkIcon filled={shown} className={icon} />
       </button>
+      {/* 出している間だけ置く。常に置いておくと、セクションのページで練習の答え合わせ（role="status"）と区別できなくなる */}
+      {notice && (
+        <span
+          role="status"
+          className="pointer-events-none absolute top-full right-0 mt-1.5 whitespace-nowrap rounded-full bg-zinc-900 px-2.5 py-1 text-xs text-white shadow dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          {notice}
+        </span>
+      )}
 
       {showPrompt &&
         !isLoggedIn &&

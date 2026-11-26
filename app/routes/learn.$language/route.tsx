@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/server/session.server";
 import { SectionCard } from "@/components/learn/SectionCard";
 import { getLanguage } from "@/lib/shared/learn/languages";
 import { getSections } from "@/lib/shared/learn/content";
+import { sectionCardStatus } from "@/lib/shared/learn/section-card-status";
 import type { Route } from "./+types/route";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -19,16 +20,24 @@ export async function loader({ params }: Route.LoaderArgs) {
   const sections = await getSections(language.languageSlug);
 
   const user = await requireUser();
-  const progressRows = await prisma.sectionProgress.findMany({
-    where: { userId: user.id, language: language.languageSlug },
-  });
+  const [progressRows, viewRows] = await Promise.all([
+    prisma.sectionProgress.findMany({
+      where: { userId: user.id, language: language.languageSlug },
+    }),
+    // カードに「取り組んだ」を出すため、開いたことのあるセクションも読む
+    prisma.sectionView.findMany({
+      where: { userId: user.id, language: language.languageSlug },
+      select: { sectionSlug: true },
+    }),
+  ]);
   const progressBySlug = new Map(progressRows.map((row) => [row.sectionSlug, row]));
+  const viewedSlugs = new Set(viewRows.map((row) => row.sectionSlug));
 
-  return { language, sections, progressBySlug };
+  return { language, sections, progressBySlug, viewedSlugs };
 }
 
 export default function LearnLanguagePage({ loaderData }: Route.ComponentProps) {
-  const { language, sections, progressBySlug } = loaderData;
+  const { language, sections, progressBySlug, viewedSlugs } = loaderData;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-16 sm:py-24">
@@ -58,6 +67,11 @@ export default function LearnLanguagePage({ loaderData }: Route.ComponentProps) 
               sectionSlug={section.sectionSlug}
               isLoggedIn
               manuallyTagged={progress?.manuallyTagged ?? false}
+              status={sectionCardStatus({
+                viewed: viewedSlugs.has(section.sectionSlug),
+                attemptCount: progress?.attemptCount ?? 0,
+                correctCount: progress?.correctCount ?? 0,
+              })}
             />
           );
         })}
