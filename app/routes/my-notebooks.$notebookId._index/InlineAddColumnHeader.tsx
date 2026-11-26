@@ -32,7 +32,7 @@ export default function InlineAddColumnHeader({ notebookId }: { notebookId: stri
         onClick={() => setOpen(true)}
         aria-label="表に列を追加"
         title="列を追加"
-        className="flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-coral-400"
+        className="flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-coral-400"
       >
         ＋
       </button>

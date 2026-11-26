@@ -80,7 +80,7 @@ export default function HanziQuiz() {
           <button
             type="button"
             onClick={() => start(compareList, roundSize)}
-            className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+            className="rounded-full bg-button-learn px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover"
           >
             クイズを始める
           </button>
@@ -132,7 +132,7 @@ export default function HanziQuiz() {
                   className="flex items-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 dark:border-zinc-700"
                 >
                   <Glyph char={item.japanese} kind="japanese" className="text-2xl" />
-                  <span className="text-zinc-400">→</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">→</span>
                   <Glyph
                     char={item.simplified}
                     kind="simplified"
@@ -148,7 +148,7 @@ export default function HanziQuiz() {
             <button
               type="button"
               onClick={() => start(mistakes, 0)}
-              className="rounded-full bg-tealblue-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-tealblue-700"
+              className="rounded-full bg-button-learn px-6 py-2.5 text-sm font-bold text-white hover:bg-button-learn-hover"
             >
               間違えた字だけもう一度
             </button>
@@ -260,7 +260,7 @@ export default function HanziQuiz() {
               type="button"
               onClick={next}
               autoFocus
-              className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:bg-tealblue-700"
+              className="rounded-full bg-button-learn px-10 py-3 font-bold text-white shadow-md transition-all hover:bg-button-learn-hover"
             >
               {isLast ? "結果を見る" : "次の問題へ"}
             </button>

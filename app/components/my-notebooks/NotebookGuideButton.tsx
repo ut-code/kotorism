@@ -145,7 +145,7 @@ export default function NotebookGuideButton() {
               <div className="flex items-center justify-between border-b border-black/[.06] px-6 py-4 dark:border-white/[.1]">
                 <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                   My単語帳の使い方
-                  <span className="ml-2 text-zinc-400 dark:text-zinc-500">
+                  <span className="ml-2 text-zinc-500 dark:text-zinc-500">
                     {index + 1} / {GUIDE_SLIDES.length}
                   </span>
                 </p>
@@ -153,7 +153,7 @@ export default function NotebookGuideButton() {
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="ガイドを閉じる"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-xl leading-none text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-xl leading-none text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                 >
                   ×
                 </button>
@@ -175,7 +175,7 @@ export default function NotebookGuideButton() {
                   id="notebook-guide-title"
                   className="flex items-center gap-2 text-lg font-semibold text-black dark:text-zinc-50"
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-coral-500 text-xs font-bold text-white">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-button-notebook text-xs font-bold text-white">
                     {index + 1}
                   </span>
                   {slide.title}
@@ -219,7 +219,7 @@ export default function NotebookGuideButton() {
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-full bg-coral-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-coral-600"
+                    className="rounded-full bg-button-notebook px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-button-notebook-hover"
                   >
                     はじめる
                   </button>
@@ -227,7 +227,7 @@ export default function NotebookGuideButton() {
                   <button
                     type="button"
                     onClick={() => setIndex((i) => i + 1)}
-                    className="rounded-full bg-coral-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-coral-600"
+                    className="rounded-full bg-button-notebook px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-button-notebook-hover"
                   >
                     次へ
                   </button>

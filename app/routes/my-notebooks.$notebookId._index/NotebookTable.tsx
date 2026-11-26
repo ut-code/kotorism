@@ -12,6 +12,7 @@ import ColumnHeaderCell from "./ColumnHeaderCell";
 import InlineAddCardRow from "./InlineAddCardRow";
 import InlineAddColumnHeader from "./InlineAddColumnHeader";
 import { useAssistField } from "./InputAssist";
+import { useDeferredDelete } from "./useDeferredDelete";
 
 type Card = { id: string; data: CardData; starred: boolean; starCount: number; viewCount: number };
 
@@ -27,12 +28,15 @@ export default function NotebookTable({
   columns,
   cards,
   bulkEditFormId,
+  onRequestImport,
 }: {
   notebookId: string;
   columns: string[];
   cards: Card[];
   // 表全体を編集中なら、入力欄をまとめて送るフォームのid。編集中は並べ替え・列名の変更をさせない
   bulkEditFormId?: string;
+  // 単語が0語のときの「Excel・スプレッドシートから取り込む」で、ページの取り込み欄を開く
+  onRequestImport: () => void;
 }) {
   const editing = bulkEditFormId !== undefined;
   const frameRef = useRef<HTMLDivElement>(null);
@@ -93,6 +97,12 @@ export default function NotebookTable({
     }
   }
 
+  // 削除は確認ダイアログを出さずにすぐ表から隠し、数秒「元に戻す」を出してから送る（useDeferredDelete）
+  const deferredDelete = useDeferredDelete(
+    `/my-notebooks/${notebookId}`,
+    cards.map((card) => card.id),
+  );
+
   // 送信中の並べ替えを、表示する並びに先に反映する
   let displayedCards = cards;
   let displayedColumns = columns;
@@ -105,6 +115,11 @@ export default function NotebookTable({
     } else if (pending.get("intent") === "moveColumn") {
       displayedColumns = moveToInsertionPoint(columns, from, insertAt);
     }
+  }
+  // 削除して隠している単語を除く。並べ替えは表の何番目かで送るので、隠している単語があるうちは並べ替えさせない
+  const hidingDeleted = deferredDelete.hiddenIds.size > 0;
+  if (hidingDeleted) {
+    displayedCards = displayedCards.filter((card) => !deferredDelete.hiddenIds.has(card.id));
   }
 
   // 単語ごとの、表の中での上端・下端（組が複数あると <tr> も複数になるので、同じ単語の行をまとめる）
@@ -194,7 +209,7 @@ export default function NotebookTable({
     };
   }
 
-  const dragEnabled = !editing && !moving;
+  const dragEnabled = !editing && !moving && !hidingDeleted;
 
   return (
     <div
@@ -227,14 +242,27 @@ export default function NotebookTable({
           </tr>
         </thead>
         <tbody onKeyDown={editing ? handleGridKeyDown : undefined}>
-          {/* 単語が無いときの案内。＋で最初の単語を入力している間や、編集中は出さない */}
+          {/* 単語が無いときは、最初の単語の入れ方を表の真ん中に大きく出す。＋で入力している間や、編集中は出さない */}
           {displayedCards.length === 0 && !adding && !editing ? (
             <tr>
-              <td
-                colSpan={displayedColumns.length + 1}
-                className="px-1.5 py-6 text-center text-sm text-zinc-500 sm:px-4 dark:text-zinc-500"
-              >
-                まだ単語がありません。表の下の＋から追加してください。
+              <td colSpan={displayedColumns.length + 1} className="px-4 py-10 text-center">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">まだ単語がありません。</p>
+                <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => setAdding(true)}
+                    className="rounded-full bg-button-notebook px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-button-notebook-hover"
+                  >
+                    ＋ 単語を追加する
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onRequestImport}
+                    className="rounded-full border-2 border-coral-300 px-6 py-2 text-sm font-bold text-coral-800 transition-colors hover:border-coral-500 hover:bg-coral-50 dark:border-coral-800 dark:text-coral-200 dark:hover:bg-coral-950/20"
+                  >
+                    Excel・スプレッドシートから取り込む
+                  </button>
+                </div>
               </td>
             </tr>
           ) : (
@@ -248,6 +276,7 @@ export default function NotebookTable({
                 columns={displayedColumns}
                 card={card}
                 bulkEditFormId={bulkEditFormId}
+                onDelete={() => deferredDelete.remove({ id: card.id, head: card.data.head })}
                 drag={dragHandlers("card", index)}
                 dragDisabled={!dragEnabled}
                 isDragSource={drag?.kind === "card" && drag.from === index}
@@ -272,7 +301,7 @@ export default function NotebookTable({
                     onClick={() => addNewRow(0)}
                     aria-label="表に行を追加"
                     title="行を追加（いちばん下の行で ↓ を押しても追加できます）"
-                    className="w-full py-2 text-lg leading-none text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-coral-400"
+                    className="w-full py-2 text-lg leading-none text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-coral-600 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-coral-400"
                   >
                     ＋
                   </button>
@@ -290,6 +319,23 @@ export default function NotebookTable({
           )}
         </tbody>
       </table>
+      {deferredDelete.undoable && (
+        <div
+          role="status"
+          className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-full bg-zinc-900 px-5 py-2.5 text-sm text-white shadow-lg dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          <span className="max-w-[50vw] truncate">
+            「{deferredDelete.undoable.head}」を削除しました
+          </span>
+          <button
+            type="button"
+            onClick={() => deferredDelete.undo(deferredDelete.undoable!.id)}
+            className="shrink-0 font-bold text-coral-300 underline-offset-4 hover:underline dark:text-coral-800"
+          >
+            元に戻す
+          </button>
+        </div>
+      )}
       {dropLine && (
         <div
           aria-hidden="true"

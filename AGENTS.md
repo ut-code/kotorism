@@ -16,6 +16,14 @@ Everything lives under `app/`; the `@/` alias points at `app/`.
 - Validate every external input (form data, JSON bodies, query params) on the server with a Zod schema before using it. Schemas live in `lib/shared` (`*-schema.ts`, parse helpers return `{ success, data | error }`), so the form's `maxLength` and the server share the same limits.
 - Keep logic that can be pure in `lib/shared` and call it from `lib/server`, so it can be unit-tested without a DB.
 
+# UI rules
+
+- Colors and type come from `app/globals.css`; do not hard-code hex values like `bg-[#7FCDCC]`.
+- Buttons with white text use `bg-button-notebook` (My単語帳) or `bg-button-learn` (学習教材). Never put white text on `coral-500` or the light teals (contrast 1.8–2.3).
+- Text size: never below 12px (`text-xs`); no `text-[9px]`–`text-[11px]`. Body text is 15–16px (`text-base`), secondary text 13–14px (`text-sm`).
+- Gray text must reach contrast 4.5 on its background: on white use `text-zinc-500` or darker (not `text-zinc-400`/`300`), and in dark mode `dark:text-zinc-400` or lighter. Lighter grays are only for decoration and disabled or "done" states.
+- Reading width on PC: learn and notebook pages keep their text column at 720–880px (`max-w-3xl` = 768px).
+
 # Tests
 
 Test-first (TDD) is not required. Add tests where they pay off, after or alongside the code.

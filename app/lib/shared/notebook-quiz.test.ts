@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+  effectiveQuizRoundSize,
   NOTEBOOK_TEMPLATE_COLUMNS,
   quizHint,
+  quizQuestionCount,
+  quizRoundSizeOptions,
   quizSupport,
   quizTargetCards,
   toggleQuizStar,
@@ -126,5 +129,31 @@ describe("quizTargetCards", () => {
 
   it("★つきなら、いま★のついた単語だけを出題する", () => {
     expect(quizTargetCards(cards, "starred", stars)).toEqual([{ id: "a" }]);
+  });
+});
+
+describe("クイズの問題数", () => {
+  it("見出し語ごとに、選んだ列の異なる値を1問と数える（空欄と重複は数えない）", () => {
+    const cards = [
+      { rows: [{ 意味: "走る" }, { 意味: "走る" }, { 意味: "急ぐ" }] },
+      { rows: [{ 意味: "" }] },
+      { rows: [{ 意味: "走る" }] },
+    ];
+    expect(quizQuestionCount(cards, "意味")).toBe(3);
+  });
+
+  it("出題できる数以上の選択肢は出さず、「全問」は常に出す", () => {
+    expect(quizRoundSizeOptions(4)).toEqual([0]);
+    expect(quizRoundSizeOptions(5)).toEqual([0]);
+    expect(quizRoundSizeOptions(8)).toEqual([5, 0]);
+    expect(quizRoundSizeOptions(10)).toEqual([5, 0]);
+    expect(quizRoundSizeOptions(30)).toEqual([5, 10, 20, 0]);
+  });
+
+  it("初期値の10問は、10問以下しか出せないとき「全問」になる", () => {
+    expect(effectiveQuizRoundSize(10, 8)).toBe(0);
+    expect(effectiveQuizRoundSize(10, 10)).toBe(0);
+    expect(effectiveQuizRoundSize(10, 11)).toBe(10);
+    expect(effectiveQuizRoundSize(0, 30)).toBe(0);
   });
 });

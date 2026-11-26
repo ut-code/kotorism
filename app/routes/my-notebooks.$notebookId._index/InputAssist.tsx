@@ -329,7 +329,7 @@ export default function InputAssist({
                   ime.rawInput}
               </span>
               {totalPages > 1 && (
-                <span className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500">
+                <span className="flex items-center gap-1 text-zinc-500 dark:text-zinc-500">
                   <button
                     type="button"
                     tabIndex={-1}
@@ -369,12 +369,12 @@ export default function InputAssist({
                         onClick={() => applyIme(active.input, { type: "select", index })}
                         className={`flex items-center gap-1 rounded-lg px-2 py-1 text-sm ${
                           selected
-                            ? "bg-tealblue-600 font-bold text-white dark:bg-tealblue-500"
+                            ? "bg-button-learn font-bold text-white"
                             : "border border-zinc-200 bg-zinc-50 text-zinc-800 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                         }`}
                       >
                         <span
-                          className={`text-xs ${selected ? "text-tealblue-100" : "text-zinc-400 dark:text-zinc-500"}`}
+                          className={`text-xs ${selected ? "text-tealblue-100" : "text-zinc-500 dark:text-zinc-500"}`}
                         >
                           {i + 1}.
                         </span>
@@ -383,7 +383,7 @@ export default function InputAssist({
                     );
                   })
               ) : (
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                <span className="text-xs text-zinc-500 dark:text-zinc-500">
                   候補が見つかりません（Enter でピンインのまま確定）
                 </span>
               )}
@@ -416,7 +416,7 @@ export default function InputAssist({
                     onClick={() => chooseMode(mode)}
                     className={`px-3 py-1 transition-colors ${
                       mode === activeMode
-                        ? "bg-coral-500 text-white"
+                        ? "bg-button-notebook text-white"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     }`}
                   >

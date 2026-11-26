@@ -13,7 +13,10 @@ import {
 } from "@/lib/shared/deck-progress";
 import type { NotebookLanguage } from "@/lib/shared/notebook-language";
 import {
+  effectiveQuizRoundSize,
   quizHint,
+  quizQuestionCount,
+  quizRoundSizeOptions,
   quizSupport,
   quizTargetCards,
   toggleQuizStar,
@@ -34,7 +37,6 @@ type QuizCard = {
 };
 
 const CHOICE_COUNT = 4;
-const ROUND_SIZES = [5, 10, 20, 0]; // 0は「全問」
 
 function shuffle<T>(items: T[]): T[] {
   const result = [...items];
@@ -173,6 +175,10 @@ export default function QuizDeck({
   const starredCount = quizTargetCards(cards, "starred", stars).length;
   // ★つきの単語が無くなったら、★つきのみは選べないので「すべて」に戻す
   const effectiveTarget: QuizTarget = starredCount > 0 ? target : "all";
+  const targetCards = quizTargetCards(cards, effectiveTarget, stars);
+  // 単語が少ないときは、出題できる数より多い問題数は選べず、初期値の10問も「全問」になる
+  const availableCount = quizQuestionCount(targetCards, column);
+  const effectiveRoundSize = effectiveQuizRoundSize(roundSize, availableCount);
   // テンプレートの列のまま意味・拼音を答えるときだけ、見出し語を読み上げる
   // （意味では単語を出したとき、拼音では答え合わせで。中国語では、意味なら拼音を、拼音なら意味を出す）
   const support = quizSupport(columns, column, language);
@@ -233,7 +239,7 @@ export default function QuizDeck({
                 aria-pressed={column === name}
                 className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
                   column === name
-                    ? "bg-coral-500 text-white"
+                    ? "bg-button-notebook text-white"
                     : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -258,7 +264,7 @@ export default function QuizDeck({
                   aria-pressed={effectiveTarget === value}
                   className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                     effectiveTarget === value
-                      ? "bg-coral-500 text-white"
+                      ? "bg-button-notebook text-white"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -272,19 +278,19 @@ export default function QuizDeck({
         <section className="w-full">
           <div className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">問題数</div>
           <div className="flex flex-wrap justify-center gap-2">
-            {ROUND_SIZES.map((size) => (
+            {quizRoundSizeOptions(availableCount).map((size) => (
               <button
                 key={size}
                 type="button"
                 onClick={() => setRoundSize(size)}
-                aria-pressed={roundSize === size}
+                aria-pressed={effectiveRoundSize === size}
                 className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
-                  roundSize === size
-                    ? "bg-coral-500 text-white"
+                  effectiveRoundSize === size
+                    ? "bg-button-notebook text-white"
                     : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
-                {size === 0 ? "全問" : `${size}問`}
+                {size === 0 ? `全問（${availableCount}問）` : `${size}問`}
               </button>
             ))}
           </div>
@@ -305,7 +311,7 @@ export default function QuizDeck({
                   aria-pressed={audio === option.value}
                   className={`rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
                     audio === option.value
-                      ? "bg-coral-500 text-white"
+                      ? "bg-button-notebook text-white"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -322,15 +328,15 @@ export default function QuizDeck({
             start(
               buildQuestions(
                 cards,
-                quizTargetCards(cards, effectiveTarget, stars),
+                targetCards,
                 column,
-                roundSize,
+                effectiveRoundSize,
                 support?.hintColumn ?? null,
                 support?.rubyColumn ?? null,
               ),
             )
           }
-          className="rounded-full bg-coral-500 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-coral-600"
+          className="rounded-full bg-button-notebook px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-notebook-hover"
         >
           クイズを始める
         </button>
@@ -371,7 +377,7 @@ export default function QuizDeck({
             <button
               type="button"
               onClick={() => start(shuffle(mistakes))}
-              className="rounded-full bg-coral-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
+              className="rounded-full bg-button-notebook px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-button-notebook-hover"
             >
               間違えた単語だけもう一度
             </button>
@@ -438,7 +444,7 @@ export default function QuizDeck({
         <span>正解: {correctCount}</span>
       </div>
 
-      <div className="mt-6 text-xs text-zinc-400 dark:text-zinc-500">
+      <div className="mt-6 text-xs text-zinc-500 dark:text-zinc-500">
         {headColumn} → {column}
       </div>
       {question.ruby && (
@@ -519,7 +525,7 @@ export default function QuizDeck({
             <button
               type="button"
               onClick={next}
-              className="rounded-full bg-coral-500 px-8 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
+              className="rounded-full bg-button-notebook px-8 py-2.5 text-sm font-bold text-white transition-colors hover:bg-button-notebook-hover"
             >
               {isLast ? "結果を見る" : "次の問題へ"}
             </button>

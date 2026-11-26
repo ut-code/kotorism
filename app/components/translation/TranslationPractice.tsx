@@ -181,7 +181,9 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
   };
 
   if (status === "loading") {
-    return <div className="py-10 text-center text-sm text-zinc-400">読み込み中…</div>;
+    return (
+      <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">読み込み中…</div>
+    );
   }
 
   if (status === "guest") {
@@ -309,7 +311,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                   }
                   className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-tealblue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 />
-                <div className="text-right text-xs text-zinc-400">
+                <div className="text-right text-xs text-zinc-500 dark:text-zinc-400">
                   {customSourceText.length} / {CUSTOM_SOURCE_MAX_LENGTH}
                 </div>
               </div>
@@ -384,7 +386,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                 type="button"
                 onClick={handleSubmit}
                 disabled={pending}
-                className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+                className="rounded-full bg-button-learn px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 {pending ? "AIが添削中…" : "AIに添削してもらう"}
               </button>
@@ -400,7 +402,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             <button
               type="button"
               onClick={() => setPhase("settings")}
-              className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+              className="rounded-full bg-button-learn px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover"
             >
               別の問題を訳す
             </button>
@@ -448,7 +450,7 @@ function TranslationFeedbackCard({
       )}
 
       {submission.referenceTranslation && (
-        <p className="mt-4 text-xs text-zinc-400">
+        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
           模範解答（一例）: {submission.referenceTranslation}
         </p>
       )}
@@ -488,7 +490,7 @@ function TranslationHistory({
                   <span className="block truncate text-sm text-zinc-800 dark:text-zinc-100">
                     {submission.sourceText}
                   </span>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     {dateFormatter.format(new Date(submission.createdAt))}
                   </span>
                 </span>
@@ -525,13 +527,7 @@ function TranslationLoginPrompt() {
           href={`/login?${redirectQuery}`}
           className="rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
         >
-          ログイン
-        </Link>
-        <Link
-          href={`/signup?${redirectQuery}`}
-          className="rounded-full border border-black/[.08] px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-white/[.145] dark:text-zinc-200 dark:hover:bg-zinc-800"
-        >
-          新規登録
+          ログイン / 新規登録
         </Link>
       </div>
     </div>

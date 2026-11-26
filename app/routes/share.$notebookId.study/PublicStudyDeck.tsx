@@ -192,8 +192,8 @@ export default function PublicStudyDeck({
             ) : (
               <p className="text-sm text-zinc-500 dark:text-coral-200">他に項目がありません</p>
             )}
-            <span className="mt-2 text-xs text-zinc-400 dark:text-coral-300">
-              クリックして{flipped ? "表" : "裏"}を見る
+            <span className="mt-2 text-xs text-zinc-500 dark:text-coral-300">
+              タップで{flipped ? "表に戻す" : "裏返す"}
             </span>
           </button>
         )}
@@ -206,7 +206,7 @@ export default function PublicStudyDeck({
           disabled={index === 0}
           className="rounded-full border border-black/[.08] px-4 py-2 text-sm transition-colors hover:border-black/[.15] disabled:opacity-40 dark:border-white/[.145] dark:hover:border-white/[.25]"
         >
-          前へ
+          ← 前の単語
         </button>
         <button
           type="button"
@@ -221,7 +221,7 @@ export default function PublicStudyDeck({
           disabled={index === order.length - 1}
           className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-40 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
         >
-          次へ
+          次の単語 →
         </button>
       </div>
 

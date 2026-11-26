@@ -85,6 +85,15 @@ describe("createBlankNotebook", () => {
     expect(location).toBe(`/my-notebooks/${created.id}?new=1`);
   });
 
+  it("then=import なら、取り込み欄を開くよう ?import=1 も付けて開く", async () => {
+    loginAs(owner);
+    const location = await redirectLocation(() => createBlankNotebook(form({ then: "import" })));
+    const created = await prisma.notebook.findFirstOrThrow({
+      where: { userId: owner.id, title: "無題の単語帳" },
+    });
+    expect(location).toBe(`/my-notebooks/${created.id}?new=1&import=1`);
+  });
+
   it("タイトルが無い・空(空白のみ)なら「無題の単語帳」で作成する", async () => {
     loginAs(owner);
     const location = await redirectLocation(() => createBlankNotebook(form({})));
