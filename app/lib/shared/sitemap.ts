@@ -1,6 +1,6 @@
 // 検索エンジン（Googleのクローラなど）に渡す sitemap.xml・robots.txt を組み立てる。
 // /learn や /my-notebooks などはログイン必須でクローラが読めないため、未ログインで見られるページだけを載せる
-export const SITEMAP_PATHS = ["/", "/login", "/signup"] as const;
+export const SITEMAP_PATHS = ["/", "/login"] as const;
 
 // クローラに辿らせないパス。API とログイン必須のページ
 export const ROBOTS_DISALLOW_PATHS = [

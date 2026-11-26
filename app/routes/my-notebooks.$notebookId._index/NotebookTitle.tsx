@@ -33,12 +33,14 @@ export default function NotebookTitle({
   // Esc で取り消したあとの blur では保存しない
   const cancelled = useRef(false);
 
-  // 作成直後の印（?new=1）は一度使ったら外し、再読み込みで入力欄から始まらないようにする
+  // 作成直後の印（?new=1、取り込み欄を開く ?import=1）は一度使ったら外し、再読み込みで入力欄から始まらないようにする。
+  // ?import=1 は ImportCardsForm が最初の描画で読むだけなので、ここでまとめて外す
   useEffect(() => {
-    if (searchParams.get("new") === null) return;
+    if (searchParams.get("new") === null && searchParams.get("import") === null) return;
     setSearchParams(
       (params) => {
         params.delete("new");
+        params.delete("import");
         return params;
       },
       { replace: true, preventScrollReset: true },

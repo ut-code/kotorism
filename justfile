@@ -11,7 +11,9 @@ sql target *query:
     set -euo pipefail
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
-    ssh {{target}} 'c=$(docker ps --filter "name=^{{app_uuid}}" -q | head -n1); test -n "$c" || { echo "container not found" >&2; exit 1; }; docker exec "$c" cat /data/prod.db' > "$tmp/prod.db"
+    # Skip PR preview containers (<uuid>-pr-<n>), which have their own preview.db.
+    # The DB path comes from the container's DATABASE_URL (file:/...).
+    ssh {{target}} 'c=$(docker ps --filter "name=^{{app_uuid}}" --format "{{{{.ID}} {{{{.Names}}" | grep -v -- "-pr-" | head -n1 | cut -d" " -f1); test -n "$c" || { echo "production container not found" >&2; exit 1; }; u=$(docker exec "$c" printenv DATABASE_URL); case "$u" in file:*) ;; *) echo "DATABASE_URL is not a file: URL" >&2; exit 1;; esac; docker exec "$c" cat "${u#file:}"' > "$tmp/prod.db"
     test -s "$tmp/prod.db" || { echo "Failed to fetch the DB (empty file)" >&2; exit 1; }
     q={{quote(query)}}
     if [ -n "$q" ]; then
