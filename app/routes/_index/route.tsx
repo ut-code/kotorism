@@ -121,7 +121,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <div className="grid w-[calc(5.3*var(--vb-title))] grid-cols-2 gap-3 md:mt-4 md:flex md:w-auto md:justify-center md:gap-4">
               <Link
                 href="/signup"
-                className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-coral-500 py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-coral-600 md:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
+                className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-button-notebook py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-button-notebook-hover md:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
               >
                 新規登録する
                 {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}
@@ -131,7 +131,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               </Link>
               <Link
                 href="/login"
-                className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-[#7FCDCC] py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-[#5BB5B4] md:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
+                className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-button-learn py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-button-learn-hover md:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
               >
                 ログインする
                 {/* 幅の狭い画面ではボタン内に収まらないため矢印を省く */}

@@ -384,7 +384,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
                 type="button"
                 onClick={handleSubmit}
                 disabled={pending}
-                className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+                className="rounded-full bg-button-learn px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 {pending ? "AIが添削中…" : "AIに添削してもらう"}
               </button>
@@ -400,7 +400,7 @@ export function TranslationPractice({ languageSlug, languageLabel }: Translation
             <button
               type="button"
               onClick={() => setPhase("settings")}
-              className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+              className="rounded-full bg-button-learn px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover"
             >
               別の問題を訳す
             </button>

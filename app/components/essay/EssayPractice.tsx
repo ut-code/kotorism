@@ -179,7 +179,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
               type="button"
               onClick={startWriting}
               disabled={!canStart}
-              className="rounded-full bg-tealblue-600 px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+              className="rounded-full bg-button-learn px-10 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
             >
               書き始める
             </button>
@@ -262,7 +262,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                         onClick={() => setCustomWordCount(count)}
                         className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                           customWordCount === count
-                            ? "border-tealblue-500 bg-tealblue-600 text-white"
+                            ? "border-tealblue-500 bg-button-learn text-white"
                             : "border-zinc-200 text-zinc-600 hover:border-tealblue-300 dark:border-zinc-700 dark:text-zinc-300"
                         }`}
                       >
@@ -378,7 +378,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
                 type="button"
                 onClick={handleSubmit}
                 disabled={pending}
-                className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+                className="rounded-full bg-button-learn px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 {pending ? "AIが添削中…" : "AIに添削してもらう"}
               </button>
@@ -394,7 +394,7 @@ export function EssayPractice({ languageSlug, languageLabel }: EssayPracticeProp
             <button
               type="button"
               onClick={() => setPhase("settings")}
-              className="rounded-full bg-tealblue-600 px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-tealblue-700"
+              className="rounded-full bg-button-learn px-8 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-button-learn-hover"
             >
               新しい作文を書く
             </button>

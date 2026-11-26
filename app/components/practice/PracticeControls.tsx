@@ -134,7 +134,7 @@ export function PracticeButton({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" }) {
   const variantClass =
     variant === "primary"
-      ? "bg-tealblue-600 px-8 text-white shadow-sm hover:bg-tealblue-700 dark:bg-tealblue-500 dark:hover:bg-tealblue-600"
+      ? "bg-button-learn px-8 text-white shadow-sm hover:bg-button-learn-hover"
       : "border border-zinc-300 px-6 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800";
   return (
     <button

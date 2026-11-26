@@ -72,7 +72,7 @@ export default function StreakCelebration({ milestone }: { milestone: number }) 
           type="button"
           onClick={acknowledge}
           autoFocus
-          className="rounded-full bg-coral-500 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-coral-600"
+          className="rounded-full bg-button-notebook px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-button-notebook-hover"
         >
           ありがとう！
         </button>

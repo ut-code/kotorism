@@ -342,7 +342,7 @@ export function ChineseImeInput({
               onClick={toggleIme}
               className={`rounded-md px-3 py-1 text-sm font-semibold transition-colors ${
                 imeEnabled
-                  ? "bg-tealblue-600 text-white dark:bg-tealblue-500"
+                  ? "bg-button-learn text-white"
                   : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300"
               }`}
               title="クリックまたは Ctrl+Space / Shift+Space で切替"
@@ -395,7 +395,7 @@ export function ChineseImeInput({
                     onClick={() => handleSelectCandidate(idx)}
                     className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-all ${
                       isSelected
-                        ? "bg-tealblue-600 font-bold text-white shadow-sm ring-2 ring-tealblue-400 dark:bg-tealblue-500"
+                        ? "bg-button-learn font-bold text-white shadow-sm ring-2 ring-tealblue-400"
                         : "border border-zinc-200 bg-zinc-50 font-medium text-zinc-800 hover:border-tealblue-300 hover:bg-white dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-tealblue-500"
                     }`}
                   >

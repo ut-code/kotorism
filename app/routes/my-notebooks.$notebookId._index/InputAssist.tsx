@@ -369,7 +369,7 @@ export default function InputAssist({
                         onClick={() => applyIme(active.input, { type: "select", index })}
                         className={`flex items-center gap-1 rounded-lg px-2 py-1 text-sm ${
                           selected
-                            ? "bg-tealblue-600 font-bold text-white dark:bg-tealblue-500"
+                            ? "bg-button-learn font-bold text-white"
                             : "border border-zinc-200 bg-zinc-50 text-zinc-800 hover:border-tealblue-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                         }`}
                       >
@@ -416,7 +416,7 @@ export default function InputAssist({
                     onClick={() => chooseMode(mode)}
                     className={`px-3 py-1 transition-colors ${
                       mode === activeMode
-                        ? "bg-coral-500 text-white"
+                        ? "bg-button-notebook text-white"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     }`}
                   >

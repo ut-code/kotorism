@@ -313,7 +313,7 @@ export function ChinesePronunciation() {
               type="button"
               onClick={handleStartRecording}
               disabled={!currentTargetText}
-              className="rounded-full bg-tealblue-600 px-6 py-2 text-xs font-bold text-white shadow-md hover:bg-tealblue-700 disabled:opacity-40"
+              className="rounded-full bg-button-learn px-6 py-2 text-xs font-bold text-white shadow-md hover:bg-button-learn-hover disabled:opacity-40"
             >
               録音開始
             </button>

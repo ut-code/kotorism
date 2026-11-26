@@ -289,7 +289,7 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
               </Link>
               <Link
                 href={`/my-notebooks/${notebook.id}/study`}
-                className="rounded-full bg-coral-500 px-5 py-2 text-sm font-medium whitespace-nowrap text-white transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
+                className="rounded-full bg-button-notebook px-5 py-2 text-sm font-medium whitespace-nowrap text-white transition-all hover:-translate-y-0.5 hover:bg-button-notebook-hover hover:shadow-lg hover:shadow-coral-200 dark:hover:shadow-none"
               >
                 暗記学習を始める
               </Link>
@@ -309,7 +309,7 @@ export default function NotebookPage({ loaderData }: Route.ComponentProps) {
                   type="submit"
                   form={BULK_EDIT_FORM_ID}
                   disabled={savingAll}
-                  className="rounded-full bg-coral-500 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50"
+                  className="rounded-full bg-button-notebook px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-button-notebook-hover disabled:opacity-50"
                 >
                   {savingAll ? "保存中…" : "保存"}
                 </button>
