@@ -120,7 +120,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             {/* md未満ではボタンの列を「ことりずむ」の幅（5.3 × --vb-title）にそろえ、白い本に収める */}
             <div className="grid w-[calc(5.3*var(--vb-title))] grid-cols-2 gap-3 md:mt-4 md:flex md:w-auto md:justify-center md:gap-4">
               <Link
-                href="/signup"
+                href="/login"
                 className="group inline-flex items-center justify-center gap-1 rounded-full px-2 bg-button-notebook py-4 text-sm font-bold max-[379px]:text-[13px] text-white transition-colors hover:bg-button-notebook-hover md:w-60 sm:gap-2 sm:px-0 sm:py-4 sm:text-base"
               >
                 新規登録する

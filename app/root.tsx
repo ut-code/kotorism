@@ -30,7 +30,7 @@ const PROTECTED_PREFIXES = ["/my-notebooks", "/learn", "/history"];
 // requireUser() などを引数なしで呼べるようにする。
 // ログイン必須のパスは Cookie の有無だけを見て先に弾く(DBは見ない)。本当の認可チェックは
 // 各 loader・action 側の requireUser で行う。
-// /login・/signup でログイン済みを追い出す処理はここに置かない(Cookieだけ残って
+// /login でログイン済みを追い出す処理はここに置かない(Cookieだけ残って
 // セッションが無効だと、requireUser との間でリダイレクトがループするため)
 export const middleware: Route.MiddlewareFunction[] = [
   async ({ request }, next) => {
