@@ -13,7 +13,7 @@ type SidebarProps = {
 /**
  * サイドバーコンポーネント（PC表示専用）
  *
- * スマホではヘッダーのハンバーガーメニューに同じ内容（My単語帳・学習教材・章ツリー）をまとめているため、
+ * スマホではヘッダーのハンバーガーメニューに同じ内容（学習履歴・My単語帳・学習教材・章ツリー）をまとめているため、
  * このコンポーネントは md 以上の画面でのみ表示する。
  *
  * - ルートパス（`/`）ではサイドバーを表示しない
@@ -23,6 +23,7 @@ type SidebarProps = {
 export default function Sidebar({ allSections = {} }: SidebarProps) {
   const { pathname } = useLocation();
 
+  const isHistoryActive = pathname.startsWith("/history");
   const isMyNotebooksActive = pathname.startsWith("/my-notebooks");
   const isLearnActive = pathname.startsWith("/learn");
   const currentLanguageSlug =
@@ -86,6 +87,18 @@ export default function Sidebar({ allSections = {} }: SidebarProps) {
       </div>
 
       <nav className="flex flex-col gap-2">
+        {/* 0. 学習履歴（ログイン後のホーム） */}
+        <Link
+          href="/history"
+          className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+            isHistoryActive
+              ? "bg-zinc-900/5 text-zinc-900 dark:bg-white/10 dark:text-zinc-50"
+              : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+          }`}
+        >
+          学習履歴
+        </Link>
+
         {/* 1. My単語帳 */}
         <Link
           href="/my-notebooks"

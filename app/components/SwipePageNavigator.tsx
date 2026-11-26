@@ -1,7 +1,13 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import { useSwipe } from "@/hooks/useSwipe";
-import { getSwipeDestination, type SwipeDirection } from "@/lib/shared/swipe-navigation";
+import {
+  SWIPE_PAGE_LABELS,
+  getSwipeDestination,
+  swipeHintState,
+  type SwipeDirection,
+} from "@/lib/shared/swipe-navigation";
 
 // ページを切り替えるアニメーション（View Transition）が始まらないとき（動きを減らす設定・非対応のブラウザなど）に、
 // 始まるのを待つフレーム数
@@ -52,7 +58,9 @@ function startsInHorizontalScroller(target: EventTarget, container: Element) {
 }
 
 // スマホ・タブレットで、My単語帳・学習履歴・学習教材の3画面を横フリックで行き来できるようにする領域。
-// タッチイベントはタッチ操作のできる端末でしか起きないため、PCのマウス操作には影響しない
+// タッチイベントはタッチ操作のできる端末でしか起きないため、PCのマウス操作には影響しない。
+// 指を横に動かしている間だけ、画面の左右の端に隣のページの名前を出す（SwipeEdgeLabels）。
+// いつも出しておくとパンくずリストに見えて紛らわしいため。ふだんの移動はサイドバー・メニューから行う
 export default function SwipePageNavigator({
   enabled,
   children,
@@ -63,6 +71,8 @@ export default function SwipePageNavigator({
 }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  // 指を動かしている間の、隣のページの名前の出し方（swipeHintState）
+  const [hint, setHint] = useState<ReturnType<typeof swipeHintState> | null>(null);
 
   const go = (direction: SwipeDirection) => {
     const destination = getSwipeDestination(pathname, direction);
@@ -78,6 +88,13 @@ export default function SwipePageNavigator({
     // 指を左へ動かすと右隣、右へ動かすと左隣のページへ（ページを指でめくる向き）
     onSwipeLeft: () => go("right"),
     onSwipeRight: () => go("left"),
+    onMove: (dx, dy) => {
+      const next = swipeHintState(dx, dy);
+      setHint((prev) =>
+        prev?.visible === next.visible && prev.target === next.target ? prev : next,
+      );
+    },
+    onEnd: () => setHint(null),
   });
 
   if (!enabled || !getSwipeDestination(pathname, "right")) {
@@ -94,6 +111,36 @@ export default function SwipePageNavigator({
       }}
     >
       {children}
+      {hint?.visible && <SwipeEdgeLabels pathname={pathname} target={hint.target} />}
+    </div>
+  );
+}
+
+// 指を横に動かしている間、画面の左右の端に「◀ 左隣」「右隣 ▶」を出す。今離すと移る側（target）を濃くする。
+// 読み上げではサイドバー・メニューのリンクで移動できるので、この表示は読み上げない
+function SwipeEdgeLabels({
+  pathname,
+  target,
+}: {
+  pathname: string;
+  target: SwipeDirection | null;
+}) {
+  const label = (direction: SwipeDirection) => {
+    const href = getSwipeDestination(pathname, direction);
+    return href ? SWIPE_PAGE_LABELS[href as keyof typeof SWIPE_PAGE_LABELS] : "";
+  };
+  const pill = (direction: SwipeDirection) =>
+    `pointer-events-none fixed top-1/2 z-40 -translate-y-1/2 rounded-full px-3 py-2 text-sm font-semibold shadow-lg transition-colors ${
+      direction === "left" ? "left-2" : "right-2"
+    } ${
+      target === direction
+        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+        : "bg-white/90 text-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-300"
+    }`;
+  return (
+    <div aria-hidden="true" data-testid="swipe-edge-labels">
+      <span className={pill("left")}>◀︎ {label("left")}</span>
+      <span className={pill("right")}>{label("right")} ▶︎</span>
     </div>
   );
 }

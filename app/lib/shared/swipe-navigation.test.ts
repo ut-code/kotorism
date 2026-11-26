@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { getPageSwitcherDestination, getSwipeDestination } from "./swipe-navigation";
+import { getSwipeDestination, swipeGesture, swipeHintState } from "./swipe-navigation";
 
 describe("getSwipeDestination", () => {
   it("学習履歴の右隣は学習教材、左隣はMy単語帳", () => {
@@ -26,21 +26,30 @@ describe("getSwipeDestination", () => {
   });
 });
 
-describe("getPageSwitcherDestination", () => {
-  it("3画面では、フリックと同じ隣のページを返す", () => {
-    expect(getPageSwitcherDestination("/history", "right")).toBe("/learn");
-    expect(getPageSwitcherDestination("/learn", "right")).toBe("/my-notebooks");
+describe("swipeGesture", () => {
+  it("横に 50px 以上動かしたらフリック（指を動かした向き）", () => {
+    expect(swipeGesture(-50, 0)).toBe("left");
+    expect(swipeGesture(120, 10)).toBe("right");
   });
 
-  it("学習教材・My単語帳の下の階層では、その上の画面と同じ隣のページを返す", () => {
-    expect(getPageSwitcherDestination("/learn/french", "left")).toBe("/history");
-    expect(getPageSwitcherDestination("/learn/french/french-01", "right")).toBe("/my-notebooks");
-    expect(getPageSwitcherDestination("/my-notebooks/abc/study", "right")).toBe("/history");
+  it("短い動きや、縦の動きが大きいときはフリックにしない", () => {
+    expect(swipeGesture(49, 0)).toBeNull();
+    expect(swipeGesture(60, 50)).toBeNull();
+  });
+});
+
+describe("swipeHintState", () => {
+  it("横に少し動かし始めたら名前を出すが、まだ移る先は決めない", () => {
+    expect(swipeHintState(20, 0)).toEqual({ visible: true, target: null });
   });
 
-  it("名前が似ているだけの別のページや、3画面と関係ないページでは隣のページが無い", () => {
-    expect(getPageSwitcherDestination("/learning", "right")).toBeNull();
-    expect(getPageSwitcherDestination("/share/abc", "right")).toBeNull();
-    expect(getPageSwitcherDestination("/", "right")).toBeNull();
+  it("フリックになる距離まで動かしたら、離すと移る側を示す（指を右へ動かすと左隣）", () => {
+    expect(swipeHintState(80, 0)).toEqual({ visible: true, target: "left" });
+    expect(swipeHintState(-80, 0)).toEqual({ visible: true, target: "right" });
+  });
+
+  it("ほとんど動いていないときや縦スクロール中は出さない", () => {
+    expect(swipeHintState(5, 0)).toEqual({ visible: false, target: null });
+    expect(swipeHintState(30, 40)).toEqual({ visible: false, target: null });
   });
 });

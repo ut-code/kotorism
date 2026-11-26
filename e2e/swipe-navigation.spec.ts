@@ -56,26 +56,49 @@ test("短い指の動きはフリックとみなさず、ページを移らな�
   await expect(page).toHaveURL(/\/history$/);
 });
 
-test("学習履歴の上に、左隣・右隣のページを左右の端に表示し、タップでも移動できる", async ({
-  page,
-}) => {
+// 指を画面中央から横に dx だけ動かしたまま止める（離さない）。離すときは release を呼ぶ
+async function dragWithoutRelease(page: Page, dx: number) {
+  await page.evaluate((dx) => {
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight / 2;
+    const target = document.elementFromPoint(x, y)!;
+    (window as unknown as { dragTarget: Element }).dragTarget = target;
+    const touch = (clientX: number) => new Touch({ identifier: 1, target, clientX, clientY: y });
+    target.dispatchEvent(
+      new TouchEvent("touchstart", {
+        bubbles: true,
+        touches: [touch(x)],
+        changedTouches: [touch(x)],
+      }),
+    );
+    target.dispatchEvent(
+      new TouchEvent("touchmove", {
+        bubbles: true,
+        touches: [touch(x + dx)],
+        changedTouches: [touch(x + dx)],
+      }),
+    );
+  }, dx);
+}
+
+test("指を横に動かしている間だけ、画面の左右の端に隣のページの名前を出す", async ({ page }) => {
   await page.goto("/history");
-  const hint = page.getByRole("navigation", { name: "ページの切り替え" });
-  // 左端は左隣のMy単語帳（指を右へ動かすと移る）、右端は右隣の学習教材（指を左へ動かすと移る）
-  const left = hint.getByRole("link", { name: /My単語帳/ });
-  const right = hint.getByRole("link", { name: /学習教材/ });
-  await expect(left).toBeVisible();
-  await expect(right).toBeVisible();
+  const labels = page.getByTestId("swipe-edge-labels");
+  // ふだんは出さない（パンくずリストに見えないように）
+  await expect(labels).toHaveCount(0);
 
-  // 画面の左端・右端に寄せて表示する
-  const leftBox = (await left.boundingBox())!;
-  const rightBox = (await right.boundingBox())!;
-  const width = page.viewportSize()!.width;
-  expect(leftBox.x).toBeLessThan(24);
-  expect(width - (rightBox.x + rightBox.width)).toBeLessThan(24);
+  await dragWithoutRelease(page, -80);
+  // 名前は画面の左右の端に固定して出す（外側の要素自体は大きさを持たない）
+  await expect(labels.getByText("My単語帳")).toBeVisible();
+  await expect(labels.getByText("学習教材")).toBeVisible();
 
-  await right.tap();
-  await expect(page).toHaveURL(/\/learn$/);
+  // 指を離す（中断する）と消える
+  await page.evaluate(() => {
+    const target = (window as unknown as { dragTarget: Element }).dragTarget;
+    target.dispatchEvent(new TouchEvent("touchcancel", { bubbles: true }));
+  });
+  await expect(labels).toHaveCount(0);
+  await expect(page).toHaveURL(/\/history$/);
 });
 
 test("フリックで右隣へ移るときは、ページを右から左へスライドさせる", async ({ page }) => {
@@ -96,35 +119,4 @@ test("フリックで右隣へ移るときは、ページを右から左へス�
   ).toEqual(["right"]);
   // アニメーションが終わったら印を外す（ほかの移動ではスライドさせない）
   await expect(page.locator("html")).not.toHaveAttribute("data-swipe");
-});
-
-test("フリックで移ったあと、ヘッダーの下の ◀ ▶ も移った先のページのものに変わる", async ({
-  page,
-}) => {
-  await page.goto("/history");
-  const switcher = page.getByRole("navigation", { name: "ページの切り替え" });
-  await expect(switcher).toHaveText("◀︎My単語帳学習教材▶︎");
-
-  await flick(page, -150);
-  await expect(page).toHaveURL(/\/learn$/);
-  await expect(page.locator("html")).not.toHaveAttribute("data-swipe");
-  await expect(switcher).toHaveText("◀︎最近の学習履歴My単語帳▶︎");
-});
-
-test("フリックのアニメーション中も、ヘッダーの下の ◀ ▶ は移った先のページの名前へ切り替わっていく", async ({
-  page,
-}) => {
-  await page.goto("/history");
-  await flick(page, -150);
-  // アニメーション中に動いている部分（::view-transition-new(...)）に ◀ ▶ の部分が含まれている
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        document.documentElement
-          .getAnimations({ subtree: true })
-          .map((animation) => (animation.effect as KeyframeEffect | null)?.pseudoElement ?? "")
-          .filter((name) => name.includes("vb-swipe-hint")),
-      ),
-    )
-    .toContain("::view-transition-new(vb-swipe-hint)");
 });

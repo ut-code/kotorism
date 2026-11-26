@@ -6,7 +6,13 @@ import ThemeToggle from "@/components/ThemeToggle";
 import BrandName from "@/components/BrandName";
 import type { AllLanguageSections } from "@/lib/shared/learn/content";
 
+// ログイン後の主な3つの場所（スマホのメニュー用）。左右フリックの並び（学習履歴を真ん中に My単語帳・学習教材）と同じ3つ
 const NAV_LINKS: HeaderNavLink[] = [
+  {
+    href: "/history",
+    label: "学習履歴",
+    hoverClassName: "hover:text-zinc-900 dark:hover:text-zinc-50",
+  },
   {
     href: "/my-notebooks",
     label: "My単語帳",
